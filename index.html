@@ -161,13 +161,16 @@ function setSpellDisplay(char,pinyin,hint=''){
 function updateUI(){
  dom.score.textContent=state.score;dom.lives.textContent=state.lives;
  dom.scoreLabel.textContent=t('score');dom.livesLabel.textContent=t('lives');
- dom.btnStart.textContent=t('start');dom.recordLabel.textContent=state.isRecording?t('recording'):t('record');
+ dom.btnStart.textContent=t('start');
+ dom.recordLabel.textContent=state.isRecording?t('recording'):t('record');
  dom.labelWand.textContent=t('wand');dom.labelBody.textContent=t('body');dom.labelForehead.textContent=t('forehead');dom.labelDefense.textContent=t('defense');
  renderEnemy();
  let hasEnemy=!!state.currentEnemy&&!state.battleLocked&&!state.enemyDefeated;
+ // 部位按鈕：錄音時禁用
  posBtns.forEach(b=>b.disabled=!hasEnemy||state.isRecording);
- dom.btnRecord.disabled=!state.currentEnemy||!state.currentSpellKey||state.isRecording||state.battleLocked||state.enemyDefeated;
- dom.btnStart.disabled=state.isRecording||state.battleLocked;
+ // 錄音按鈕：有敵人且選了咒語且未鎖定且未被擊敗，並且 (錄音中或非錄音中均可) 但錄音中不禁用
+ dom.btnRecord.disabled = !state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated;
+ dom.btnStart.disabled = state.isRecording || state.battleLocked;
  if(state.lives<=0){posBtns.forEach(b=>b.disabled=true);dom.btnRecord.disabled=true;dom.btnStart.disabled=false;}
  dom.langToggle.textContent=lang==='zh'?'EN / 中':'中 / EN';
 }
@@ -300,18 +303,18 @@ function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText){
     const ssb = {
      common: { app_id: appid },
      business: {
-      category: 'read_sentence', // 句子評測
+      category: 'read_sentence',
       sub: 'ise',
-      ent: 'cn_vip', // 中文
+      ent: 'cn_vip',
       tte: 'utf-8',
       cmd: 'ssb',
       auf: 'audio/L16;rate=16000',
       aue: 'raw',
       text: textWithBOM,
       ttp_skip: true,
-      rst: 'entirety', // 返回完整結果
+      rst: 'entirety',
       ise_unite: '1',
-      extra_ability: 'multi_dimension' // 獲取多維度分
+      extra_ability: 'multi_dimension'
      },
      data: { status: 0, data: '' }
     };
@@ -328,7 +331,7 @@ function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText){
     let offset = 0;
     const chunkSize = 1280;
     let frameCount = 0;
-    let aus = 1; // 第一幀
+    let aus = 1;
     while(offset < total){
      const end = Math.min(offset + chunkSize, total);
      const chunk = pcmBuffer.slice(offset, end);
@@ -361,10 +364,8 @@ function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText){
       return;
      }
      if(msg.data && msg.data.data){
-      // 解析 base64 解碼後的 XML
       const xmlStr = atob(msg.data.data);
       console.log('📄 XML 結果:', xmlStr);
-      // 解析 total_score
       const match = xmlStr.match(/total_score value="([\d.]+)"/);
       if(match){
        score = parseFloat(match[1]);
@@ -437,7 +438,7 @@ async function handleRecord(){
   dom.btnRecord.classList.add('recording');
   dom.recordLabel.textContent=t('recording');
   setFeedback(t('feedback_listening'),'info');
-  updateUI();
+  updateUI(); // 更新按鈕狀態（此時不禁用）
   try{
    await startPCMCapture();
   }catch(err){
@@ -449,6 +450,8 @@ async function handleRecord(){
   }
  }else{
   // 停止錄音，發送評測
+  // 立即禁用按鈕防止重複點擊
+  dom.btnRecord.disabled = true;
   state.isRecording=false;
   dom.btnRecord.classList.remove('recording');
   dom.recordLabel.textContent=t('record');
@@ -458,9 +461,14 @@ async function handleRecord(){
    const pcmBuffer = await stopPCMCapture();
    if(pcmBuffer.byteLength === 0){
     setFeedback('❌ 未錄到音頻，請重新嘗試','fail');
+    // 恢復按鈕
+    updateUI();
     return;
    }
    setFeedback('📡 連線訊飛評測中…','info');
+   // 評測期間禁用所有操作
+   dom.btnRecord.disabled = true;
+   posBtns.forEach(b=>b.disabled=true);
    const score = await evaluateWithXunfei(pcmBuffer, state.xfAppid, state.xfApiKey, state.xfApiSecret, spellKey);
    setFeedback(t('feedback_score',{score:score}),'info');
    const effect = getSpellEffect(spellKey, enemy.id);
@@ -469,10 +477,16 @@ async function handleRecord(){
    setFeedback(t('feedback_fail',{err:err.message}),'fail');
    await handleCounterAttack(false);
   }finally{
-   dom.btnRecord.disabled = true;
+   // 恢復按鈕狀態（updateUI會根據條件重新設置）
    updateUI();
-   if(state.battleLocked||state.enemyDefeated||state.lives<=0){posBtns.forEach(b=>b.disabled=true);dom.btnRecord.disabled=true;}
-   else{posBtns.forEach(b=>b.disabled=false);dom.btnRecord.disabled=!state.currentSpellKey;}
+   // 如果戰鬥已鎖定或敵人已擊敗，按鈕保持禁用
+   if(state.battleLocked||state.enemyDefeated||state.lives<=0){
+    posBtns.forEach(b=>b.disabled=true);
+    dom.btnRecord.disabled=true;
+   }else{
+    posBtns.forEach(b=>b.disabled=false);
+    dom.btnRecord.disabled=!state.currentSpellKey;
+   }
   }
  }
 }
