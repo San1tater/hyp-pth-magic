@@ -134,7 +134,6 @@ const ENEMIES=[
 {id:'voldemort',name_zh:'伏地魔',name_en:'Voldemort',emoji:'🐍',desc_zh:'黑魔王',desc_en:'Dark Lord',hint_zh:'解除武器',hint_en:'Disarm',hp:60},
 {id:'malfoy',name_zh:'馬爾福',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死徒',desc_en:'Death Eater',hint_zh:'冷靜',hint_en:'Calm',hp:60}
 ];
-// 修正拼音：統統 → tong1 tong1，昏昏 → hun1 hun1
 const SPELLS={
 '除你武器':{pinyin:'chu2 ni3 wu3 qi4',pos:'wand',label_zh:'魔杖',label_en:'Wand',effects:{dementor:'ineffective',voldemort:'effective',malfoy:'weak'},desc_zh:'繳械咒',desc_en:'Disarm'},
 '統統石化':{pinyin:'tong1 tong1 shi2 hua4',pos:'body',label_zh:'身體',label_en:'Body',effects:{dementor:'ineffective',voldemort:'ineffective',malfoy:'overkill'},desc_zh:'束縛咒',desc_en:'Petrify'},
@@ -291,7 +290,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 訊飛評測（正確提取 phone_score, tone_score, 均為0-10分制） =====
+// ===== 訊飛評測：正確解析多層XML結構 =====
 function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
  return new Promise((resolve,reject)=>{
   let ws=null,resolved=false,ssbConfirmed=false;
@@ -375,54 +374,71 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
        console.log('📄 XML 原始片段:', xmlStr.substring(0,300)+'...');
        const parser=new DOMParser();
        const xmlDoc=parser.parseFromString(xmlStr,'text/xml');
-       const root=xmlDoc.querySelector('read_word');
-       if(root){
-        const phoneScore = parseFloat(root.getAttribute('phone_score'));
-        const toneScore = parseFloat(root.getAttribute('tone_score'));
-        const totalScore = parseFloat(root.getAttribute('total_score'));
+       
+       // 关键修复：先找 rec_paper 下的 read_word，再找根节点
+       let targetNode = xmlDoc.querySelector('rec_paper > read_word');
+       if(!targetNode){
+        targetNode = xmlDoc.querySelector('read_word');
+       }
+       
+       if(targetNode){
+        const phoneScore = parseFloat(targetNode.getAttribute('phone_score'));
+        const toneScore = parseFloat(targetNode.getAttribute('tone_score'));
+        const totalScore = parseFloat(targetNode.getAttribute('total_score'));
         console.log(`📊 原始分數: phone=${phoneScore}, tone=${toneScore}, total=${totalScore}`);
 
         let rawScore = 0;
         if(!isNaN(phoneScore) && !isNaN(toneScore)){
-         // 取 phone 和 tone 的平均值（0-10）
          rawScore = (phoneScore + toneScore) / 2;
          console.log(`✅ 使用 phone+tone 平均: ${rawScore.toFixed(2)}`);
         } else if(!isNaN(totalScore)){
-         // 若 phone/tone 缺失，使用 total（注意 total 也可能是0-10）
          rawScore = totalScore;
          console.log(`⚠️ 使用 total_score: ${rawScore}`);
         } else {
          rawScore = 0;
          console.warn('❌ 無可用評分字段');
         }
-        // 轉為百分制（0-100）
-        let finalScore = Math.round(rawScore * 10);
-        // 確保範圍 0-100
+        // 轉為百分制
+        let finalScore;
+        if(rawScore <= 10){
+         finalScore = Math.round(rawScore * 10);
+        } else {
+         finalScore = Math.round(rawScore);
+        }
         finalScore = Math.max(0, Math.min(100, finalScore));
         console.log(`🎯 最終百分制評分: ${finalScore}`);
         if(!resolved){resolved=true;clearTimeout(timeoutId);ws.close();resolve(finalScore);}
         return;
        }
-       // 若無法解析 read_word，嘗試從其他節點提取
-       const totalMatch=xmlStr.match(/total_score="([\d.]+)"/);
-       if(totalMatch){
-        const total=parseFloat(totalMatch[1]);
-        if(!isNaN(total)){
-         let raw = total;
-         // 若 total 小於等於10，視為0-10分制，乘10；否則視為百分制
-         let finalScore;
-         if(total <= 10){
-          finalScore = Math.round(total * 10);
-         } else {
-          finalScore = Math.round(total);
-         }
-         finalScore = Math.max(0, Math.min(100, finalScore));
-         console.warn(`⚠️ 使用 total_score (${total}) 轉換為百分制: ${finalScore}`);
-         if(!resolved){resolved=true;clearTimeout(timeoutId);ws.close();resolve(finalScore);}
-         return;
-        }
+       
+       // 如果仍找不到，尝试正则匹配
+       const phoneMatch = xmlStr.match(/phone_score="([\d.]+)"/);
+       const toneMatch = xmlStr.match(/tone_score="([\d.]+)"/);
+       const totalMatch = xmlStr.match(/total_score="([\d.]+)"/);
+       if(phoneMatch && toneMatch){
+        const phone = parseFloat(phoneMatch[1]);
+        const tone = parseFloat(toneMatch[1]);
+        const raw = (phone + tone) / 2;
+        let finalScore = Math.round(raw * 10);
+        finalScore = Math.max(0, Math.min(100, finalScore));
+        console.log(`✅ 正則提取 phone=${phone}, tone=${tone} → 百分制: ${finalScore}`);
+        if(!resolved){resolved=true;clearTimeout(timeoutId);ws.close();resolve(finalScore);}
+        return;
        }
-       // 全部失敗
+       if(totalMatch){
+        const total = parseFloat(totalMatch[1]);
+        let finalScore;
+        if(total <= 10){
+         finalScore = Math.round(total * 10);
+        } else {
+         finalScore = Math.round(total);
+        }
+        finalScore = Math.max(0, Math.min(100, finalScore));
+        console.warn(`⚠️ 正則提取 total=${total} → 百分制: ${finalScore}`);
+        if(!resolved){resolved=true;clearTimeout(timeoutId);ws.close();resolve(finalScore);}
+        return;
+       }
+       
        if(!resolved){resolved=true;clearTimeout(timeoutId);ws.close();resolve(0);}
       }
      }catch(e){if(!resolved){resolved=true;clearTimeout(timeoutId);ws.close();reject(e);}}
