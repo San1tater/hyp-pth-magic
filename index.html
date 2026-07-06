@@ -191,15 +191,9 @@
             transition: width 0.45s ease;
             position: relative;
         }
-        .hp-bar-fill.low {
-            background: linear-gradient(90deg, #c02020, #e05050);
-        }
-        .hp-bar-fill.mid {
-            background: linear-gradient(90deg, #d08030, #f0a050);
-        }
-        .hp-bar-fill.high {
-            background: linear-gradient(90deg, #40a060, #60d080);
-        }
+        .hp-bar-fill.low { background: linear-gradient(90deg, #c02020, #e05050); }
+        .hp-bar-fill.mid { background: linear-gradient(90deg, #d08030, #f0a050); }
+        .hp-bar-fill.high { background: linear-gradient(90deg, #40a060, #60d080); }
         .hp-text {
             font-size: 0.7rem;
             color: #ddd0c0;
@@ -222,15 +216,8 @@
             text-shadow: 0 0 30px rgba(255, 60, 60, 0.6), 0 4px 20px rgba(0, 0, 0, 0.8);
             animation: floatUp 1.2s ease-out forwards;
         }
-        .damage-float.heal {
-            color: #60e090;
-            text-shadow: 0 0 30px rgba(60, 220, 120, 0.5), 0 4px 20px rgba(0, 0, 0, 0.8);
-        }
-        .damage-float.critical {
-            color: #ffd040;
-            text-shadow: 0 0 50px rgba(255, 200, 60, 0.7), 0 4px 20px rgba(0, 0, 0, 0.8);
-            font-size: 3.6rem;
-        }
+        .damage-float.heal { color: #60e090; text-shadow: 0 0 30px rgba(60, 220, 120, 0.5), 0 4px 20px rgba(0, 0, 0, 0.8); }
+        .damage-float.critical { color: #ffd040; text-shadow: 0 0 50px rgba(255, 200, 60, 0.7), 0 4px 20px rgba(0, 0, 0, 0.8); font-size: 3.6rem; }
         @keyframes floatUp {
             0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(0.8); }
             40% { opacity: 1; transform: translateX(-50%) translateY(-60px) scale(1.2); }
@@ -264,33 +251,12 @@
         }
         .positions .pos-btn .pos-icon { font-size: 2rem; }
         .positions .pos-btn .pos-label { font-weight: 400; font-size: 0.75rem; color: #c0b0a0; }
-        .positions .pos-btn:hover:not(:disabled) {
-            background: rgba(184, 150, 58, 0.12);
-            border-color: #b8963a;
-            transform: translateY(-2px);
-        }
-        .positions .pos-btn:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        .positions .pos-btn.active {
-            background: rgba(184, 150, 58, 0.18);
-            border-color: #f5d98a;
-            box-shadow: 0 0 30px rgba(184, 150, 58, 0.08);
-        }
-        .positions .pos-btn.defense {
-            border-color: rgba(80, 180, 200, 0.3);
-            background: rgba(80, 180, 200, 0.06);
-        }
-        .positions .pos-btn.defense:hover:not(:disabled) {
-            border-color: #60c8e0;
-            background: rgba(80, 180, 200, 0.15);
-        }
-        .positions .pos-btn.defense.active {
-            border-color: #80d8f0;
-            background: rgba(80, 180, 200, 0.2);
-        }
+        .positions .pos-btn:hover:not(:disabled) { background: rgba(184, 150, 58, 0.12); border-color: #b8963a; transform: translateY(-2px); }
+        .positions .pos-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+        .positions .pos-btn.active { background: rgba(184, 150, 58, 0.18); border-color: #f5d98a; box-shadow: 0 0 30px rgba(184, 150, 58, 0.08); }
+        .positions .pos-btn.defense { border-color: rgba(80, 180, 200, 0.3); background: rgba(80, 180, 200, 0.06); }
+        .positions .pos-btn.defense:hover:not(:disabled) { border-color: #60c8e0; background: rgba(80, 180, 200, 0.15); }
+        .positions .pos-btn.defense.active { border-color: #80d8f0; background: rgba(80, 180, 200, 0.2); }
 
         /* ===== 咒語顯示 ===== */
         .spell-display {
@@ -341,11 +307,7 @@
         }
         .action-row .btn-record:hover:not(:disabled) { transform: scale(1.02); border-color: rgba(220, 140, 160, 0.4); }
         .action-row .btn-record:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
-        .action-row .btn-record.recording {
-            background: linear-gradient(135deg, #c04040, #802020);
-            animation: pulse 1s infinite;
-            border-color: #ff6060;
-        }
+        .action-row .btn-record.recording { background: linear-gradient(135deg, #c04040, #802020); animation: pulse 1s infinite; border-color: #ff6060; }
         @keyframes pulse {
             0%, 100% { box-shadow: 0 0 20px rgba(200, 60, 60, 0.3); }
             50% { box-shadow: 0 0 50px rgba(200, 60, 60, 0.6); }
@@ -371,7 +333,6 @@
         .action-row .feedback.info { color: #b0c8e8; border-color: rgba(100, 150, 220, 0.15); background: rgba(60, 100, 180, 0.06); }
         .action-row .feedback.warn { color: #f0d080; border-color: rgba(220, 200, 80, 0.15); background: rgba(180, 160, 60, 0.06); }
 
-        /* ===== 響應式面版 ===== */
         @media (max-width: 480px) {
             .header h1 { font-size: 1.6rem; }
             .header h1 small { font-size: 0.7rem; }
@@ -591,9 +552,7 @@
                 return 'wss://' + host + path + '?authorization=' + encodeURIComponent(btoa(authOrigin)) + '&date=' + encodeURIComponent(date) + '&host=' + encodeURIComponent(host);
             }
 
-            // ============================================================
-            // 核心安全 Base64 轉換器
-            // ============================================================
+            // 優化高效能 Base64 轉換演算法，避免高頻調用時大數組棧溢出
             function Int16ArrayToBase64(int16Array) {
                 const bytes = new Uint8Array(int16Array.buffer);
                 let binary = ''; const len = bytes.byteLength;
@@ -604,7 +563,7 @@
             }
 
             // ============================================================
-            // 真正的實時流式傳輸控制核心
+            // 實時流式傳輸控制核心 (修正完畢版)
             // ============================================================
             function initXunfeiStream(spellText) {
                 return new Promise(async (resolve, reject) => {
@@ -624,7 +583,6 @@
                             let binaryStr = '';
                             for (let i = 0; i < utf8Bytes.length; i++) { binaryStr += String.fromCharCode(utf8Bytes[i]); }
 
-                            // 發送首幀 (status: 0)
                             const ssb = {
                                 common: { app_id: state.xfAppid },
                                 business: { category: 'read_word', sub: 'ise', ent: 'cn_vip', tte: 'utf-8', cmd: 'ssb', auf: 'audio/L16;rate=16000', aue: 'raw', text: btoa(binaryStr), ttp_skip: true, rst: 'entirety', ise_unite: '1', extra_ability: 'multi_dimension' },
@@ -682,29 +640,41 @@
             }
 
             // ============================================================
-            // 錄音與實時推送整合
+            // 錄音監聽與安全精確重採樣 (16000Hz Downsampling)
             // ============================================================
             function startRealtimeRecording() {
                 return new Promise((resolve, reject) => {
-                    navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true } })
-                        .then(async stream => {
-                            if (!state.audioContext) state.audioContext = new(window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-                            if (state.audioContext.state === 'suspended') await state.audioContext.resume();
+                    // 不依賴寫死採樣率，交給內部的抽取算法解決適配問題
+                    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
+                        .then(stream => {
+                            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                            state.audioContext = new AudioCtx();
+                            
+                            const inputSampleRate = state.audioContext.sampleRate;
+                            console.log(`🎤 瀏覽器硬體實際採樣率: ${inputSampleRate}Hz`);
                             
                             const source = state.audioContext.createMediaStreamSource(stream);
                             const processor = state.audioContext.createScriptProcessor(4096, 1, 1);
                             
-                            // 真正即時流：當麥克風收到聲音緩衝，直接不回頭轉碼發送！
+                            // [關鍵修正] 進行高保真等比抽取下採樣，完美將任意硬體採樣率（如 48k）校準為 16k
                             processor.onaudioprocess = (e) => {
                                 if (!state.wsConnected || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
                                 
-                                const data = e.inputBuffer.getChannelData(0);
-                                const pcm = new Int16Array(data.length);
-                                for (let i = 0; i < data.length; i++) {
-                                    pcm[i] = Math.round(Math.max(-1, Math.min(1, data[i])) * 32767);
+                                const inputData = e.inputBuffer.getChannelData(0);
+                                
+                                // 重採樣計算
+                                const targetSampleRate = 16000;
+                                const compression = inputSampleRate / targetSampleRate;
+                                const length = Math.floor(inputData.length / compression);
+                                const pcm = new Int16Array(length);
+                                
+                                for (let i = 0; i < length; i++) {
+                                    let index = Math.floor(i * compression);
+                                    let sample = inputData[index];
+                                    pcm[i] = Math.round(Math.max(-1, Math.min(1, sample)) * 32767);
                                 }
                                 
-                                // 中間幀發送 (status: 1)
+                                // 發送中間幀 (status: 1)
                                 const base64Data = Int16ArrayToBase64(pcm);
                                 const frame = {
                                     business: { cmd: 'auw', aus: 2, aue: 'raw' },
@@ -723,13 +693,7 @@
             }
 
             async function stopRealtimeRecording() {
-                if (state.processor && state.stream) {
-                    state.source.disconnect(); state.processor.disconnect();
-                    state.stream.getTracks().forEach(t => t.stop());
-                    if (state.audioContext) await state.audioContext.suspend();
-                }
-
-                // 錄音停止時，向伺服器發送最後一幀結束宣告 (status: 2)
+                // 優先向伺服器補發結束宣告幀 (status: 2)
                 if (state.ws && state.ws.readyState === WebSocket.OPEN) {
                     const finalFrame = {
                         business: { cmd: 'auw', aus: 4, aue: 'raw' },
@@ -738,25 +702,43 @@
                     state.ws.send(JSON.stringify(finalFrame));
                     console.log('📤 已通知伺服器：音頻串流結束 (status: 2)');
                 }
+
+                // 徹底斷開節點、關閉Context，清除記憶體，防止洩漏
+                if (state.processor) {
+                    try { state.processor.onaudioprocess = null; state.processor.disconnect(); } catch(e){}
+                    state.processor = null;
+                }
+                if (state.source) {
+                    try { state.source.disconnect(); } catch(e){}
+                    state.source = null;
+                }
+                if (state.stream) {
+                    try { state.stream.getTracks().forEach(t => t.stop()); } catch(e){}
+                    state.stream = null;
+                }
+                if (state.audioContext) {
+                    try { await state.audioContext.close(); } catch(e){}
+                    state.audioContext = null;
+                }
             }
 
             // ============================================================
-            // 遊戲邏輯與流程
+            // 遊戲邏輯與對決流程
             // ============================================================
             async function handleRecord() {
                 if (!state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated) return;
                 const spellKey = state.currentSpellKey, enemy = state.currentEnemy;
 
                 if (!state.isRecording) {
-                    // 【第一步】先打開 WebSocket 與初始化訊飛
                     setFeedback(t('feedback_connecting'), 'info');
                     dom.btnRecord.disabled = true;
                     
                     try {
-                        // 建立異步評測 promise 的監聽
+                        // 1. 先安全拉起 WebSocket 流
                         const evalPromise = initXunfeiStream(spellKey);
 
-                        // 【第二步】麥克風啟動並啟動即時傳輸
+                        // 2. 確保連線初始化完畢（加上少許緩衝防競態），再掛載麥克風硬體
+                        await sleep(150);
                         await startRealtimeRecording();
                         
                         state.isRecording = true;
@@ -766,7 +748,7 @@
                         setFeedback(t('feedback_listening'), 'info');
                         updateUI();
 
-                        // 背景守候最終辨識結果
+                        // 3. 後台靜靜等待承諾返回最終結果
                         evalPromise.then(async (score) => {
                             setFeedback(t('feedback_score', { score: score }), 'info');
                             await handleBattleResult(getSpellEffect(spellKey, enemy.id), spellKey, enemy, score);
@@ -783,6 +765,7 @@
 
                     } catch (err) {
                         setFeedback(t('feedback_fail', { err: err.message }), 'fail');
+                        await stopRealtimeRecording();
                         cleanupWebSocket();
                         state.isRecording = false;
                         dom.btnRecord.classList.remove('recording');
@@ -790,14 +773,13 @@
                         updateUI();
                     }
                 } else {
-                    // 使用者主動按下「停止錄音」
                     dom.btnRecord.disabled = true;
                     state.isRecording = false;
                     dom.btnRecord.classList.remove('recording');
                     dom.recordLabel.textContent = t('record');
                     setFeedback(t('feedback_stopping'), 'info');
                     
-                    // 終止硬體錄製，並補發結束訊號給伺服器，接下來等待上面的 evalPromise 自行回傳
+                    // 斷開硬體並宣告發送 status:2
                     await stopRealtimeRecording();
                 }
             }
