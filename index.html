@@ -150,6 +150,11 @@ const SIMPLIFIED_MAP = {
   '呼神護衛':'呼神护卫'
 };
 
+// 將拼音字符串拆分為單字拼音數組（按 '|' 分割）
+function splitPinyin(pinyinStr) {
+  return pinyinStr.split('|');
+}
+
 const state={
 score:0,lives:3,currentEnemy:null,currentSpellKey:null,isRecording:false,
 battleLocked:false,enemyDefeated:false,enemyHp:0,maxEnemyHp:60,enemyStatus:'default',
@@ -298,7 +303,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 讯飞评测：根据咒语选择题型（呼神护卫特殊处理） =====
+// ===== 讯飞评测：统一使用 read_syllable（单字评测），逐字拼音分行 =====
 function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
  return new Promise((resolve,reject)=>{
   let ws=null,resolved=false,ssbConfirmed=false;
@@ -315,19 +320,19 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
     ws.onopen=()=>{
      console.log('✅ WebSocket 已連線');
      
-     // ----- 题型选择与文本构造 -----
-     let category = 'read_word';
-     let text = SIMPLIFIED_MAP[spellKey] || spellKey; // 默认转为简体
-     
-     // 特例：呼神护卫使用 read_sentence 并加句号
-     if (spellKey === '呼神護衛') {
-       category = 'read_sentence';
-       text = '呼神护卫。';  // 句号作为句子结束，不影响拼音
+     // ---- 核心修改：使用 read_syllable，逐字分行 ----
+     const category = 'read_syllable';  // 单字评测
+     const simplified = SIMPLIFIED_MAP[spellKey] || spellKey;
+     const chars = simplified.split('');  // 拆成单个字符
+     const pinyinList = splitPinyin(SPELLS[spellKey].pinyin);
+     // 构造试卷：<customizer:interphonic> 换行，然后每行一个字，下一行拼音
+     let paperLines = ['<customizer:interphonic>'];
+     for (let i = 0; i < chars.length; i++) {
+       paperLines.push(chars[i]);
+       paperLines.push(pinyinList[i] || '');  // 确保拼音数量匹配
      }
+     const paper = paperLines.join('\n');
      
-     const pinyin = SPELLS[spellKey].pinyin;
-     // 标准换行格式：<customizer:interphonic> 换行 文本 换行 拼音
-     const paper = `<customizer:interphonic>\n${text}\n${pinyin}`;
      console.log('📝 發送試卷 (category: '+category+'):\n', paper);
      
      const ssb={
@@ -396,7 +401,8 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
 
        let parser=new DOMParser();
        let xmlDoc=parser.parseFromString(xmlStr,'text/xml');
-       let root=xmlDoc.querySelector('read_word') || xmlDoc.querySelector('sentence') || xmlDoc.querySelector('read_sentence');
+       // 对于 read_syllable，根节点是 read_syllable
+       let root=xmlDoc.querySelector('read_syllable') || xmlDoc.querySelector('sentence') || xmlDoc.querySelector('read_word') || xmlDoc.querySelector('read_sentence');
        let phoneScore=null, toneScore=null, totalScore=null;
 
        if(root){
