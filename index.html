@@ -115,7 +115,7 @@ wand:'Wand',body:'Body',forehead:'Forehead',defense:'Defense',spell_empty:'🔮 
 record:'Record',recording:'Stop',feedback_wait:'💬 Awaiting action…',feedback_encounter:'⚔️ Encountered {name}! Choose a spell!',
 feedback_spell_ready:'🔮 Ready to cast "{spell}"',feedback_listening:'🎤 Recording… click again to stop',
 feedback_score:'📊 Score (0-100): {score}',feedback_fail:'❌ Error: {err}',feedback_weak:'⚠️ "{spell}" weak effect!',
-feedback_dodge:'Dodged counterattack! Try again!',feedback_dodge_fail:'💥 Failed to dodge!',
+feedback_dodge:'🌀 Dodged counterattack! Try again!',feedback_dodge_fail:'💥 Failed to dodge!',
 feedback_ineffective:'💔 "{spell}" no effect on {enemy}!',feedback_overkill:'🔥 "{spell}" overkill! Not encouraged!',
 feedback_overkill_penalty:'⚖️ Penalty -5 points.',feedback_hit:'💀 Hit! Lives left: {lives}',
 feedback_gameover:'💀 You fell… Click "Start" to restart',feedback_retry:'🔄 Continue fighting {name}, choose a spell!',
@@ -137,10 +137,10 @@ const ENEMIES=[
 {id:'malfoy',name_zh:'馬爾福',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死徒',desc_en:'Death Eater',hint_zh:'冷靜',hint_en:'Calm',hp:60}
 ];
 const SPELLS={
-'除你武器':{pinyin:'ch u 2 n i 3 u 3 q i 4',pos:'wand',label_zh:'魔杖',label_en:'Wand',effects:{dementor:'ineffective',voldemort:'effective',malfoy:'weak'},desc_zh:'繳械咒',desc_en:'Disarm'},
-'統統石化':{pinyin:'t ong 1 t ong 1 sh i 2 h ua 4',pos:'body',label_zh:'身體',label_en:'Body',effects:{dementor:'ineffective',voldemort:'ineffective',malfoy:'overkill'},desc_zh:'束縛咒',desc_en:'Petrify'},
-'昏昏倒地':{pinyin:'h un 1 h un 1 d ao 3 d i 4',pos:'forehead',label_zh:'額頭',label_en:'Forehead',effects:{dementor:'weak',voldemort:'weak',malfoy:'effective'},desc_zh:'昏迷咒',desc_en:'Stun'},
-'呼神護衛':{pinyin:'h u 1 sh en 2 h u 4 ui 4',pos:'defense',label_zh:'自衛',label_en:'Defense',effects:{dementor:'effective',voldemort:'ineffective',malfoy:'ineffective'},desc_zh:'守護咒',desc_en:'Patronus'}
+'除你武器':{pinyin:'chu2|ni3|u3|qi4',pos:'wand',label_zh:'魔杖',label_en:'Wand',effects:{dementor:'ineffective',voldemort:'effective',malfoy:'weak'},desc_zh:'繳械咒',desc_en:'Disarm'},
+'統統石化':{pinyin:'tong1|tong1|shi2|hua4',pos:'body',label_zh:'身體',label_en:'Body',effects:{dementor:'ineffective',voldemort:'ineffective',malfoy:'overkill'},desc_zh:'束縛咒',desc_en:'Petrify'},
+'昏昏倒地':{pinyin:'hun1|hun1|dao3|di4',pos:'forehead',label_zh:'額頭',label_en:'Forehead',effects:{dementor:'weak',voldemort:'weak',malfoy:'effective'},desc_zh:'昏迷咒',desc_en:'Stun'},
+'呼神護衛':{pinyin:'hu1|shen2|hu4|ui4',pos:'defense',label_zh:'自衛',label_en:'Defense',effects:{dementor:'effective',voldemort:'ineffective',malfoy:'ineffective'},desc_zh:'守護咒',desc_en:'Patronus'}
 };
 const POS_TO_SPELL={wand:'除你武器',body:'統統石化',forehead:'昏昏倒地',defense:'呼神護衛'};
 
@@ -308,12 +308,12 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText,
 
     ws.onopen=()=>{
      console.log('✅ WebSocket 已連線');
-     // 选择题型：除你武器和呼神護衛优先用 read_sentence，其他用 read_word
+     // 选择题型：除你武器和呼神護衛優先用 read_sentence，其他用 read_word
      let category = 'read_word';
      if (spellKey === '除你武器' || spellKey === '呼神護衛') {
        category = 'read_sentence';
      }
-     // 若重试则改用 read_word（部分词可能 sentence 不行）
+     // 若重試則改用 read_word（部分詞可能 sentence 不行）
      if(retry && (spellKey === '除你武器' || spellKey === '呼神護衛')){
        category = 'read_word';
      }
@@ -350,10 +350,10 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText,
       if(msg.code!==0){
        if(!resolved){
         resolved=true;clearTimeout(timeoutId);ws.close();
-        // 如果是48195且未重试，则发起重试（切换题型）
+        // 如果是48195且未重試，則發起重試（切換題型）
         if(msg.code===48195 && !retry && (spellKey==='除你武器'||spellKey==='呼神護衛')){
          console.warn('⚠️ 48195錯誤，切換題型重試...');
-         // 重新调用，标记为重试
+         // 重新調用，標記為重試
          evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText,true)
           .then(score=>resolve(score))
           .catch(err=>reject(err));
@@ -514,7 +514,7 @@ async function handleRecord(){
   let pcmBuffer;
   try{pcmBuffer=await stopPCMCapture();}catch(err){setFeedback(t('feedback_fail',{err:err.message}),'fail');dom.btnRecord.disabled=false;updateUI();return;}
   if(pcmBuffer.byteLength===0){setFeedback('❌ 未錄到音頻，請重新嘗試','fail');dom.btnRecord.disabled=false;updateUI();return;}
-  // 检查录音时长（至少0.3秒，即 16000*0.3=4800 个样本）
+  // 檢查錄音時長（至少0.3秒，即 16000*0.3=4800 個樣本）
   const sampleCount = pcmBuffer.byteLength / 2; // 16-bit
   if(sampleCount < 4800){
    setFeedback(t('feedback_too_short'),'warn');
@@ -530,10 +530,10 @@ async function handleRecord(){
    await handleBattleResult(effect,spellKey,enemy,score);
   }catch(err){
    console.error('❌ 評測錯誤:',err);
-   // 如果是48195，提示用户重试（不触发反击）
+   // 如果是48195，提示用戶重試（不觸發反擊）
    if(err.message && err.message.includes('48195')){
     setFeedback('⚠️ 該咒語評測暫時不可用，請換一個咒語或重新嘗試。','warn');
-    // 重置战斗状态，不扣血，允许重新选择
+    // 重置戰鬥狀態，不扣血，允許重新選擇
     state.battleLocked=false;
     state.currentSpellKey=null;
     setSpellDisplay(null);
@@ -565,7 +565,6 @@ async function handleBattleResult(effect,spellKey,enemy,score){
   case 'overkill':damage=Math.round(score*5);state.score=Math.max(0,state.score-5);setFeedback(t('feedback_overkill_penalty'),'warn');break;
  }
  const hpLost=Math.min(damage,state.enemyHp);
- state.score=Math.max(0,state.score); // 防止分數變成負數
  state.enemyHp=Math.max(0,state.enemyHp-hpLost);
  renderEnemy();
  await sleep(100);
