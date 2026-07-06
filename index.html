@@ -298,7 +298,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 讯飞评测：统一使用 read_word + 标准换行格式 =====
+// ===== 讯飞评测：根据咒语选择题型（呼神护卫特殊处理） =====
 function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
  return new Promise((resolve,reject)=>{
   let ws=null,resolved=false,ssbConfirmed=false;
@@ -314,13 +314,22 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
 
     ws.onopen=()=>{
      console.log('✅ WebSocket 已連線');
-     // 1. 固定使用 read_word
-     const category='read_word';
-     // 2. 將咒語文本轉為簡體（確保引擎識別）
-     const simplified = SIMPLIFIED_MAP[spellKey] || spellKey;
-     // 3. 標準換行格式：標籤無空格，漢字一行，拼音一行
-     const paper = `<customizer:interphonic>\n${simplified}\n${SPELLS[spellKey].pinyin}`;
+     
+     // ----- 题型选择与文本构造 -----
+     let category = 'read_word';
+     let text = SIMPLIFIED_MAP[spellKey] || spellKey; // 默认转为简体
+     
+     // 特例：呼神护卫使用 read_sentence 并加句号
+     if (spellKey === '呼神護衛') {
+       category = 'read_sentence';
+       text = '呼神护卫。';  // 句号作为句子结束，不影响拼音
+     }
+     
+     const pinyin = SPELLS[spellKey].pinyin;
+     // 标准换行格式：<customizer:interphonic> 换行 文本 换行 拼音
+     const paper = `<customizer:interphonic>\n${text}\n${pinyin}`;
      console.log('📝 發送試卷 (category: '+category+'):\n', paper);
+     
      const ssb={
       common:{app_id:appid},
       business:{
@@ -425,7 +434,6 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
          console.warn('❌ 無可用評分字段');
         }
        }
-       // 修正：rawScore 已是百分制，直接四捨五入（不要乘以10）
        let finalScore = Math.round(rawScore);
        finalScore = Math.max(0, Math.min(100, finalScore));
        console.log(`🎯 最終百分制評分: ${finalScore}`);
