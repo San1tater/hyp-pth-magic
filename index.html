@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>哈利波特·魔法對決</title>
+    <title>哈利波特 · 魔法對決</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Noto Sans TC','Segoe UI',sans-serif;background:#0a0a12;overflow:hidden;height:100vh;display:flex;align-items:center;justify-content:center}
@@ -292,7 +292,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 讯飞评测（所有咒语统一使用 read_word，不重试） =====
+// ===== 讯飞评测（统一 read_word，格式符合文档） =====
 function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
  return new Promise((resolve,reject)=>{
   let ws=null,resolved=false,ssbConfirmed=false;
@@ -308,9 +308,9 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
 
     ws.onopen=()=>{
      console.log('✅ WebSocket 已連線');
-     // 固定使用 read_word 模式（所有咒语统一）
+     // 修正：按照文档格式，每行一个词，下一行拼音
      const pinyinStr = SPELLS[spellKey].pinyin;
-     const paper = '<customizer:interphonic>\n' + spellText + ' ' + pinyinStr;
+     const paper = `<customizer: interphonic>\n${spellText}\n${pinyinStr}`;
      console.log('📝 發送試卷 (category: read_word):\n', paper);
      const ssb={
       common:{app_id:appid},
@@ -512,7 +512,6 @@ async function handleRecord(){
    await handleBattleResult(effect,spellKey,enemy,score);
   }catch(err){
    console.error('❌ 評測錯誤:',err);
-   // 如果是48195，提示用户换咒语（不扣血）
    if(err.message && err.message.includes('48195')){
     setFeedback('⚠️ 該咒語評測暫時不可用，請換一個咒語或重新嘗試。','warn');
     state.battleLocked=false;
