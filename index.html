@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>哈利波特 · 魔法對決</title>
     <style>
-        /* 样式完全保留，无改动 */
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Noto Sans TC','Segoe UI',sans-serif;background:#0a0a12;overflow:hidden;height:100vh;display:flex;align-items:center;justify-content:center}
         .container{width:100vw;height:100vh;max-width:100%;background:linear-gradient(160deg,#1a1025,#0f0a1a);border:2px solid #b8963a;padding:16px 20px;display:flex;flex-direction:column;overflow-y:auto}
@@ -298,7 +297,7 @@ function updateUI(){
  dom.langToggle.textContent=lang==='zh'?'EN / 中':'中 / EN';
 }
 
-// ---------- WebSocket 鉴权（复用） ----------
+// ---------- WebSocket 鉴权（通用） ----------
 async function buildWsUrl(apiKey, apiSecret, appid, host, path) {
     const date = new Date().toUTCString();
     const signStr = 'host: '+host+'\n'+'date: '+date+'\n'+'GET '+path+' HTTP/1.1';
@@ -362,17 +361,23 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 语音听写（非流式） =====
+// ===== 语音听写（一次性发送全部音频，等待完整结果） =====
 function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
     return new Promise((resolve, reject) => {
         const host = 'iat-api.xfyun.cn';
         const path = '/v2/iat';
-        let ws = null, resolved = false, ssbConfirmed = false;
+        let ws = null;
+        let resolved = false;
+        let audioSent = false;
+        
         let timeoutId = setTimeout(() => {
-            if (!resolved) { if (ws && ws.readyState === WebSocket.OPEN) ws.close(); reject(new Error('連線逾時')); }
-        }, 15000);
+            if (!resolved) {
+                if (ws && ws.readyState === WebSocket.OPEN) ws.close();
+                reject(new Error('連線逾時'));
+            }
+        }, 20000);
 
-        (async function(){
+        (async function() {
             try {
                 const url = await buildWsUrl(apiKey, apiSecret, appid, host, path);
                 console.log('🔗 連線聽寫 URL:', url);
@@ -380,7 +385,8 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
 
                 ws.onopen = () => {
                     console.log('✅ 聽寫 WebSocket 已連線');
-                    const ssb = {
+                    // 发送开始帧
+                    const startFrame = {
                         common: { app_id: appid },
                         business: {
                             cmd: 'ssb',
@@ -393,67 +399,153 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
                         },
                         data: { status: 0, data: '' }
                     };
-                    ws.send(JSON.stringify(ssb));
-                    console.log('📤 聽寫 ssb 已發送');
+                    ws.send(JSON.stringify(startFrame));
+                    console.log('📤 開始幀已發送');
                 };
 
                 ws.onmessage = (ev) => {
                     try {
                         const msg = JSON.parse(ev.data);
                         console.log('📩 聽寫收到:', msg);
+
                         if (msg.code !== 0) {
-                            if (!resolved) { resolved = true; clearTimeout(timeoutId); ws.close(); reject(new Error('聽寫錯誤 '+msg.code+': '+msg.message)); }
+                            if (!resolved) {
+                                resolved = true;
+                                clearTimeout(timeoutId);
+                                ws.close();
+                                reject(new Error('聽寫錯誤 ' + msg.code + ': ' + msg.message));
+                            }
                             return;
                         }
-                        if (!ssbConfirmed && (!msg.data || !msg.data.data)) {
-                            ssbConfirmed = true;
-                            console.log('✅ 聽寫 ssb 確認，開始發送音頻');
-                            const total = pcmBuffer.byteLength;
-                            if (total === 0) { if (!resolved) { resolved = true; ws.close(); reject(new Error('空音頻')); } return; }
-                            const chunkSize = 640;
-                            let offset = 0, frameCount = 0;
-                            const sendNext = () => {
-                                if (ws.readyState !== WebSocket.OPEN) {
-                                    if (!resolved) { resolved = true; clearTimeout(timeoutId); reject(new Error('連線中斷')); }
-                                    return;
-                                }
-                                if (offset >= total) {
-                                    console.log('📤 音頻發送完畢，幀數:', frameCount);
-                                    return;
-                                }
-                                const end = Math.min(offset + chunkSize, total);
-                                const chunk = pcmBuffer.slice(offset, end);
-                                const isFirst = (frameCount === 0), isLast = (end === total);
-                                const aus = isFirst ? 1 : (isLast ? 4 : 2);
-                                const frame = { business: { cmd: 'auw', aus: aus, aue: 'raw' }, data: { status: isLast ? 2 : 1, data: btoa(String.fromCharCode(...new Uint8Array(chunk))) } };
-                                ws.send(JSON.stringify(frame));
-                                frameCount++; offset = end;
-                                setTimeout(sendNext, 30);
-                            };
-                            sendNext();
+
+                        // 收到 ssb 确认后，开始发送音频
+                        if (!audioSent && msg.data && msg.data.status === 0 && !msg.data.data) {
+                            audioSent = true;
+                            console.log('✅ ssb 確認，開始發送音頻');
+                            sendAudio();
                             return;
                         }
-                        // 处理结果
+
+                        // 收到识别结果
                         if (msg.data && msg.data.data) {
-                            const result = JSON.parse(atob(msg.data.data));
-                            console.log('📄 聽寫結果:', result);
-                            if (result.text) {
-                                let recognized = result.text;
-                                recognized = recognized.replace(/[，。！？,.!?]$/, '');
-                                if (!resolved) { resolved = true; clearTimeout(timeoutId); ws.close(); resolve(recognized); }
-                            } else {
-                                if (!resolved) { resolved = true; clearTimeout(timeoutId); ws.close(); resolve(''); }
+                            try {
+                                const result = JSON.parse(atob(msg.data.data));
+                                console.log('📄 聽寫結果:', result);
+                                let recognized = '';
+                                if (result.text) {
+                                    recognized = result.text;
+                                } else if (result.iat && result.iat.text) {
+                                    recognized = result.iat.text;
+                                }
+                                if (recognized) {
+                                    recognized = recognized.replace(/[，。！？,.!?]$/, '');
+                                    if (!resolved) {
+                                        resolved = true;
+                                        clearTimeout(timeoutId);
+                                        ws.close();
+                                        resolve(recognized);
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn('解析結果失敗:', e);
                             }
                         }
-                    } catch (e) { if (!resolved) { resolved = true; clearTimeout(timeoutId); ws.close(); reject(e); } }
+                    } catch (e) {
+                        if (!resolved) {
+                            resolved = true;
+                            clearTimeout(timeoutId);
+                            ws.close();
+                            reject(e);
+                        }
+                    }
                 };
+
+                function sendAudio() {
+                    const total = pcmBuffer.byteLength;
+                    if (total === 0) {
+                        if (!resolved) {
+                            resolved = true;
+                            clearTimeout(timeoutId);
+                            ws.close();
+                            reject(new Error('空音頻'));
+                        }
+                        return;
+                    }
+
+                    const chunkSize = 1280;
+                    let offset = 0;
+                    let frameCount = 0;
+
+                    function sendNextChunk() {
+                        if (ws.readyState !== WebSocket.OPEN) {
+                            if (!resolved) {
+                                resolved = true;
+                                clearTimeout(timeoutId);
+                                reject(new Error('連線中斷'));
+                            }
+                            return;
+                        }
+
+                        if (offset >= total) {
+                            // 发送结束帧
+                            console.log('📤 音頻發送完畢，總幀數:', frameCount);
+                            const endFrame = {
+                                business: { cmd: 'auw', aus: 4, aue: 'raw' },
+                                data: { status: 2, data: '' }
+                            };
+                            ws.send(JSON.stringify(endFrame));
+                            console.log('📤 結束幀已發送');
+                            // 等待服务器返回最终结果
+                            return;
+                        }
+
+                        const end = Math.min(offset + chunkSize, total);
+                        const chunk = pcmBuffer.slice(offset, end);
+                        const isFirst = (frameCount === 0);
+                        const aus = isFirst ? 1 : 2;
+                        const frame = {
+                            business: { cmd: 'auw', aus: aus, aue: 'raw' },
+                            data: {
+                                status: 1,
+                                data: btoa(String.fromCharCode(...new Uint8Array(chunk)))
+                            }
+                        };
+                        ws.send(JSON.stringify(frame));
+                        frameCount++;
+                        offset = end;
+
+                        // 继续发送下一帧
+                        setTimeout(sendNextChunk, 20);
+                    }
+
+                    sendNextChunk();
+                }
+
                 ws.onerror = (err) => {
-                    if (!resolved) { resolved = true; clearTimeout(timeoutId); ws.close(); reject(new Error('WebSocket 錯誤')); }
+                    if (!resolved) {
+                        resolved = true;
+                        clearTimeout(timeoutId);
+                        ws.close();
+                        reject(new Error('WebSocket 錯誤'));
+                    }
                 };
+
                 ws.onclose = (ev) => {
-                    if (!resolved) { resolved = true; clearTimeout(timeoutId); reject(new Error('連線關閉 (code:'+ev.code+')')); }
+                    if (!resolved) {
+                        resolved = true;
+                        clearTimeout(timeoutId);
+                        reject(new Error('連線關閉 (code:' + ev.code + ')'));
+                    }
                 };
-            } catch (e) { if (!resolved) { resolved = true; clearTimeout(timeoutId); if (ws) ws.close(); reject(e); } }
+
+            } catch (e) {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timeoutId);
+                    if (ws) ws.close();
+                    reject(e);
+                }
+            }
         })();
     });
 }
