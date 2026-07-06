@@ -113,7 +113,7 @@
             transform: none;
         }
 
-        /* ===== 敵人區域 (更大) ===== */
+        /* ===== 敵人區域 ===== */
         .enemy-area {
             background: rgba(0, 0, 0, 0.5);
             border-radius: 28px;
@@ -556,95 +556,44 @@
         (function() {
             'use strict';
 
-            // ============================================================
-            //  多語言
-            // ============================================================
             const LANG = {
                 zh: {
-                    score: '分數',
-                    lives: '生命',
-                    start: '開始冒險',
-                    enemy_default: '🪄 點擊「開始冒險」迎接挑戰',
-                    wand: '魔杖',
-                    body: '身體',
-                    forehead: '額頭',
-                    defense: '自衛',
-                    spell_empty: '🔮 選擇一個部位以顯示咒語',
-                    record: '開始唸咒',
-                    recording: '停止錄音',
-                    feedback_wait: '💬 等待你的行動…',
-                    feedback_encounter: '⚔️ 遭遇了 {name}！選擇咒語！',
-                    feedback_spell_ready: '🔮 準備唸出「{spell}」',
-                    feedback_listening: '🎤 錄音中，再次點擊按鈕停止…',
-                    feedback_score: '📊 評分：{score} 分',
-                    feedback_fail: '❌ 錯誤: {err}',
-                    feedback_weak: '⚠️ 「{spell}」效果微弱！',
-                    feedback_dodge: '🌀 成功閃避反擊！再試一次！',
-                    feedback_dodge_fail: '💥 閃避失敗，遭受反擊！',
-                    feedback_ineffective: '💔 「{spell}」對 {enemy} 無效！',
-                    feedback_overkill: '🔥 「{spell}」過度強大！不被鼓勵！',
-                    feedback_overkill_penalty: '⚖️ 濫用強大咒語，扣除 5 分。',
-                    feedback_hit: '💀 反擊命中！剩餘生命：{lives}',
-                    feedback_gameover: '💀 你倒下了… 點擊「開始冒險」重來',
-                    feedback_retry: '🔄 繼續挑戰 {name}，選擇咒語！',
-                    feedback_restart: '🔄 遊戲重啟！',
-                    feedback_victory: '🎉 成功擊敗 {name}！ +{score} 分{bonus}',
-                    bonus_perfect: ' 🌟 完美咒語！額外 +5 分！',
-                    bonus_great: ' ✨ 出色的咒語！額外 +2 分！',
-                    feedback_next: '⚔️ 準備迎接下一場戰鬥！',
-                    enemy_status_default: '現身',
-                    enemy_status_expelliarmus: '被除你武器',
-                    enemy_status_stupefy: '被昏昏倒地',
-                    enemy_status_petrificus: '被統統石化',
-                    enemy_status_patronus: '被呼神護衛',
-                    enemy_status_attacking: '攻擊！',
-                    enemy_status_defeated: '被擊敗',
-                    feedback_stopping: '⏹️ 錄音停止，傳送評測…',
-                    feedback_connecting: '📡 連線訊飛評測中…',
-                    hp_label: '生命值'
+                    score: '分數', lives: '生命', start: '開始冒險', enemy_default: '🪄 點擊「開始冒險」迎接挑戰',
+                    wand: '魔杖', body: '身體', forehead: '額頭', defense: '自衛',
+                    spell_empty: '🔮 選擇一個部位以顯示咒語', record: '開始唸咒', recording: '停止錄音',
+                    feedback_wait: '💬 等待你的行動…', feedback_encounter: '⚔️ 遭遇了 {name}！選擇咒語！',
+                    feedback_spell_ready: '🔮 準備唸出「{spell}」', feedback_listening: '🎤 錄音中，再次點擊按鈕停止…',
+                    feedback_score: '📊 評分：{score} 分', feedback_fail: '❌ 錯誤: {err}', feedback_weak: '⚠️ 「{spell}」效果微弱！',
+                    feedback_dodge: '🌀 成功閃避反擊！再試一次！', feedback_dodge_fail: '💥 閃避失敗，遭受反擊！',
+                    feedback_ineffective: '💔 「{spell}」對 {enemy} 無效！', feedback_overkill: '🔥 「{spell}」過度強大！不被鼓勵！',
+                    feedback_overkill_penalty: '⚖️ 濫用強大咒語，扣除 5 分。', feedback_hit: '💀 反擊命中！剩餘生命：{lives}',
+                    feedback_gameover: '💀 你倒下了… 點擊「開始冒險」重來', feedback_retry: '🔄 繼續挑戰 {name}，選擇咒語！',
+                    feedback_restart: '🔄 遊戲重啟！', feedback_victory: '🎉 成功擊敗 {name}！ +{score} 分{bonus}',
+                    bonus_perfect: ' 🌟 完美咒語！額外 +5 分！', bonus_great: ' ✨ 出色的咒語！額外 +2 分！',
+                    feedback_next: '⚔️ 準備迎接下一場戰鬥！', enemy_status_default: '現身',
+                    enemy_status_expelliarmus: '被除你武器', enemy_status_stupefy: '被昏昏倒地',
+                    enemy_status_petrificus: '被統統石化', enemy_status_patronus: '被呼神護衛',
+                    enemy_status_attacking: '攻擊！', enemy_status_defeated: '被擊敗',
+                    feedback_stopping: '⏹️ 錄音停止，傳送評測…', feedback_connecting: '📡 連線訊飛評測中…', hp_label: '生命值'
                 },
                 en: {
-                    score: 'Score',
-                    lives: 'Lives',
-                    start: 'Start',
-                    enemy_default: '🪄 Click "Start" to begin',
-                    wand: 'Wand',
-                    body: 'Body',
-                    forehead: 'Forehead',
-                    defense: 'Defense',
-                    spell_empty: '🔮 Select a body part',
-                    record: 'Record',
-                    recording: 'Stop',
-                    feedback_wait: '💬 Awaiting action…',
-                    feedback_encounter: '⚔️ Encountered {name}! Choose a spell!',
-                    feedback_spell_ready: '🔮 Ready to cast "{spell}"',
-                    feedback_listening: '🎤 Recording… click again to stop',
-                    feedback_score: '📊 Score: {score}',
-                    feedback_fail: '❌ Error: {err}',
-                    feedback_weak: '⚠️ "{spell}" weak effect!',
-                    feedback_dodge: '🌀 Dodged counterattack! Try again!',
-                    feedback_dodge_fail: '💥 Failed to dodge!',
-                    feedback_ineffective: '💔 "{spell}" no effect on {enemy}!',
-                    feedback_overkill: '🔥 "{spell}" overkill! Not encouraged!',
-                    feedback_overkill_penalty: '⚖️ Penalty -5 points.',
-                    feedback_hit: '💀 Hit! Lives left: {lives}',
-                    feedback_gameover: '💀 You fell… Click "Start" to restart',
-                    feedback_retry: '🔄 Continue fighting {name}, choose a spell!',
-                    feedback_restart: '🔄 Game restarted!',
-                    feedback_victory: '🎉 Defeated {name}! +{score} pts{bonus}',
-                    bonus_perfect: ' 🌟 Perfect! Extra +5 pts!',
-                    bonus_great: ' ✨ Great! Extra +2 pts!',
-                    feedback_next: '⚔️ Next battle!',
-                    enemy_status_default: 'Appeared',
-                    enemy_status_expelliarmus: 'Disarmed',
-                    enemy_status_stupefy: 'Stunned',
-                    enemy_status_petrificus: 'Petrified',
-                    enemy_status_patronus: 'Patronus',
-                    enemy_status_attacking: 'Attacking!',
-                    enemy_status_defeated: 'Defeated',
-                    feedback_stopping: '⏹️ Recording stopped, evaluating…',
-                    feedback_connecting: '📡 Connecting to evaluation server…',
-                    hp_label: 'HP'
+                    score: 'Score', lives: 'Lives', start: 'Start', enemy_default: '🪄 Click "Start" to begin',
+                    wand: 'Wand', body: 'Body', forehead: 'Forehead', defense: 'Defense',
+                    spell_empty: '🔮 Select a body part', record: 'Record', recording: 'Stop',
+                    feedback_wait: '💬 Awaiting action…', feedback_encounter: '⚔️ Encountered {name}! Choose a spell!',
+                    feedback_spell_ready: '🔮 Ready to cast "{spell}"', feedback_listening: '🎤 Recording… click again to stop',
+                    feedback_score: '📊 Score: {score}', feedback_fail: '❌ Error: {err}', feedback_weak: '⚠️ "{spell}" weak effect!',
+                    feedback_dodge: '🌀 Dodged counterattack! Try again!', feedback_dodge_fail: '💥 Failed to dodge!',
+                    feedback_ineffective: '💔 "{spell}" no effect on {enemy}!', feedback_overkill: '🔥 "{spell}" overkill! Not encouraged!',
+                    feedback_overkill_penalty: '⚖️ Penalty -5 points.', feedback_hit: '💀 Hit! Lives left: {lives}',
+                    feedback_gameover: '💀 You fell… Click "Start" to restart', feedback_retry: '🔄 Continue fighting {name}, choose a spell!',
+                    feedback_restart: '🔄 Game restarted!', feedback_victory: '🎉 Defeated {name}! +{score} pts{bonus}',
+                    bonus_perfect: ' 🌟 Perfect! Extra +5 pts!', bonus_great: ' ✨ Great! Extra +2 pts!',
+                    feedback_next: '⚔️ Next battle!', enemy_status_default: 'Appeared',
+                    enemy_status_expelliarmus: 'Disarmed', enemy_status_stupefy: 'Stunned',
+                    enemy_status_petrificus: 'Petrified', enemy_status_patronus: 'Patronus',
+                    enemy_status_attacking: 'Attacking!', enemy_status_defeated: 'Defeated',
+                    feedback_stopping: '⏹️ Recording stopped, evaluating…', feedback_connecting: '📡 Connecting to evaluation server…', hp_label: 'HP'
                 }
             };
             let lang = 'zh';
@@ -652,370 +601,165 @@
             function t(key, params) {
                 let s = LANG[lang][key] || key;
                 if (params) {
-                    for (let k in params) {
-                        s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]);
-                    }
+                    for (let k in params) { s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]); }
                 }
                 return s;
             }
 
-            // ============================================================
-            //  遊戲數據
-            // ============================================================
-            const ENEMIES = [{
-                id: 'dementor',
-                name_zh: '攝魂怪',
-                name_en: 'Dementor',
-                emoji: '👻',
-                desc_zh: '黑暗化身',
-                desc_en: 'Darkness',
-                hint_zh: '守護之力',
-                hint_en: 'Patronus',
-                hp: 60
-            }, {
-                id: 'voldemort',
-                name_zh: '伏地魔',
-                name_en: 'Voldemort',
-                emoji: '🐍',
-                desc_zh: '黑魔王',
-                desc_en: 'Dark Lord',
-                hint_zh: '解除武器',
-                hint_en: 'Disarm',
-                hp: 60
-            }, {
-                id: 'malfoy',
-                name_zh: '馬爾福',
-                name_en: 'Malfoy',
-                emoji: '🧙‍♂️',
-                desc_zh: '食死徒',
-                desc_en: 'Death Eater',
-                hint_zh: '冷靜',
-                hint_en: 'Calm',
-                hp: 60
-            }];
+            const ENEMIES = [
+                { id: 'dementor', name_zh: '攝魂怪', name_en: 'Dementor', emoji: '👻', desc_zh: '黑暗化身', desc_en: 'Darkness', hint_zh: '守護之力', hint_en: 'Patronus', hp: 60 },
+                { id: 'voldemort', name_zh: '伏地魔', name_en: 'Voldemort', emoji: '🐍', desc_zh: '黑魔王', desc_en: 'Dark Lord', hint_zh: '解除武器', hint_en: 'Disarm', hp: 60 },
+                { id: 'malfoy', name_zh: '馬爾福', name_en: 'Malfoy', emoji: '🧙‍♂️', desc_zh: '食死徒', desc_en: 'Death Eater', hint_zh: '冷靜', hint_en: 'Calm', hp: 60 }
+            ];
 
             const SPELLS = {
-                '除你武器': {
-                    pinyin: 'chú nǐ wǔ qì',
-                    pos: 'wand',
-                    label_zh: '魔杖',
-                    label_en: 'Wand',
-                    effects: { dementor: 'ineffective', voldemort: 'effective', malfoy: 'weak' },
-                    desc_zh: '繳械咒',
-                    desc_en: 'Disarm'
-                },
-                '統統石化': {
-                    pinyin: 'tōng tōng shí huà',
-                    pos: 'body',
-                    label_zh: '身體',
-                    label_en: 'Body',
-                    effects: { dementor: 'ineffective', voldemort: 'ineffective', malfoy: 'overkill' },
-                    desc_zh: '束縛咒',
-                    desc_en: 'Petrify'
-                },
-                '昏昏倒地': {
-                    pinyin: 'hūn hūn dǎo dì',
-                    pos: 'forehead',
-                    label_zh: '額頭',
-                    label_en: 'Forehead',
-                    effects: { dementor: 'weak', voldemort: 'weak', malfoy: 'effective' },
-                    desc_zh: '昏迷咒',
-                    desc_en: 'Stun'
-                },
-                '呼神護衛': {
-                    pinyin: 'hū shén hù wèi',
-                    pos: 'defense',
-                    label_zh: '自衛',
-                    label_en: 'Defense',
-                    effects: { dementor: 'effective', voldemort: 'ineffective', malfoy: 'ineffective' },
-                    desc_zh: '守護咒',
-                    desc_en: 'Patronus'
-                }
+                '除你武器': { pinyin: 'chú nǐ wǔ qì', pos: 'wand', label_zh: '魔杖', label_en: 'Wand', effects: { dementor: 'ineffective', voldemort: 'effective', malfoy: 'weak' }, desc_zh: '繳械咒', desc_en: 'Disarm' },
+                '統統石化': { pinyin: 'tōng tōng shí huà', pos: 'body', label_zh: '身體', label_en: 'Body', effects: { dementor: 'ineffective', voldemort: 'ineffective', malfoy: 'overkill' }, desc_zh: '束縛咒', desc_en: 'Petrify' },
+                '昏昏倒地': { pinyin: 'hūn hūn dǎo dì', pos: 'forehead', label_zh: '額頭', label_en: 'Forehead', effects: { dementor: 'weak', voldemort: 'weak', malfoy: 'effective' }, desc_zh: '昏迷咒', desc_en: 'Stun' },
+                '呼神護衛': { pinyin: 'hū shén hù wèi', pos: 'defense', label_zh: '自衛', label_en: 'Defense', effects: { dementor: 'effective', voldemort: 'ineffective', malfoy: 'ineffective' }, desc_zh: '守護咒', desc_en: 'Patronus' }
             };
             const POS_TO_SPELL = { wand: '除你武器', body: '統統石化', forehead: '昏昏倒地', defense: '呼神護衛' };
 
-            // ============================================================
-            //  狀態
-            // ============================================================
             const state = {
-                score: 0,
-                lives: 3,
-                currentEnemy: null,
-                currentSpellKey: null,
-                isRecording: false,
-                battleLocked: false,
-                enemyDefeated: false,
-                enemyHp: 0,
-                maxEnemyHp: 60,
-                enemyStatus: 'default',
+                score: 0, lives: 3, currentEnemy: null, currentSpellKey: null, isRecording: false,
+                battleLocked: false, enemyDefeated: false, enemyHp: 0, maxEnemyHp: 60, enemyStatus: 'default',
                 damageDisplay: 0,
                 xfAppid: '2600b137',
                 xfApiKey: '8b012124ed213c06974cd469f29e134b',
                 xfApiSecret: 'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
-                audioContext: null,
-                processor: null,
-                source: null,
-                stream: null,
-                pcmChunks: [],
-                isCapturing: false,
+                audioContext: null, processor: null, source: null, stream: null, pcmChunks: [], isCapturing: false,
             };
 
-            // ============================================================
-            //  DOM 引用
-            // ============================================================
             const $ = id => document.getElementById(id);
             const dom = {
-                score: $('scoreDisplay'),
-                lives: $('livesDisplay'),
-                scoreLabel: $('scoreLabel'),
-                livesLabel: $('livesLabel'),
-                enemyArea: $('enemyArea'),
-                btnStart: $('btnStart'),
-                posWand: $('posWand'),
-                posBody: $('posBody'),
-                posForehead: $('posForehead'),
-                posDefense: $('posDefense'),
-                spellDisplay: $('spellDisplay'),
-                spellEmpty: $('spellEmpty'),
-                btnRecord: $('btnRecord'),
-                recordLabel: $('recordLabel'),
-                feedback: $('feedbackDisplay'),
-                langToggle: $('langToggle'),
-                labelWand: $('labelWand'),
-                labelBody: $('labelBody'),
-                labelForehead: $('labelForehead'),
-                labelDefense: $('labelDefense'),
+                score: $('scoreDisplay'), lives: $('livesDisplay'), scoreLabel: $('scoreLabel'), livesLabel: $('livesLabel'),
+                enemyArea: $('enemyArea'), btnStart: $('btnStart'), posWand: $('posWand'), posBody: $('posBody'),
+                posForehead: $('posForehead'), posDefense: $('posDefense'), spellDisplay: $('spellDisplay'),
+                spellEmpty: $('spellEmpty'), btnRecord: $('btnRecord'), recordLabel: $('recordLabel'),
+                feedback: $('feedbackDisplay'), langToggle: $('langToggle'), labelWand: $('labelWand'),
+                labelBody: $('labelBody'), labelForehead: $('labelForehead'), labelDefense: $('labelDefense'),
             };
             const posBtns = [dom.posWand, dom.posBody, dom.posForehead, dom.posDefense];
             const posMap = { wand: dom.posWand, body: dom.posBody, forehead: dom.posForehead, defense: dom.posDefense };
 
-            // ============================================================
-            //  工具
-            // ============================================================
             function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
-
             function pick(arr) { return arr[rand(0, arr.length - 1)]; }
-
             function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
             function getEnemyName(e) { return lang === 'zh' ? e.name_zh : e.name_en; }
-
             function getEnemyDesc(e) { return lang === 'zh' ? e.desc_zh : e.desc_en; }
-
             function getEnemyHint(e) { return lang === 'zh' ? e.hint_zh : e.hint_en; }
-
             function getSpellDesc(k) { let s = SPELLS[k]; return lang === 'zh' ? s.desc_zh : s.desc_en; }
-
             function getSpellEffect(spellKey, enemyId) {
-                let s = SPELLS[spellKey];
-                return s ? (s.effects[enemyId] || 'ineffective') : 'ineffective';
+                let s = SPELLS[spellKey]; return s ? (s.effects[enemyId] || 'ineffective') : 'ineffective';
             }
 
             function setFeedback(msg, type = 'info') {
-                dom.feedback.textContent = msg;
-                dom.feedback.className = 'feedback ' + type;
+                dom.feedback.textContent = msg; dom.feedback.className = 'feedback ' + type;
             }
 
             function setSpellDisplay(char, pinyin, hint) {
-                if (!char) {
-                    dom.spellDisplay.innerHTML = `<div class="spell-empty">${t('spell_empty')}</div>`;
-                    return;
-                }
-                dom.spellDisplay.innerHTML =
-                    `<div class="spell-char">${char}</div><div class="spell-pinyin">${pinyin}</div>` +
-                    (hint ? `<div class="spell-hint">${hint}</div>` : '');
+                if (!char) { dom.spellDisplay.innerHTML = `<div class="spell-empty">${t('spell_empty')}</div>`; return; }
+                dom.spellDisplay.innerHTML = `<div class="spell-char">${char}</div><div class="spell-pinyin">${pinyin}</div>` + (hint ? `<div class="spell-hint">${hint}</div>` : '');
             }
 
-            // ============================================================
-            //  渲染：敵人 + 血量 + 傷害飄字
-            // ============================================================
             function renderEnemy() {
                 const area = dom.enemyArea;
-                if (!state.currentEnemy) {
-                    area.innerHTML = `<div class="empty-hint">${t('enemy_default')}</div>`;
-                    return;
-                }
+                if (!state.currentEnemy) { area.innerHTML = `<div class="empty-hint">${t('enemy_default')}</div>`; return; }
                 const e = state.currentEnemy;
-                const name = getEnemyName(e);
-                const desc = getEnemyDesc(e);
-                const hint = getEnemyHint(e);
-                const statusMap = {
-                    'default': 0,
-                    'expelliarmus': 1,
-                    'stupefy': 2,
-                    'petrificus': 3,
-                    'patronus': 4,
-                    'attacking': 5,
-                    'defeated': 6
-                };
+                const name = getEnemyName(e); const desc = getEnemyDesc(e); const hint = getEnemyHint(e);
+                const statusMap = { 'default': 0, 'expelliarmus': 1, 'stupefy': 2, 'petrificus': 3, 'patronus': 4, 'attacking': 5, 'defeated': 6 };
                 const statusNum = statusMap[state.enemyStatus] || 0;
                 const imgSrc = `images/${e.id}_${statusNum}.png`;
                 const statusKey = 'enemy_status_' + state.enemyStatus;
                 const statusText = t(statusKey) || t('enemy_status_default');
-
                 const hpPercent = Math.max(0, Math.min(100, (state.enemyHp / state.maxEnemyHp) * 100));
-                let hpClass = 'high';
-                if (hpPercent < 25) hpClass = 'low';
-                else if (hpPercent < 55) hpClass = 'mid';
-
-                const hpLabel = t('hp_label');
+                let hpClass = 'high'; if (hpPercent < 25) hpClass = 'low'; else if (hpPercent < 55) hpClass = 'mid';
 
                 area.innerHTML = `
               <div class="enemy-avatar-wrap" id="enemyAvatarWrap">
-                <img class="enemy-img" src="${imgSrc}" alt="${name}" 
-                     onerror="this.style.display='none'; document.getElementById('fallback-emoji-${e.id}').style.display='block';">
+                <img class="enemy-img" src="${imgSrc}" alt="${name}" onerror="this.style.display='none'; document.getElementById('fallback-emoji-${e.id}').style.display='block';">
                 <span id="fallback-emoji-${e.id}" style="font-size:4rem; display:none;">${e.emoji}</span>
               </div>
               <div class="enemy-name">${name}</div>
               <div class="enemy-status">${statusText} · ${desc}</div>
               <div class="enemy-hint">${hint}</div>
-              <div class="hp-bar-wrap">
-                <div class="hp-bar-fill ${hpClass}" style="width:${hpPercent}%;"></div>
-              </div>
-              <div class="hp-text">${hpLabel} ${state.enemyHp} / ${state.maxEnemyHp}</div>
+              <div class="hp-bar-wrap"><div class="hp-bar-fill ${hpClass}" style="width:${hpPercent}%;"></div></div>
+              <div class="hp-text">${t('hp_label')} ${state.enemyHp} / ${state.maxEnemyHp}</div>
             `;
             }
 
             function showDamageFloat(amount, isHeal = false, isCritical = false) {
-                const wrap = document.getElementById('enemyAvatarWrap');
-                if (!wrap) return;
-                const el = document.createElement('div');
-                el.className = 'damage-float';
-                if (isHeal) el.classList.add('heal');
-                if (isCritical) el.classList.add('critical');
-                const sign = isHeal ? '+' : '-';
-                el.textContent = `${sign}${Math.abs(amount)}`;
-                wrap.style.position = 'relative';
-                wrap.appendChild(el);
-                setTimeout(() => { if (el.parentNode) el.remove(); }, 1400);
+                const wrap = document.getElementById('enemyAvatarWrap'); if (!wrap) return;
+                const el = document.createElement('div'); el.className = 'damage-float';
+                if (isHeal) el.classList.add('heal'); if (isCritical) el.classList.add('critical');
+                el.textContent = `${isHeal ? '+' : '-'}${Math.abs(amount)}`;
+                wrap.appendChild(el); setTimeout(() => { if (el.parentNode) el.remove(); }, 1400);
             }
 
-            function setEnemyStatus(s) { state.enemyStatus = s;
-                renderEnemy(); }
+            function setEnemyStatus(s) { state.enemyStatus = s; renderEnemy(); }
 
-            function setEnemyHp(val) {
-                state.enemyHp = Math.max(0, Math.min(state.maxEnemyHp, val));
-                renderEnemy();
-            }
-
-            // ============================================================
-            //  UI 更新
-            // ============================================================
             function updateUI() {
-                dom.score.textContent = state.score;
-                dom.lives.textContent = state.lives;
-                dom.scoreLabel.textContent = t('score');
-                dom.livesLabel.textContent = t('lives');
-                dom.btnStart.textContent = t('start');
-                dom.recordLabel.textContent = state.isRecording ? t('recording') : t('record');
-                dom.labelWand.textContent = t('wand');
-                dom.labelBody.textContent = t('body');
-                dom.labelForehead.textContent = t('forehead');
-                dom.labelDefense.textContent = t('defense');
+                dom.score.textContent = state.score; dom.lives.textContent = state.lives;
+                dom.scoreLabel.textContent = t('score'); dom.livesLabel.textContent = t('lives');
+                dom.btnStart.textContent = t('start'); dom.recordLabel.textContent = state.isRecording ? t('recording') : t('record');
+                dom.labelWand.textContent = t('wand'); dom.labelBody.textContent = t('body');
+                dom.labelForehead.textContent = t('forehead'); dom.labelDefense.textContent = t('defense');
                 renderEnemy();
-
                 const hasEnemy = !!state.currentEnemy && !state.battleLocked && !state.enemyDefeated;
                 posBtns.forEach(b => b.disabled = !hasEnemy || state.isRecording);
-                dom.btnRecord.disabled = !state.currentEnemy || !state.currentSpellKey || state.battleLocked || state
-                    .enemyDefeated || state.lives <= 0;
+                dom.btnRecord.disabled = !state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated || state.lives <= 0;
                 dom.btnStart.disabled = state.isRecording || state.battleLocked;
-                if (state.lives <= 0) {
-                    posBtns.forEach(b => b.disabled = true);
-                    dom.btnRecord.disabled = true;
-                    dom.btnStart.disabled = false;
-                }
+                if (state.lives <= 0) { posBtns.forEach(b => b.disabled = true); dom.btnRecord.disabled = true; dom.btnStart.disabled = false; }
                 dom.langToggle.textContent = lang === 'zh' ? 'EN / 中' : '中 / EN';
             }
 
-            // ============================================================
-            //  訊飛簽名
-            // ============================================================
             async function buildWsUrl(apiKey, apiSecret, appid) {
-                const host = 'ise-api.xfyun.cn';
-                const path = '/v2/open-ise';
-                const date = new Date().toUTCString();
+                const host = 'ise-api.xfyun.cn', path = '/v2/open-ise', date = new Date().toUTCString();
                 const signStr = 'host: ' + host + '\n' + 'date: ' + date + '\n' + 'GET ' + path + ' HTTP/1.1';
                 const encoder = new TextEncoder();
-                const keyData = encoder.encode(apiSecret);
-                const msgData = encoder.encode(signStr);
-                const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, [
-                    'sign'
-                ]);
+                const keyData = encoder.encode(apiSecret), msgData = encoder.encode(signStr);
+                const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
                 const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
                 const signature = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)));
-                const authOrigin = 'api_key="' + apiKey + '", algorithm="hmac-sha256", headers="host date request-line", signature="' +
-                    signature + '"';
-                const authBase64 = btoa(authOrigin);
-                const url = 'wss://' + host + path + '?authorization=' + encodeURIComponent(authBase64) + '&date=' +
-                    encodeURIComponent(date) + '&host=' + encodeURIComponent(host);
-                return url;
+                const authOrigin = 'api_key="' + apiKey + '", algorithm="hmac-sha256", headers="host date request-line", signature="' + signature + '"';
+                return 'wss://' + host + path + '?authorization=' + encodeURIComponent(btoa(authOrigin)) + '&date=' + encodeURIComponent(date) + '&host=' + encodeURIComponent(host);
             }
 
-            // ============================================================
-            //  PCM 錄音 (全局重用 AudioContext)
-            // ============================================================
             function startPCMCapture() {
                 return new Promise((resolve, reject) => {
-                    navigator.mediaDevices.getUserMedia({
-                            audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true,
-                                noiseSuppression: true }
-                        })
+                    navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true } })
                         .then(async stream => {
-                            if (!state.audioContext) {
-                                state.audioContext = new(window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-                            }
-                            if (state.audioContext.state === 'suspended') {
-                                await state.audioContext.resume();
-                            }
+                            if (!state.audioContext) state.audioContext = new(window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                            if (state.audioContext.state === 'suspended') await state.audioContext.resume();
                             const source = state.audioContext.createMediaStreamSource(stream);
                             const processor = state.audioContext.createScriptProcessor(4096, 1, 1);
                             const chunks = [];
                             processor.onaudioprocess = (e) => {
-                                const data = e.inputBuffer.getChannelData(0);
-                                const pcm = new Int16Array(data.length);
-                                for (let i = 0; i < data.length; i++) {
-                                    const s = Math.max(-1, Math.min(1, data[i]));
-                                    pcm[i] = Math.round(s * 32767);
-                                }
+                                const data = e.inputBuffer.getChannelData(0); const pcm = new Int16Array(data.length);
+                                for (let i = 0; i < data.length; i++) { pcm[i] = Math.round(Math.max(-1, Math.min(1, data[i])) * 32767); }
                                 chunks.push(pcm);
                             };
-                            source.connect(processor);
-                            processor.connect(state.audioContext.destination);
-                            state.processor = processor;
-                            state.source = source;
-                            state.stream = stream;
-                            state.pcmChunks = chunks;
-                            state.isCapturing = true;
+                            source.connect(processor); processor.connect(state.audioContext.destination);
+                            state.processor = processor; state.source = source; state.stream = stream; state.pcmChunks = chunks; state.isCapturing = true;
                             resolve();
-                        })
-                        .catch(err => reject(new Error('麥克風權限被拒絕: ' + err.message)));
+                        }).catch(err => reject(new Error('麥克風權限被拒絕: ' + err.message)));
                 });
             }
 
             function stopPCMCapture() {
                 return new Promise(async (resolve) => {
                     if (state.audioContext && state.isCapturing) {
-                        state.source.disconnect();
-                        state.processor.disconnect();
-                        state.stream.getTracks().forEach(t => t.stop());
-                        await state.audioContext.suspend();
-                        let total = state.pcmChunks.reduce((a, b) => a + b.length, 0);
-                        let combined = new Int16Array(total);
-                        let offset = 0;
-                        for (let arr of state.pcmChunks) {
-                            combined.set(arr, offset);
-                            offset += arr.length;
-                        }
-                        state.isCapturing = false;
-                        resolve(combined.buffer);
-                    } else {
-                        resolve(new Int16Array(0).buffer);
-                    }
+                        state.source.disconnect(); state.processor.disconnect();
+                        state.stream.getTracks().forEach(t => t.stop()); await state.audioContext.suspend();
+                        let total = state.pcmChunks.reduce((a, b) => a + b.length, 0), combined = new Int16Array(total), offset = 0;
+                        for (let arr of state.pcmChunks) { combined.set(arr, offset); offset += arr.length; }
+                        state.isCapturing = false; resolve(combined.buffer);
+                    } else { resolve(new Int16Array(0).buffer); }
                 });
             }
 
             // ============================================================
-            //  訊飛評測（修復協議狀態碼與高效二進位轉換）
+            //  核心修復：符合非即時打包上傳的標準訊飛協議
             // ============================================================
             function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText) {
                 return new Promise(async (resolve, reject) => {
@@ -1023,77 +767,48 @@
                         const url = await buildWsUrl(apiKey, apiSecret, appid);
                         console.log('🔗 連線 URL:', url);
                         const ws = new WebSocket(url);
-                        let score = null;
-                        let isResolved = false;
-                        let accumulatedXml = '';
+                        let score = null, isResolved = false, accumulatedXml = '';
+                        
                         const timeoutId = setTimeout(() => {
-                            if (!isResolved && ws.readyState !== WebSocket.CLOSED) {
-                                ws.close();
-                                reject(new Error('連線逾時 (15秒)'));
-                            }
+                            if (!isResolved && ws.readyState !== WebSocket.CLOSED) { ws.close(); reject(new Error('連線逾時 (15秒)')); }
                         }, 15000);
 
-                        ws.onopen = async () => {
+                        ws.onopen = () => {
                             console.log('✅ WebSocket 已連線');
-
                             const textWithBOM = '\uFEFF' + spellText;
                             const utf8Bytes = new TextEncoder().encode(textWithBOM);
                             let binaryStr = '';
-                            for (let i = 0; i < utf8Bytes.length; i++) {
-                                binaryStr += String.fromCharCode(utf8Bytes[i]);
-                            }
-                            const textBase64 = btoa(binaryStr);
+                            for (let i = 0; i < utf8Bytes.length; i++) { binaryStr += String.fromCharCode(utf8Bytes[i]); }
 
+                            // 1. 發送 ssb 首幀 (status: 0)
                             const ssb = {
                                 common: { app_id: appid },
-                                business: {
-                                    category: 'read_word',
-                                    sub: 'ise',
-                                    ent: 'cn_vip',
-                                    tte: 'utf-8',
-                                    cmd: 'ssb',
-                                    auf: 'audio/L16;rate=16000',
-                                    aue: 'raw',
-                                    text: textBase64,
-                                    ttp_skip: true,
-                                    rst: 'entirety',
-                                    ise_unite: '1',
-                                    extra_ability: 'multi_dimension'
-                                },
+                                business: { category: 'read_word', sub: 'ise', ent: 'cn_vip', tte: 'utf-8', cmd: 'ssb', auf: 'audio/L16;rate=16000', aue: 'raw', text: btoa(binaryStr), ttp_skip: true, rst: 'entirety', ise_unite: '1', extra_ability: 'multi_dimension' },
                                 data: { status: 0, data: '' }
                             };
                             ws.send(JSON.stringify(ssb));
                             console.log('📤 發送 ssb 幀 (詞語)');
 
-                            const total = pcmBuffer.byteLength;
-                            if (total === 0) { ws.close();
-                                reject(new Error('音頻數據為空')); return; }
-                            let offset = 0,
-                                chunkSize = 1280,
-                                frameCount = 0;
+                            const totalBytes = pcmBuffer.byteLength;
+                            if (totalBytes === 0) { ws.close(); reject(new Error('音頻數據為空')); return; }
 
-                            while (offset < total) {
-                                const end = Math.min(offset + chunkSize, total);
+                            // 2. 將錄製完的音頻，打包作為中間數據幀發送 (status: 1)
+                            // 訊飛單幀音頻最大不建議太大，這裡將整段數據切成訊飛推薦的格式發送，但尾幀前不加過長延遲
+                            let offset = 0, chunkSize = 12800; // 加大每幀大小以利於非即時傳輸
+                            while (offset < totalBytes) {
+                                const end = Math.min(offset + chunkSize, totalBytes);
                                 const chunk = pcmBuffer.slice(offset, end);
-                                const isLast = (end === total);
-
-                                // 標準訊飛協議：首幀 status=0, 中間幀 status=1, 尾幀 status=2
-                                const ausVal = isLast ? 4 : (frameCount === 0 ? 1 : 2);
-                                const dataStatus = isLast ? 2 : (frameCount === 0 ? 0 : 1);
-
-                                // 高效轉換二進位字串
+                                const isLastChunk = (end === totalBytes);
+                                
                                 const chunkBinary = String.fromCharCode.apply(null, new Uint8Array(chunk));
-
                                 const frame = {
-                                    business: { cmd: 'auw', aus: ausVal, aue: 'raw' },
-                                    data: { status: dataStatus, data: btoa(chunkBinary) }
+                                    business: { cmd: 'auw', aus: isLastChunk ? 4 : 2, aue: 'raw' },
+                                    data: { status: isLastChunk ? 2 : 1, data: btoa(chunkBinary) }
                                 };
                                 ws.send(JSON.stringify(frame));
-                                frameCount++;
                                 offset = end;
-                                await sleep(40);
                             }
-                            console.log('📤 發送音頻幀數:', frameCount, '總字節:', total);
+                            console.log('📤 音頻數據打包發送完畢，總字節:', totalBytes);
                         };
 
                         ws.onmessage = (ev) => {
@@ -1101,169 +816,96 @@
                                 const msg = JSON.parse(ev.data);
                                 console.log('📩 收到訊息:', msg);
                                 if (msg.code !== 0) {
-                                    clearTimeout(timeoutId);
-                                    isResolved = true;
+                                    clearTimeout(timeoutId); isResolved = true;
                                     reject(new Error('訊飛錯誤 [' + msg.code + ']: ' + msg.message));
-                                    ws.close();
-                                    return;
+                                    ws.close(); return;
                                 }
                                 if (msg.data && msg.data.data) {
-                                    const xmlStr = atob(msg.data.data);
-                                    accumulatedXml += xmlStr;
-                                    let match = accumulatedXml.match(/<read_word[^>]*total_score="([\d.]+)"/);
-                                    if (!match) match = accumulatedXml.match(/<sentence[^>]*total_score="([\d.]+)"/);
-                                    if (!match) match = accumulatedXml.match(/total_score value="([\d.]+)"/);
+                                    accumulatedXml += atob(msg.data.data);
+                                    let match = accumulatedXml.match(/<read_word[^>]*total_score="([\d.]+)"/) || 
+                                                accumulatedXml.match(/<sentence[^>]*total_score="([\d.]+)"/) || 
+                                                accumulatedXml.match(/total_score value="([\d.]+)"/);
                                     if (match) {
-                                        score = parseFloat(match[1]);
-                                        clearTimeout(timeoutId);
-                                        isResolved = true;
-                                        ws.close();
-                                        resolve(score);
-                                        return;
+                                        score = parseFloat(match[1]); clearTimeout(timeoutId); isResolved = true;
+                                        ws.close(); resolve(score); return;
                                     }
                                 }
-                                if (msg.data && msg.data.status === 2) { // 配合尾幀 status=2 結束
-                                    clearTimeout(timeoutId);
-                                    isResolved = true;
-                                    ws.close();
+                                if (msg.data && msg.data.status === 2) {
+                                    clearTimeout(timeoutId); isResolved = true; ws.close();
                                     resolve(score !== null ? score : 0);
                                 }
                             } catch (e) {
-                                clearTimeout(timeoutId);
-                                isResolved = true;
-                                reject(new Error('解析回應失敗: ' + e.message));
+                                clearTimeout(timeoutId); isResolved = true; reject(new Error('解析回應失敗: ' + e.message));
                             }
                         };
                         ws.onerror = (err) => {
-                            clearTimeout(timeoutId);
-                            if (!isResolved) {
-                                isResolved = true;
-                                reject(new Error('WebSocket 連線失敗: ' + err.message));
-                            }
+                            clearTimeout(timeoutId); if (!isResolved) { isResolved = true; reject(new Error('WebSocket 連線失敗')); }
                         };
                         ws.onclose = (ev) => {
                             clearTimeout(timeoutId);
                             if (!isResolved) {
                                 isResolved = true;
-                                if (score !== null) resolve(score);
-                                else reject(new Error('連線中斷 (code:' + ev.code + ')'));
+                                if (score !== null) resolve(score); else reject(new Error('連線中斷 (code:' + ev.code + ')'));
                             }
                         };
-                    } catch (e) {
-                        reject(e);
-                    }
+                    } catch (e) { reject(e); }
                 });
             }
 
-            // ============================================================
-            //  戰鬥核心
-            // ============================================================
             function startAdventure() {
                 if (state.battleLocked || state.isRecording) return;
                 if (state.lives <= 0) {
-                    state.lives = 3;
-                    state.score = 0;
-                    state.battleLocked = false;
-                    state.enemyDefeated = false;
-                    state.currentEnemy = null;
-                    state.currentSpellKey = null;
-                    setSpellDisplay(null);
-                    posBtns.forEach(b => b.classList.remove('active'));
-                    setFeedback(t('feedback_restart'), 'info');
-                    updateUI();
+                    state.lives = 3; state.score = 0; state.battleLocked = false; state.enemyDefeated = false;
+                    state.currentEnemy = null; state.currentSpellKey = null; setSpellDisplay(null);
+                    posBtns.forEach(b => b.classList.remove('active')); setFeedback(t('feedback_restart'), 'info'); updateUI();
                 }
-                const enemy = pick(ENEMIES);
-                state.currentEnemy = enemy;
-                state.currentSpellKey = null;
-                state.enemyDefeated = false;
-                state.battleLocked = false;
-                state.enemyStatus = 'default';
-                state.enemyHp = enemy.hp;
-                state.maxEnemyHp = enemy.hp;
-                state.damageDisplay = 0;
-                setSpellDisplay(null);
-                setFeedback(t('feedback_encounter', { name: getEnemyName(enemy) }), 'info');
-                posBtns.forEach(b => b.classList.remove('active'));
-                updateUI();
-                posBtns.forEach(b => b.disabled = false);
-                dom.btnRecord.disabled = true;
-                setEnemyStatus('default');
-                renderEnemy();
+                const enemy = pick(ENEMIES); state.currentEnemy = enemy; state.currentSpellKey = null;
+                state.enemyDefeated = false; state.battleLocked = false; state.enemyStatus = 'default';
+                state.enemyHp = enemy.hp; state.maxEnemyHp = enemy.hp; state.damageDisplay = 0;
+                setSpellDisplay(null); setFeedback(t('feedback_encounter', { name: getEnemyName(enemy) }), 'info');
+                posBtns.forEach(b => b.classList.remove('active')); updateUI();
+                posBtns.forEach(b => b.disabled = false); dom.btnRecord.disabled = true;
+                setEnemyStatus('default'); renderEnemy();
             }
 
             function selectPosition(posKey) {
                 if (!state.currentEnemy || state.battleLocked || state.isRecording || state.enemyDefeated) return;
-                const spellKey = POS_TO_SPELL[posKey];
-                if (!spellKey) return;
-                state.currentSpellKey = spellKey;
-                posBtns.forEach(b => b.classList.remove('active'));
-                const btn = posMap[posKey];
-                if (btn) btn.classList.add('active');
+                const spellKey = POS_TO_SPELL[posKey]; if (!spellKey) return;
+                state.currentSpellKey = spellKey; posBtns.forEach(b => b.classList.remove('active'));
+                const btn = posMap[posKey]; if (btn) btn.classList.add('active');
                 setSpellDisplay(spellKey, SPELLS[spellKey].pinyin, '「' + getSpellDesc(spellKey) + '」');
                 setFeedback(t('feedback_spell_ready', { spell: spellKey }), 'info');
-                dom.btnRecord.disabled = false;
-                updateUI();
+                dom.btnRecord.disabled = false; updateUI();
             }
 
-            // ============================================================
-            //  錄音與評測
-            // ============================================================
             async function handleRecord() {
                 if (!state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated) return;
-                const spellKey = state.currentSpellKey;
-                const enemy = state.currentEnemy;
+                const spellKey = state.currentSpellKey, enemy = state.currentEnemy;
 
                 if (!state.isRecording) {
-                    state.isRecording = true;
-                    dom.btnRecord.classList.add('recording');
-                    dom.recordLabel.textContent = t('recording');
-                    setFeedback(t('feedback_listening'), 'info');
-                    updateUI();
-                    try {
-                        await startPCMCapture();
-                    } catch (err) {
+                    state.isRecording = true; dom.btnRecord.classList.add('recording'); dom.recordLabel.textContent = t('recording');
+                    setFeedback(t('feedback_listening'), 'info'); updateUI();
+                    try { await startPCMCapture(); } catch (err) {
                         setFeedback(t('feedback_fail', { err: err.message }), 'fail');
-                        state.isRecording = false;
-                        dom.btnRecord.classList.remove('recording');
-                        dom.recordLabel.textContent = t('record');
-                        updateUI();
+                        state.isRecording = false; dom.btnRecord.classList.remove('recording'); dom.recordLabel.textContent = t('record'); updateUI();
                     }
                 } else {
-                    dom.btnRecord.disabled = true;
-                    state.isRecording = false;
-                    dom.btnRecord.classList.remove('recording');
-                    dom.recordLabel.textContent = t('record');
-                    setFeedback(t('feedback_stopping'), 'info');
-                    updateUI();
+                    dom.btnRecord.disabled = true; state.isRecording = false; dom.btnRecord.classList.remove('recording');
+                    dom.recordLabel.textContent = t('record'); setFeedback(t('feedback_stopping'), 'info'); updateUI();
                     try {
                         const pcmBuffer = await stopPCMCapture();
-                        if (pcmBuffer.byteLength === 0) {
-                            setFeedback('❌ 未錄到音頻，請重新嘗試', 'fail');
-                            updateUI();
-                            return;
-                        }
-                        setFeedback(t('feedback_connecting'), 'info');
-                        dom.btnRecord.disabled = true;
-                        posBtns.forEach(b => b.disabled = true);
+                        if (pcmBuffer.byteLength === 0) { setFeedback('❌ 未錄到音頻，請重新嘗試', 'fail'); updateUI(); return; }
+                        setFeedback(t('feedback_connecting'), 'info'); dom.btnRecord.disabled = true; posBtns.forEach(b => b.disabled = true);
 
-                        const score = await evaluateWithXunfei(
-                            pcmBuffer,
-                            state.xfAppid,
-                            state.xfApiKey,
-                            state.xfApiSecret,
-                            spellKey
-                        );
+                        const score = await evaluateWithXunfei(pcmBuffer, state.xfAppid, state.xfApiKey, state.xfApiSecret, spellKey);
                         setFeedback(t('feedback_score', { score: score }), 'info');
-                        const effect = getSpellEffect(spellKey, enemy.id);
-                        await handleBattleResult(effect, spellKey, enemy, score);
+                        await handleBattleResult(getSpellEffect(spellKey, enemy.id), spellKey, enemy, score);
                     } catch (err) {
                         setFeedback(t('feedback_fail', { err: err.message }), 'fail');
-                        await sleep(1500);
-                        await handleCounterAttack();
+                        await sleep(1500); await handleCounterAttack();
                     } finally {
                         if (!state.battleLocked && !state.enemyDefeated && state.lives > 0) {
-                            posBtns.forEach(b => b.disabled = false);
-                            dom.btnRecord.disabled = !state.currentSpellKey;
+                            posBtns.forEach(b => b.disabled = false); dom.btnRecord.disabled = !state.currentSpellKey;
                         }
                         updateUI();
                     }
@@ -1271,153 +913,78 @@
             }
 
             function resetBattleTurn(enemy) {
-                state.battleLocked = false;
-                state.currentSpellKey = null;
-                setSpellDisplay(null);
-                posBtns.forEach(b => b.classList.remove('active'));
-                setFeedback(t('feedback_retry', { name: getEnemyName(enemy) }), 'info');
-                updateUI();
-                posBtns.forEach(b => b.disabled = false);
-                dom.btnRecord.disabled = true;
-                setEnemyStatus('default');
-                renderEnemy();
+                state.battleLocked = false; state.currentSpellKey = null; setSpellDisplay(null);
+                posBtns.forEach(b => b.classList.remove('active')); setFeedback(t('feedback_retry', { name: getEnemyName(enemy) }), 'info');
+                updateUI(); posBtns.forEach(b => b.disabled = false); dom.btnRecord.disabled = true;
+                setEnemyStatus('default'); renderEnemy();
             }
 
             async function handleBattleResult(effect, spellKey, enemy, score) {
-                state.battleLocked = true;
-                let damage = 0;
-                let isKill = false;
-                let bonusMsg = '';
-                let bonusPts = 0;
-                let isCritical = false;
+                state.battleLocked = true; let damage = 0, isKill = false, bonusMsg = '', bonusPts = 0, isCritical = false;
 
                 switch (effect) {
                     case 'effective':
                         damage = Math.round(score);
-                        if (damage >= 60) { isKill = true;
-                            isCritical = true;
-                            bonusPts = (score >= 90 ? 5 : (score >= 75 ? 2 : 0));
-                            bonusMsg = bonusPts > 0 ? (score >= 90 ? t('bonus_perfect') : t('bonus_great')) : ''; }
+                        if (damage >= 60) { isKill = true; isCritical = true; bonusPts = (score >= 90 ? 5 : (score >= 75 ? 2 : 0)); bonusMsg = bonusPts > 0 ? (score >= 90 ? t('bonus_perfect') : t('bonus_great')) : ''; }
                         break;
-                    case 'weak':
-                        damage = Math.round(score * 0.5);
-                        break;
-                    case 'ineffective':
-                        damage = 0;
-                        break;
-                    case 'overkill':
-                        damage = Math.round(score * 5);
-                        state.score = Math.max(0, state.score - 5);
-                        break;
+                    case 'weak': damage = Math.round(score * 0.5); break;
+                    case 'ineffective': damage = 0; break;
+                    case 'overkill': damage = Math.round(score * 5); state.score = Math.max(0, state.score - 5); break;
                 }
 
-                const actualDamage = Math.min(damage, state.enemyHp);
-                const newHp = Math.max(0, state.enemyHp - actualDamage);
-                const hpLost = state.enemyHp - newHp;
+                const actualDamage = Math.min(damage, state.enemyHp), newHp = Math.max(0, state.enemyHp - actualDamage), hpLost = state.enemyHp - newHp;
+                if (hpLost > 0) showDamageFloat(hpLost, false, isCritical || (effect === 'overkill'));
+                else if (effect === 'ineffective') showDamageFloat(0, false, false);
 
-                if (hpLost > 0) {
-                    showDamageFloat(hpLost, false, isCritical || (effect === 'overkill'));
-                } else if (effect === 'ineffective') {
-                    showDamageFloat(0, false, false);
-                }
-
-                state.enemyHp = newHp;
-                renderEnemy();
-
+                state.enemyHp = newHp; renderEnemy();
                 const statusMap = { '除你武器': 'expelliarmus', '昏昏倒地': 'stupefy', '統統石化': 'petrificus', '呼神護衛': 'patronus' };
                 setEnemyStatus(statusMap[spellKey] || 'default');
-
                 await sleep(1200);
 
                 if (state.enemyHp <= 0 || isKill) {
-                    state.score += 10 + bonusPts;
-                    setFeedback(t('feedback_victory', { name: getEnemyName(enemy), score: 10 + bonusPts, bonus: bonusMsg }),
-                        'success');
-                    state.enemyDefeated = true;
-                    setEnemyStatus('defeated');
-                    state.currentEnemy = null;
-                    state.currentSpellKey = null;
-                    setSpellDisplay(null);
-                    posBtns.forEach(b => b.classList.remove('active'));
-                    updateUI();
+                    state.score += 10 + bonusPts; setFeedback(t('feedback_victory', { name: getEnemyName(enemy), score: 10 + bonusPts, bonus: bonusMsg }), 'success');
+                    state.enemyDefeated = true; setEnemyStatus('defeated'); state.currentEnemy = null; state.currentSpellKey = null;
+                    setSpellDisplay(null); posBtns.forEach(b => b.classList.remove('active')); updateUI();
                     await sleep(1500);
-                    if (state.lives > 0) {
-                        setFeedback(t('feedback_next'), 'info');
-                        startAdventure();
-                    } else {
-                        setFeedback(t('feedback_gameover'), 'fail');
-                    }
+                    if (state.lives > 0) { setFeedback(t('feedback_next'), 'info'); startAdventure(); }
+                    else { setFeedback(t('feedback_gameover'), 'fail'); }
                     return;
                 }
 
-                if (effect === 'effective') {
-                    await handleCounterAttack();
-                } else if (effect === 'weak') {
-                    if (Math.random() < 0.5) {
-                        setFeedback(t('feedback_dodge'), 'success');
-                        await sleep(1500);
-                        resetBattleTurn(enemy);
-                    } else {
-                        setFeedback(t('feedback_dodge_fail'), 'fail');
-                        await sleep(1500);
-                        await handleCounterAttack();
-                    }
+                if (effect === 'effective') { await handleCounterAttack(); }
+                else if (effect === 'weak') {
+                    if (Math.random() < 0.5) { setFeedback(t('feedback_dodge'), 'success'); await sleep(1500); resetBattleTurn(enemy); }
+                    else { setFeedback(t('feedback_dodge_fail'), 'fail'); await sleep(1500); await handleCounterAttack(); }
                 } else if (effect === 'ineffective' || effect === 'overkill') {
-                    if (effect === 'ineffective') {
-                        setFeedback(t('feedback_ineffective', { spell: spellKey, enemy: getEnemyName(enemy) }), 'fail');
-                    } else {
-                        setFeedback(t('feedback_overkill', { spell: spellKey }), 'warn');
-                        setFeedback(t('feedback_overkill_penalty'), 'warn');
-                    }
-                    await sleep(1500);
-                    await handleCounterAttack();
+                    if (effect === 'ineffective') setFeedback(t('feedback_ineffective', { spell: spellKey, enemy: getEnemyName(enemy) }), 'fail');
+                    else { setFeedback(t('feedback_overkill', { spell: spellKey }), 'warn'); setFeedback(t('feedback_overkill_penalty'), 'warn'); }
+                    await sleep(1500); await handleCounterAttack();
                 }
             }
 
             async function handleCounterAttack() {
                 if (state.lives <= 0) return;
-                state.lives -= 1;
-                setEnemyStatus('attacking');
-                setFeedback(t('feedback_hit', { lives: state.lives }), 'fail');
-                updateUI();
-                showDamageFloat(1, false, false);
-                await sleep(1500);
+                state.lives -= 1; setEnemyStatus('attacking'); setFeedback(t('feedback_hit', { lives: state.lives }), 'fail');
+                updateUI(); showDamageFloat(1, false, false); await sleep(1500);
 
                 if (state.lives <= 0) {
-                    setFeedback(t('feedback_gameover'), 'fail');
-                    state.battleLocked = true;
-                    state.enemyDefeated = true;
-                    state.currentEnemy = null;
-                    state.currentSpellKey = null;
-                    setSpellDisplay(null);
-                    posBtns.forEach(b => b.classList.remove('active'));
-                    updateUI();
-                    dom.btnStart.disabled = false;
-                    setEnemyStatus('defeated');
-                    renderEnemy();
-                    return;
+                    setFeedback(t('feedback_gameover'), 'fail'); state.battleLocked = true; state.enemyDefeated = true;
+                    state.currentEnemy = null; state.currentSpellKey = null; setSpellDisplay(null);
+                    posBtns.forEach(b => b.classList.remove('active')); updateUI();
+                    dom.btnStart.disabled = false; setEnemyStatus('defeated'); renderEnemy(); return;
                 }
                 resetBattleTurn(state.currentEnemy);
             }
 
-            // ============================================================
-            //  初始化
-            // ============================================================
             function init() {
                 try {
                     const saved = localStorage.getItem('hp_spell_config');
-                    if (saved) {
-                        const cfg = JSON.parse(saved);
-                        if (cfg.lang) lang = cfg.lang;
-                    }
+                    if (saved) { const cfg = JSON.parse(saved); if (cfg.lang) lang = cfg.lang; }
                 } catch (e) {}
 
                 dom.langToggle.addEventListener('click', () => {
                     lang = (lang === 'zh') ? 'en' : 'zh';
-                    try {
-                        const cfg = { lang: lang };
-                        localStorage.setItem('hp_spell_config', JSON.stringify(cfg));
-                    } catch (e) {}
+                    try { localStorage.setItem('hp_spell_config', JSON.stringify({ lang: lang })); } catch (e) {}
                     updateUI();
                     if (state.currentSpellKey) {
                         const s = SPELLS[state.currentSpellKey];
@@ -1434,16 +1001,11 @@
                 dom.posDefense.addEventListener('click', () => selectPosition('defense'));
                 dom.btnRecord.addEventListener('click', handleRecord);
 
-                updateUI();
-                setFeedback(t('feedback_wait'), 'info');
+                updateUI(); setFeedback(t('feedback_wait'), 'info');
             }
 
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-
+            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+            else { init(); }
         })();
     </script>
 </body>
