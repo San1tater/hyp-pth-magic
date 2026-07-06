@@ -17,12 +17,23 @@
         .status-bar .btn-start{background:linear-gradient(135deg,#b8963a,#8a6f2a);border:none;color:#1a1025;font-weight:700;padding:6px 24px;border-radius:40px;cursor:pointer;transition:0.25s;font-family:inherit;}
         .status-bar .btn-start:hover{transform:scale(1.04);box-shadow:0 6px 25px rgba(184,150,58,0.45);}
         .status-bar .btn-start:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-        .enemy-area{background:rgba(0,0,0,0.4);border-radius:24px;padding:12px 16px;margin-bottom:12px;border:1px solid rgba(184,150,58,0.1);text-align:center;min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;}
-        .enemy-avatar-wrap{min-height:80px;display:flex;align-items:center;justify-content:center;}
-        .enemy-area .enemy-img{width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(184,150,58,0.2));}
+        
+        /* 擴大後的敵人區域 */
+        .enemy-area{background:rgba(0,0,0,0.4);border-radius:24px;padding:20px 16px;margin-bottom:12px;border:1px solid rgba(184,150,58,0.1);text-align:center;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden;}
+        .enemy-avatar-wrap{width:140px;height:140px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+        .enemy-area .enemy-img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 30px rgba(184,150,58,0.25));transition:transform 0.3s ease;}
         .enemy-area .enemy-name{font-size:1.4rem;font-weight:700;color:#f5d98a;margin:2px 0;}
         .enemy-area .enemy-status{font-size:0.85rem;color:#b0a090;}
-        .enemy-area .damage-display{font-size:1.2rem;font-weight:700;color:#ff6b6b;margin-top:4px;text-shadow:0 0 20px rgba(255,80,80,0.3);}
+        
+        /* 頭頂飄出扣血/治癒動畫 */
+        .enemy-area .damage-display{position:absolute;top:15px;left:50%;transform:translateX(-50%);font-size:1.5rem;font-weight:700;color:#ff6b6b;text-shadow:0 0 15px rgba(255,80,80,0.6), 0 0 5px #000;z-index:10;pointer-events:none;animation:damageFloat 1.3s ease-out forwards;}
+        @keyframes damageFloat {
+            0% { transform: translate(-50%, 25px); opacity: 0; scale: 0.8; }
+            15% { transform: translate(-50%, 0px); opacity: 1; scale: 1.1; }
+            80% { transform: translate(-50%, -15px); opacity: 1; scale: 1.0; }
+            100% { transform: translate(-50%, -35px); opacity: 0; scale: 0.8; }
+        }
+        
         .enemy-area .empty-hint{color:#706050;font-size:1rem;opacity:0.5;letter-spacing:2px;}
         .positions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;flex-shrink:0;}
         .positions .pos-btn{background:rgba(255,255,255,0.04);border:1.5px solid rgba(184,150,58,0.2);border-radius:20px;padding:10px 4px;cursor:pointer;transition:0.25s;text-align:center;color:#ddd0c0;font-family:inherit;font-size:0.8rem;backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;user-select:none;}
@@ -50,17 +61,8 @@
         .action-row .feedback.fail{color:#ef8a8a;border-color:rgba(220,100,100,0.2);background:rgba(180,60,60,0.08);}
         .action-row .feedback.info{color:#b0c8e8;border-color:rgba(100,150,220,0.15);background:rgba(60,100,180,0.06);}
         .action-row .feedback.warn{color:#f0d080;border-color:rgba(220,200,80,0.15);background:rgba(180,160,60,0.06);}
-        .config-section{margin-top:auto;border-top:1px solid rgba(184,150,58,0.08);padding-top:10px;flex-shrink:0;}
-        .config-toggle{background:none;border:none;color:#706050;font-size:0.7rem;cursor:pointer;padding:4px 12px;border-radius:20px;transition:0.2s;font-family:inherit;opacity:0.5;width:100%;text-align:center;}
-        .config-toggle:hover{opacity:1;color:#b8963a;}
-        .config-body{display:none;margin-top:8px;padding:10px 14px;background:rgba(0,0,0,0.3);border-radius:16px;border:1px solid rgba(255,255,255,0.04);flex-direction:column;gap:6px;}
-        .config-body.open{display:flex;}
-        .config-body .config-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-        .config-body .config-row label{color:#a09080;font-size:0.7rem;min-width:50px;}
-        .config-body .config-row input{flex:1;min-width:100px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:4px 10px;color:#ddd0c0;font-size:0.75rem;font-family:inherit;outline:none;}
-        .config-body .config-row input:focus{border-color:#b8963a;}
-        .config-body .config-status{color:#706050;font-size:0.7rem;text-align:center;padding-top:4px;border-top:1px solid rgba(255,255,255,0.03);}
-        @media (max-width:480px){.header h1{font-size:1.6rem;}.positions{grid-template-columns:repeat(4,1fr);gap:5px;}.positions .pos-btn{padding:8px 2px;font-size:0.7rem;}.positions .pos-btn .pos-icon{font-size:1.4rem;}.status-bar{font-size:0.7rem;}.action-row{flex-direction:column;}.action-row .btn-record{width:100%;min-width:unset;}.action-row .feedback{width:100%;min-height:36px;}.enemy-area .enemy-img{width:60px;height:60px;}.enemy-area .enemy-name{font-size:1.2rem;}.spell-display .spell-char{font-size:1.4rem;}}
+        
+        @media (max-width:480px){.header h1{font-size:1.6rem;}.positions{grid-template-columns:repeat(4,1fr);gap:5px;}.positions .pos-btn{padding:8px 2px;font-size:0.7rem;}.positions .pos-btn .pos-icon{font-size:1.4rem;}.status-bar{font-size:0.7rem;}.action-row{flex-direction:column;}.action-row .btn-record{width:100%;min-width:unset;}.action-row .feedback{width:100%;min-height:36px;}.enemy-area{min-height:190px;}.enemy-avatar-wrap{width:100px;height:100px;}.enemy-area .enemy-name{font-size:1.2rem;}.spell-display .spell-char{font-size:1.4rem;}}
     </style>
 </head>
 <body>
@@ -88,15 +90,6 @@
         <button class="btn-record" id="btnRecord" disabled><span class="mic-icon">🎤</span><span id="recordLabel">開始唸咒</span></button>
         <div class="feedback" id="feedbackDisplay">💬 等待你的行動…</div>
     </div>
-    <div class="config-section">
-        <button class="config-toggle" id="configToggle">⚙️ 語音評測設定</button>
-        <div class="config-body" id="configBody">
-            <div class="config-row"><label>APPID</label><input type="text" id="xfAppid" placeholder="APPID" value="2600b137" /></div>
-            <div class="config-row"><label>APIKey</label><input type="text" id="xfApiKey" placeholder="APIKey" value="8b012124ed213c06974cd469f29e134b" /></div>
-            <div class="config-row"><label>APISecret</label><input type="text" id="xfApiSecret" placeholder="APISecret" value="MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj" /></div>
-            <div class="config-status" id="configStatus">🔊 使用科大訊飛語音評測 (詞語)</div>
-        </div>
-    </div>
 </div>
 <script>
 (function(){
@@ -104,17 +97,17 @@
 
 // ============ 多語言 ============
 const LANG={
-zh:{score:'分數',lives:'生命',start:'開始冒險',enemy_default:'🪄 點擊「開始冒險」迎接挑戰',wand:'魔杖',body:'身體',forehead:'額頭',defense:'自衛',spell_empty:'🔮 選擇一個部位以顯示咒語',record:'開始唸咒',recording:'停止錄音',feedback_wait:'💬 等待你的行動…',feedback_encounter:'⚔️ 遭遇了 {name}！選擇咒語！',feedback_spell_ready:'🔮 準備唸出「{spell}」',feedback_listening:'🎤 錄音中，再次點擊按鈕停止…',feedback_score:'📊 評分：{score} 分',feedback_fail:'❌ 錯誤: {err}',feedback_weak:'⚠️ 「{spell}」效果微弱！',feedback_dodge:'🌀 成功閃避反擊！再試一次！',feedback_dodge_fail:'💥 閃避失敗，遭受反擊！',feedback_ineffective:'💔 「{spell}」對 {enemy} 無效！',feedback_overkill:'🔥 「{spell}」過度強大！不被鼓勵！',feedback_overkill_penalty:'⚖️ 濫用強大咒語，扣除 5 分。',feedback_hit:'💀 反擊命中！剩餘生命：{lives}',feedback_gameover:'💀 你倒下了… 點擊「開始冒險」重來',feedback_retry:'🔄 繼續挑戰 {name}，選擇咒語！',feedback_restart:'🔄 遊戲重啟！',feedback_victory:'🎉 成功擊敗 {name}！ +{score} 分{bonus}',bonus_perfect:' 🌟 完美咒語！額外 +5 分！',bonus_great:' ✨ 出色的咒語！額外 +2 分！',feedback_next:'⚔️ 準備迎接下一場戰鬥！',enemy_status_default:'現身',enemy_status_expelliarmus:'被除你武器',enemy_status_stupefy:'被昏昏倒地',enemy_status_petrificus:'被統統石化',enemy_status_patronus:'被呼神護衛',enemy_status_attacking:'攻擊！',enemy_status_defeated:'被擊敗',feedback_stopping:'⏹️ 錄音停止，傳送評測…',feedback_connecting:'📡 連線訊飛評測中…'},
-en:{score:'Score',lives:'Lives',start:'Start',enemy_default:'🪄 Click "Start" to begin',wand:'Wand',body:'Body',forehead:'Forehead',defense:'Defense',spell_empty:'🔮 Select a body part',record:'Record',recording:'Stop',feedback_wait:'💬 Awaiting action…',feedback_encounter:'⚔️ Encountered {name}! Choose a spell!',feedback_spell_ready:'🔮 Ready to cast "{spell}"',feedback_listening:'🎤 Recording… click again to stop',feedback_score:'📊 Score: {score}',feedback_fail:'❌ Error: {err}',feedback_weak:'⚠️ "{spell}" weak effect!',feedback_dodge:'🌀 Dodged counterattack! Try again!',feedback_dodge_fail:'💥 Failed to dodge!',feedback_ineffective:'💔 "{spell}" no effect on {enemy}!',feedback_overkill:'🔥 "{spell}" overkill! Not encouraged!',feedback_overkill_penalty:'⚖️ Penalty -5 points.',feedback_hit:'💀 Hit! Lives left: {lives}',feedback_gameover:'💀 You fell… Click "Start" to restart',feedback_retry:'🔄 Continue fighting {name}, choose a spell!',feedback_restart:'🔄 Game restarted!',feedback_victory:'🎉 Defeated {name}! +{score} pts{bonus}',bonus_perfect:' 🌟 Perfect! Extra +5 pts!',bonus_great:' ✨ Great! Extra +2 pts!',feedback_next:'⚔️ Next battle!',enemy_status_default:'Appeared',enemy_status_expelliarmus:'Disarmed',enemy_status_stupefy:'Stunned',enemy_status_petrificus:'Petrified',enemy_status_patronus:'Patronus',enemy_status_attacking:'Attacking!',enemy_status_defeated:'Defeated',feedback_stopping:'⏹️ Recording stopped, evaluating…',feedback_connecting:'📡 Connecting to evaluation server…'}
+zh:{score:'分數',lives:'生命',start:'開始冒險',enemy_default:'🪄 點擊「開始冒險」迎接挑戰',wand:'魔杖',body:'身體',forehead:'額頭',defense:'自衛',spell_empty:'🔮 選擇一個部位以顯示咒語',record:'開始唸咒',recording:'停止錄音',feedback_wait:'💬 等待你的行動…',feedback_encounter:'⚔️ 遭遇了 {name}！選擇咒語！',feedback_spell_ready:'🔮 準備唸出「{spell}」',feedback_listening:'🎤 錄音中，再次點擊按鈕停止…',feedback_score:'📊 評分：{score} 分',feedback_fail:'❌ 錯誤: {err}',feedback_weak:'⚠️ 「{spell}」效果微弱！',feedback_dodge:'🌀 成功閃避反擊！再試一次！',feedback_dodge_fail:'💥 閃避失敗，遭受反擊！',feedback_ineffective:'💔 「{spell}」對 {enemy} 無效！',feedback_overkill:'🔥 「{spell}」過度強大！不被鼓勵！',feedback_overkill_penalty:'⚖️ 濫用強大咒語，扣除 5 分。',feedback_hit:'💀 反擊命中！剩餘生命：{lives}',feedback_gameover:'💀 你倒下了… 點擊「開始冒險」重來',feedback_retry:'🔄 繼續挑戰 {name}，選擇咒語！',feedback_restart:'🔄 遊戲重啟！',feedback_victory:'🎉 成功擊敗 {name}！ +{score} 分{bonus}',bonus_perfect:' 🌟 完美咒語！額外 +5 分！',bonus_great:' ✨ 出色的咒語！額外 +2 分！',feedback_next:'⚔️ 準備迎接下一場戰鬥！',enemy_status_default:'現身',enemy_status_expelliarmus:'被除你武器',enemy_status_stupefy:'被昏昏倒地',enemy_status_petrificus:'被統統石化',enemy_status_patronus:'被呼神護衛',enemy_status_attacking:'攻擊！',enemy_status_defeated:'被擊敗'},
+en:{score:'Score',lives:'Lives',start:'Start',enemy_default:'🪄 Click "Start" to begin',wand:'Wand',body:'Body',forehead:'Forehead',defense:'Defense',spell_empty:'🔮 Select a body part',record:'Record',recording:'Stop',feedback_wait:'💬 Awaiting action…',feedback_encounter:'⚔️ Encountered {name}! Choose a spell!',feedback_spell_ready:'🔮 Ready to cast "{spell}"',feedback_listening:'🎤 Recording… click again to stop',feedback_score:'📊 Score: {score}',feedback_fail:'❌ Error: {err}',feedback_weak:'⚠️ "{spell}" weak effect!',feedback_dodge:'🌀 Dodged counterattack! Try again!',feedback_dodge_fail:'💥 Failed to dodge!',feedback_ineffective:'💔 "{spell}" no effect on {enemy}!',feedback_overkill:'🔥 "{spell}" overkill! Not encouraged!',feedback_overkill_penalty:'⚖️ Penalty -5 points.',feedback_hit:'💀 Hit! Lives left: {lives}',feedback_gameover:'💀 You fell… Click "Start" to restart',feedback_retry:'🔄 Continue fighting {name}, choose a spell!',feedback_restart:'🔄 Game restarted!',feedback_victory:'🎉 Defeated {name}! +{score} pts{bonus}',bonus_perfect:' 🌟 Perfect! Extra +5 pts!',bonus_great:' ✨ Great! Extra +2 pts!',feedback_next:'⚔️ Next battle!',enemy_status_default:'Appeared',enemy_status_expelliarmus:'Disarmed',enemy_status_stupefy:'Stunned',enemy_status_petrificus:'Petrified',enemy_status_patronus:'Patronus',enemy_status_attacking:'Attacking!',enemy_status_defeated:'Defeated'}
 };
 let lang='zh';
 function t(k,p){let s=LANG[lang][k]||k;if(p)for(let k in p)s=s.replace(new RegExp('\\{'+k+'\\}','g'),p[k]);return s;}
 
-// ============ 遊戲數據 ============
+// ============ 遊戲數據 (已更換為馬愛農版本翻譯：馬爾福、食死徒) ============
 const ENEMIES=[
  {id:'dementor',name_zh:'攝魂怪',name_en:'Dementor',emoji:'👻',desc_zh:'黑暗化身',desc_en:'Darkness',hint_zh:'守護之力',hint_en:'Patronus'},
  {id:'voldemort',name_zh:'伏地魔',name_en:'Voldemort',emoji:'🐍',desc_zh:'黑魔王',desc_en:'Dark Lord',hint_zh:'解除武器',hint_en:'Disarm'},
- {id:'malfoy',name_zh:'馬份',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死人追隨者',desc_en:'Death Eater',hint_zh:'冷靜',hint_en:'Calm'}
+ {id:'malfoy',name_zh:'馬爾福',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死徒追隨者',desc_en:'Death Eater Follower',hint_zh:'冷靜',hint_en:'Calm'}
 ];
 const SPELLS={
 '除你武器':{pinyin:'chú nǐ wǔ qì',pos:'wand',label_zh:'魔杖',label_en:'Wand',effects:{dementor:'ineffective',voldemort:'effective',malfoy:'weak'},desc_zh:'繳械咒',desc_en:'Disarm'},
@@ -124,11 +117,11 @@ const SPELLS={
 };
 const POS_TO_SPELL={wand:'除你武器',body:'統統石化',forehead:'昏昏倒地',defense:'呼神護衛'};
 
-// ============ 狀態 ============
+// ============ 狀態 (已將科大訊飛憑據固定) ============
 const state={
  score:0,lives:3,currentEnemy:null,currentSpellKey:null,isRecording:false,battleLocked:false,enemyDefeated:false,
  xfAppid:'2600b137',xfApiKey:'8b012124ed213c06974cd469f29e134b',xfApiSecret:'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
- enemyStatus:'default', 
+ enemyStatus:'default', // 'default','expelliarmus','stupefy','petrificus','patronus','attacking','defeated'
  damageDisplay:0,
  audioContext:null, processor:null, source:null, stream:null, pcmChunks:[], isCapturing:false,
 };
@@ -139,9 +132,7 @@ const dom={
  score:$('scoreDisplay'),lives:$('livesDisplay'),scoreLabel:$('scoreLabel'),livesLabel:$('livesLabel'),
  enemyArea:$('enemyArea'),btnStart:$('btnStart'),posWand:$('posWand'),posBody:$('posBody'),posForehead:$('posForehead'),posDefense:$('posDefense'),
  spellDisplay:$('spellDisplay'),spellEmpty:$('spellEmpty'),btnRecord:$('btnRecord'),recordLabel:$('recordLabel'),
- feedback:$('feedbackDisplay'),configToggle:$('configToggle'),configBody:$('configBody'),
- xfAppid:$('xfAppid'),xfApiKey:$('xfApiKey'),xfApiSecret:$('xfApiSecret'),
- configStatus:$('configStatus'),langToggle:$('langToggle'),
+ feedback:$('feedbackDisplay'), langToggle:$('langToggle'),
  labelWand:$('labelWand'),labelBody:$('labelBody'),labelForehead:$('labelForehead'),labelDefense:$('labelDefense')
 };
 const posBtns=[dom.posWand,dom.posBody,dom.posForehead,dom.posDefense];
@@ -162,6 +153,7 @@ function setSpellDisplay(char,pinyin,hint=''){
  dom.spellDisplay.innerHTML=`<div class="spell-char">${char}</div><div class="spell-pinyin">${pinyin}</div>${hint?`<div class="spell-hint">${hint}</div>`:''}`;
 }
 
+// 渲染敵人區域（採用安全替換，修正原有 INNERHTML 疊加破壞 DOM 的缺陷）
 function renderEnemy(){
  let area=dom.enemyArea;
  if(!state.currentEnemy){
@@ -172,26 +164,30 @@ function renderEnemy(){
  let name=getEnemyName(e);
  let desc=getEnemyDesc(e);
  let hint=getEnemyHint(e);
+ 
  let statusMap={ 'default':0, 'expelliarmus':1, 'stupefy':2, 'petrificus':3, 'patronus':4, 'attacking':5, 'defeated':6 };
  let statusNum = statusMap[state.enemyStatus] || 0;
  let imgSrc = `images/${e.id}_${statusNum}.png`;
  let statusKey = 'enemy_status_' + state.enemyStatus;
  let statusText = t(statusKey) || t('enemy_status_default');
+ 
+ // 浮動傷害文本
  let damageHtml = '';
  if(state.damageDisplay > 0){
   damageHtml = `<div class="damage-display">💥 -${state.damageDisplay} 傷害</div>`;
  } else if(state.damageDisplay < 0){
-  damageHtml = `<div class="damage-display" style="color:#7ddfa0;">✨ +${-state.damageDisplay} 治療</div>`;
+  damageHtml = `<div class="damage-display" style="color:#7ddfa0; text-shadow:0 0 15px rgba(125,223,160,0.6), 0 0 5px #000;">✨ +${-state.damageDisplay} 治療</div>`;
  }
+ 
  area.innerHTML=`
+  ${damageHtml}
   <div class="enemy-avatar-wrap">
-    <img class="enemy-img" src="${imgSrc}" alt="${name}" onerror="this.remove(); document.getElementById('fallback-emoji-${e.id}').style.display='block';">
-    <span id="fallback-emoji-${e.id}" style="font-size:3rem; display:none;">${e.emoji}</span>
+    <img class="enemy-img" src="${imgSrc}" alt="${name}" onerror="this.style.display='none'; document.getElementById('enemy-fallback-emoji').style.display='block';">
+    <span id="enemy-fallback-emoji" style="display:none; font-size:4rem;">${e.emoji}</span>
   </div>
   <div class="enemy-name">${name}</div>
   <div class="enemy-status">${statusText} · ${desc}</div>
   <div style="font-size:0.7rem;color:#806850;">${hint}</div>
-  ${damageHtml}
  `;
 }
 function setEnemyStatus(s){state.enemyStatus=s;renderEnemy();}
@@ -264,26 +260,19 @@ function stopPCMCapture(){
  });
 }
 
-// ============ 訊飛評測 (詞語) ============
+// ============ 訊飛評測 (解決異步發送過快衝突與連線關閉時繼續發送的錯誤) ============
 function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText){
  return new Promise(async (resolve, reject)=>{
   try{
    const url = await buildWsUrl(apiKey, apiSecret, appid);
    console.log('🔗 連線 URL:', url);
    const ws = new WebSocket(url);
-   let score = null; let isResolved = false; let accumulatedXml = '';
+   let score = null; let isResolved = false;
    const timeoutId = setTimeout(()=>{ if(!isResolved && ws.readyState!==WebSocket.CLOSED){ ws.close(); reject(new Error('連線逾時 (15秒)')); } }, 15000);
    
    ws.onopen = async ()=>{
     console.log('✅ WebSocket 已連線');
-    
-    // 修復 1: 訊飛協議規範：業務層 text 必須是 Base64 編碼的 UTF-8 (含 BOM)
     const textWithBOM = '\uFEFF' + spellText;
-    const utf8Bytes = new TextEncoder().encode(textWithBOM);
-    let binaryStr = '';
-    for(let i=0; i<utf8Bytes.length; i++) { binaryStr += String.fromCharCode(utf8Bytes[i]); }
-    const textBase64 = btoa(binaryStr);
-
     const ssb = {
      common: { app_id: appid },
      business: {
@@ -294,7 +283,7 @@ function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText){
       cmd: 'ssb',
       auf: 'audio/L16;rate=16000',
       aue: 'raw',
-      text: textBase64,
+      text: textWithBOM,
       ttp_skip: true,
       rst: 'entirety',
       ise_unite: '1',
@@ -302,29 +291,36 @@ function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText){
      },
      data: { status: 0, data: '' }
     };
-    ws.send(JSON.stringify(ssb));
-    console.log('📤 發送 ssb 幀 (詞語)');
+    
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(ssb));
+        console.log('📤 發送 ssb 幀 (詞語)');
+    } else {
+        return;
+    }
     
     const total = pcmBuffer.byteLength;
     if(total===0){ ws.close(); reject(new Error('音頻數據為空')); return; }
-    let offset=0, chunkSize=1280, frameCount=0;
     
-    // 修復 2: 異步流控，防止大量音訊秒傳導致伺服器斷開
+    let offset=0, chunkSize=1280, frameCount=0;
     while(offset<total){
+     // 安全檢查：若連線已關閉或正在關閉，則立即跳出循環，防止報錯
+     if (ws.readyState !== WebSocket.OPEN) {
+       console.log('⚠️ WebSocket 狀態已變更，終止發送數據');
+       break;
+     }
      const end = Math.min(offset+chunkSize, total);
      const chunk = pcmBuffer.slice(offset, end);
      const isLast = (end===total);
      const dataStatus = isLast ? 2 : 1;
      const ausVal = isLast ? 4 : (frameCount===0 ? 1 : 2);
+     const frame = { business: { cmd:'auw', aus:ausVal, aue:'raw' }, data: { status:dataStatus, data:btoa(String.fromCharCode(...new Uint8Array(chunk))) } };
      
-     let chunkBinary = '';
-     const chunkBytes = new Uint8Array(chunk);
-     for(let i=0; i<chunkBytes.length; i++) { chunkBinary += String.fromCharCode(chunkBytes[i]); }
-     
-     const frame = { business: { cmd:'auw', aus:ausVal, aue:'raw' }, data: { status:dataStatus, data:btoa(chunkBinary) } };
      ws.send(JSON.stringify(frame));
      frameCount++; offset=end;
-     await sleep(40); 
+     
+     // 增加 40 毫秒等待延時，模擬音頻流真實採樣間隔，防止科大訊飛緩衝區溢出導致 8195 錯誤
+     await sleep(40);
     }
     console.log('📤 發送音頻幀數:', frameCount, '總字節:', total);
    };
@@ -336,20 +332,14 @@ function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText){
      if(msg.code!==0){ clearTimeout(timeoutId); isResolved=true; reject(new Error('訊飛錯誤 ['+msg.code+']: '+msg.message)); ws.close(); return; }
      if(msg.data && msg.data.data){
       const xmlStr = atob(msg.data.data);
-      accumulatedXml += xmlStr; // 修復 4: 收集碎片化的 XML
-      
-      let match = accumulatedXml.match(/<read_word[^>]*total_score="([\d.]+)"/);
-      if(!match) match = accumulatedXml.match(/<sentence[^>]*total_score="([\d.]+)"/);
-      if(!match) match = accumulatedXml.match(/total_score value="([\d.]+)"/);
+      console.log('📄 XML 結果:', xmlStr);
+      let match = xmlStr.match(/<read_word[^>]*total_score="([\d.]+)"/);
+      if(!match) match = xmlStr.match(/<sentence[^>]*total_score="([\d.]+)"/);
+      if(!match) match = xmlStr.match(/total_score value="([\d.]+)"/);
       if(match){
        score = parseFloat(match[1]);
        clearTimeout(timeoutId); isResolved=true; ws.close(); resolve(score);
-       return;
       }
-     }
-     // 如果抵達最後一幀且未成功匹配出分數，避免無限挂起
-     if(msg.data && msg.data.status === 2) {
-       clearTimeout(timeoutId); isResolved=true; ws.close(); resolve(score !== null ? score : 0);
      }
     }catch(e){ clearTimeout(timeoutId); isResolved=true; reject(new Error('解析回應失敗: '+e.message)); }
    };
@@ -395,12 +385,12 @@ async function handleRecord(){
   state.isRecording=false;
   dom.btnRecord.classList.remove('recording');
   dom.recordLabel.textContent=t('record');
-  setFeedback(t('feedback_stopping'),'info');
+  setFeedback('⏹️ 錄音停止，傳送評測…','info');
   updateUI();
   try{
    const pcmBuffer = await stopPCMCapture();
-   if(pcmBuffer.byteLength===0){ setFeedback('❌ 未錄到音頻，請重新嘗試', 'fail'); updateUI(); return; }
-   setFeedback(t('feedback_connecting'),'info');
+   if(pcmBuffer.byteLength===0){ setFeedback('❌ 未錄到音頻，請重新嘗試','fail'); updateUI(); return; }
+   setFeedback('📡 連線訊飛評測中…','info');
    dom.btnRecord.disabled=true; posBtns.forEach(b=>b.disabled=true);
    const score = await evaluateWithXunfei(pcmBuffer, state.xfAppid, state.xfApiKey, state.xfApiSecret, spellKey);
    setFeedback(t('feedback_score',{score:score}),'info');
@@ -408,39 +398,21 @@ async function handleRecord(){
    await handleBattleResult(effect, spellKey, enemy, score);
   }catch(err){
    setFeedback(t('feedback_fail',{err:err.message}),'fail');
-   await sleep(1500);
-   await handleCounterAttack();
-  }finally {
-   if(!state.battleLocked && !state.enemyDefeated && state.lives > 0) {
-     posBtns.forEach(b=>b.disabled=false);
-     dom.btnRecord.disabled=!state.currentSpellKey;
-   }
+   await handleCounterAttack(false);
+  }finally{
+   updateUI();
+   if(state.battleLocked||state.enemyDefeated||state.lives<=0){ posBtns.forEach(b=>b.disabled=true); dom.btnRecord.disabled=true; }
+   else{ posBtns.forEach(b=>b.disabled=false); dom.btnRecord.disabled=!state.currentSpellKey; }
   }
  }
 }
 
-// 輔助函式：重置戰鬥回合
-function resetBattleTurn(enemy) {
- state.battleLocked=false;
- state.currentSpellKey=null;
- setSpellDisplay(null);
- posBtns.forEach(b=>b.classList.remove('active'));
- setFeedback(t('feedback_retry',{name:getEnemyName(enemy)}),'info');
- updateUI();
- posBtns.forEach(b=>b.disabled=false);
- dom.btnRecord.disabled=true;
- setEnemyStatus('default');
- setDamage(0);
-}
-
-// 修復 3: 重構傷害計算與戰鬥流，利用異步延時充實 UI 動畫
+// 傷害計算與戰鬥結果
 async function handleBattleResult(effect, spellKey, enemy, score){
- state.battleLocked = true; // 鎖定操作避免連擊
  let damage = 0;
  let isKill = false;
  let bonusMsg = '';
  let bonusPts = 0;
- 
  switch(effect){
   case 'effective':
    damage = score;
@@ -455,99 +427,109 @@ async function handleBattleResult(effect, spellKey, enemy, score){
   case 'overkill':
    damage = score * 5;
    state.score = Math.max(0, state.score - 5);
+   setFeedback(t('feedback_overkill_penalty'),'warn');
    break;
  }
  
  setDamage(damage);
  let statusMap = { '除你武器':'expelliarmus', '昏昏倒地':'stupefy', '統統石化':'petrificus', '呼神護衛':'patronus' };
- setEnemyStatus(statusMap[spellKey] || 'default');
-
- // 停頓 1.5 秒讓玩家看清擊中敵人的魔法效果
- await sleep(1500);
+ let enemyStatus = statusMap[spellKey] || 'default';
+ setEnemyStatus(enemyStatus);
 
  if(isKill){
   state.score += 10 + bonusPts;
   setFeedback(t('feedback_victory',{name:getEnemyName(enemy), score:10+bonusPts, bonus:bonusMsg}),'success');
-  state.enemyDefeated=true; setEnemyStatus('defeated'); state.currentEnemy=null; state.currentSpellKey=null; setSpellDisplay(null); posBtns.forEach(b=>b.classList.remove('active')); updateUI();
-  await sleep(1500);
+  state.enemyDefeated=true; state.battleLocked=true; setEnemyStatus('defeated'); state.currentEnemy=null; state.currentSpellKey=null; setSpellDisplay(null); posBtns.forEach(b=>b.classList.remove('active')); updateUI();
+  await sleep(1200);
   if(state.lives>0){ setFeedback(t('feedback_next'),'info'); startAdventure(); } else { setFeedback(t('feedback_gameover'),'fail'); }
   return;
  }
 
  if(effect === 'effective'){
-  await handleCounterAttack();
+  await handleCounterAttack(false);
  } else if(effect === 'weak'){
   if(Math.random() < 0.5){
    setFeedback(t('feedback_dodge'),'success');
-   await sleep(1500);
-   resetBattleTurn(enemy);
+   state.battleLocked=false;
+   state.currentSpellKey=null;
+   setSpellDisplay(null);
+   posBtns.forEach(b=>b.classList.remove('active'));
+   setFeedback(t('feedback_retry',{name:getEnemyName(enemy)}),'info');
+   updateUI();
+   posBtns.forEach(b=>b.disabled=false);
+   dom.btnRecord.disabled=true;
+   setEnemyStatus('default');
+   setDamage(0);
   } else {
    setFeedback(t('feedback_dodge_fail'),'fail');
-   await sleep(1500);
-   await handleCounterAttack();
+   await handleCounterAttack(false);
   }
  } else if(effect === 'ineffective' || effect === 'overkill'){
   if(effect === 'ineffective') setFeedback(t('feedback_ineffective',{spell:spellKey, enemy:getEnemyName(enemy)}),'fail');
-  else { setFeedback(t('feedback_overkill',{spell:spellKey}),'warn'); setFeedback(t('feedback_overkill_penalty'),'warn'); }
-  await sleep(1500);
-  await handleCounterAttack();
+  else setFeedback(t('feedback_overkill',{spell:spellKey}),'warn');
+  await handleCounterAttack(false);
  }
 }
 
-// 反擊流優化：扣1生命，呈現反擊動畫後再做決策
-async function handleCounterAttack(){
+async function handleCounterAttack(forceFail){
  if(state.lives<=0)return;
  state.lives -= 1;
  setEnemyStatus('attacking');
  setFeedback(t('feedback_hit',{lives:state.lives}),'fail');
  updateUI();
- 
- // 給予反擊動畫 1.5 秒展示
- await sleep(1500);
-
  if(state.lives<=0){
   setFeedback(t('feedback_gameover'),'fail');
   state.battleLocked=true; state.enemyDefeated=true; state.currentEnemy=null; state.currentSpellKey=null; setSpellDisplay(null); posBtns.forEach(b=>b.classList.remove('active')); updateUI(); dom.btnStart.disabled=false; setEnemyStatus('defeated'); return;
  }
- resetBattleTurn(state.currentEnemy);
+ state.battleLocked=false;
+ state.currentSpellKey=null;
+ setSpellDisplay(null);
+ posBtns.forEach(b=>b.classList.remove('active'));
+ setFeedback(t('feedback_retry',{name:getEnemyName(state.currentEnemy)}),'info');
+ updateUI();
+ posBtns.forEach(b=>b.disabled=false);
+ dom.btnRecord.disabled=true;
+ setEnemyStatus('default');
+ setDamage(0);
 }
 
 // ============ 初始化 ============
 function init(){
  try{
   const saved=localStorage.getItem('hp_spell_config');
-  if(saved){const cfg=JSON.parse(saved); if(cfg.appid)dom.xfAppid.value=cfg.appid; if(cfg.apikey)dom.xfApiKey.value=cfg.apikey; if(cfg.apisecret)dom.xfApiSecret.value=cfg.apisecret; if(cfg.lang)lang=cfg.lang; state.xfAppid=cfg.appid||state.xfAppid; state.xfApiKey=cfg.apikey||state.xfApiKey; state.xfApiSecret=cfg.apisecret||state.xfApiSecret;}
+  if(saved){const cfg=JSON.parse(saved); if(cfg.lang)lang=cfg.lang;}
  }catch(e){}
- dom.xfAppid.value=state.xfAppid; dom.xfApiKey.value=state.xfApiKey; dom.xfApiSecret.value=state.xfApiSecret;
  
  dom.langToggle.addEventListener('click',()=>{ 
-   lang=(lang==='zh')?'en':'zh'; 
-   saveConfig(); 
-   updateUI(); 
-   if(state.currentSpellKey){ const s=SPELLS[state.currentSpellKey]; if(s)setSpellDisplay(state.currentSpellKey,s.pinyin,`「${getSpellDesc(state.currentSpellKey)}」`); } 
-   if(!state.currentEnemy)setFeedback(t('feedback_wait'),'info'); 
-   else setFeedback(t('feedback_encounter',{name:getEnemyName(state.currentEnemy)}),'info'); 
+    lang=(lang==='zh')?'en':'zh'; 
+    saveConfig(); 
+    updateUI(); 
+    if(state.currentSpellKey){ 
+        const s=SPELLS[state.currentSpellKey]; 
+        if(s)setSpellDisplay(state.currentSpellKey,s.pinyin,`「${getSpellDesc(state.currentSpellKey)}」`); 
+    } 
+    if(!state.currentEnemy)setFeedback(t('feedback_wait'),'info'); 
+    else setFeedback(t('feedback_encounter',{name:getEnemyName(state.currentEnemy)}),'info'); 
  });
+ 
  dom.btnStart.addEventListener('click',startAdventure);
  dom.posWand.addEventListener('click',()=>selectPosition('wand'));
  dom.posBody.addEventListener('click',()=>selectPosition('body'));
  dom.posForehead.addEventListener('click',()=>selectPosition('forehead'));
  dom.posDefense.addEventListener('click',()=>selectPosition('defense'));
  dom.btnRecord.addEventListener('click',handleRecord);
- dom.configToggle.addEventListener('click',()=>dom.configBody.classList.toggle('open'));
- dom.xfAppid.addEventListener('change',()=>{ state.xfAppid=dom.xfAppid.value.trim(); saveConfig(); });
- dom.xfApiKey.addEventListener('change',()=>{ state.xfApiKey=dom.xfApiKey.value.trim(); saveConfig(); });
- dom.xfApiSecret.addEventListener('change',()=>{ state.xfApiSecret=dom.xfApiSecret.value.trim(); saveConfig(); });
- updateUI(); setFeedback(t('feedback_wait'),'info');
- dom.configStatus.innerHTML='🔊 使用科大訊飛語音評測 (詞語)';
+ 
+ updateUI(); 
+ setFeedback(t('feedback_wait'),'info');
 }
+
 function saveConfig(){
  try{
-  const cfg={appid:dom.xfAppid.value.trim(), apikey:dom.xfApiKey.value.trim(), apisecret:dom.xfApiSecret.value.trim(), lang:lang};
+  const cfg={lang:lang};
   localStorage.setItem('hp_spell_config',JSON.stringify(cfg));
-  state.xfAppid=cfg.appid; state.xfApiKey=cfg.apikey; state.xfApiSecret=cfg.apisecret;
  }catch(e){}
 }
+
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();
 </script>
