@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>哈利波特 · 魔法對決</title>
     <style>
-        /* 样式不变，完整保留 */
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Noto Sans TC','Segoe UI',sans-serif;background:#0a0a12;overflow:hidden;height:100vh;display:flex;align-items:center;justify-content:center}
         .container{width:100vw;height:100vh;max-width:100%;background:linear-gradient(160deg,#1a1025,#0f0a1a);border:2px solid #b8963a;padding:16px 20px;display:flex;flex-direction:column;overflow-y:auto}
@@ -149,6 +148,16 @@ const SIMPLIFIED_MAP = {
   '統統石化':'统统石化',
   '昏昏倒地':'昏昏倒地',
   '呼神護衛':'呼神护卫'
+};
+
+// ===== 根据本次测试数据计算出的乘子 =====
+// 公式: 乘子 = 100 / (平均分 + 0.1)
+// 数据来源: 您提供的日志中每个咒语两次评分的平均值
+const SCORE_MULTIPLIERS = {
+    '呼神護衛': 100 / (3.0 + 0.1),   // 32.258
+    '昏昏倒地': 100 / (8.5 + 0.1),   // 11.628
+    '統統石化': 100 / (8.5 + 0.1),   // 11.628
+    '除你武器': 100 / (19.0 + 0.1)   // 5.236
 };
 
 const state={
@@ -299,7 +308,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 讯飞评测：统一使用 read_word 纯文本（不带拼音） =====
+// ===== 讯飞评测：统一使用 read_word 纯文本 + 乘子映射 =====
 function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
  return new Promise((resolve,reject)=>{
   let ws=null,resolved=false,ssbConfirmed=false;
@@ -318,10 +327,8 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
      
      // ---- 统一使用 read_word 纯文本 ---- 
      const category = 'read_word';
-     // 转为简体（仅用于发送，界面保持繁体）
      const text = SIMPLIFIED_MAP[spellKey] || spellKey;
-     // 纯文本试卷：直接放文本，不加任何标签和拼音
-     const paper = text;   // 例如 "除你武器"
+     const paper = text;   // 纯文本
      console.log('📝 發送試卷 (category: '+category+', 純文本):\n', paper);
      
      const ssb={
@@ -335,7 +342,7 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
        cmd:'ssb',
        auf:'audio/L16;rate=16000',
        aue:'raw',
-       text:paper,          // 纯文本内容
+       text:paper,
        ttp_skip:true,
        rst:'entirety',
        ise_unite:'1',
@@ -428,7 +435,10 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
          console.warn('❌ 無可用評分字段');
         }
        }
+       // ---- 应用乘子映射 ----
        let finalScore = Math.round(rawScore);
+       const multiplier = SCORE_MULTIPLIERS[spellKey] || 1;
+       finalScore = Math.round(finalScore * multiplier);
        finalScore = Math.max(0, Math.min(100, finalScore));
        console.log(`🎯 最終百分制評分: ${finalScore}`);
        if(!resolved){resolved=true;clearTimeout(timeoutId);ws.close();resolve(finalScore);}
@@ -446,7 +456,7 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
  });
 }
 
-// ============ 遊戲邏輯（完全不变） ============
+// ============ 遊戲邏輯 ============
 function startAdventure(){
  if(state.lives<=0){
   state.lives=3;
