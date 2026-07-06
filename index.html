@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>哈利波特 · 魔法對決</title>
     <style>
-        /* 样式保留，仅增加头像圆角 */
+        /* 样式完全保留，无改动 */
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Noto Sans TC','Segoe UI',sans-serif;background:#0a0a12;overflow:hidden;height:100vh;display:flex;align-items:center;justify-content:center}
         .container{width:100vw;height:100vh;max-width:100%;background:linear-gradient(160deg,#1a1025,#0f0a1a);border:2px solid #b8963a;padding:16px 20px;display:flex;flex-direction:column;overflow-y:auto}
@@ -110,7 +110,7 @@ enemy_status_expelliarmus:'被繳械',enemy_status_stupefy:'被擊昏',
 enemy_status_petrificus:'被石化',enemy_status_patronus:'被驅散',
 enemy_status_attacking:'攻擊！',enemy_status_defeated:'被擊敗',
 feedback_stopping:'⏹️ 錄音停止，正在識別語音…',feedback_connecting:'📡 連線語音識別伺服器中…',hp_label:'生命值',
-feedback_recognizing:'🔍 正在識別語音，請稍候…'},
+feedback_recognizing:'🔍 正在識別語音，請稍候…',feedback_recog_fail:'❌ 語音識別失敗，請重新嘗試'},
 en:{score:'Score',lives:'Lives',start:'Start',enemy_default:'🪄 Click "Start" to begin',
 wand:'Wand',body:'Body',forehead:'Forehead',defense:'Defense',spell_empty:'🔮 Select a body part',
 record:'Record',recording:'Stop',feedback_wait:'💬 Awaiting action…',feedback_encounter:'⚔️ Encountered {name}! Choose a spell!',
@@ -127,7 +127,7 @@ enemy_status_expelliarmus:'Disarmed',enemy_status_stupefy:'Stunned',
 enemy_status_petrificus:'Petrified',enemy_status_patronus:'Patronus',
 enemy_status_attacking:'Attacking!',enemy_status_defeated:'Defeated',
 feedback_stopping:'⏹️ Recording stopped, recognizing speech…',feedback_connecting:'📡 Connecting to speech recognition server…',hp_label:'HP',
-feedback_recognizing:'🔍 Recognizing speech, please wait…'}
+feedback_recognizing:'🔍 Recognizing speech, please wait…',feedback_recog_fail:'❌ Speech recognition failed, please retry'}
 };
 let lang='zh';
 function t(k,p){let s=LANG[lang][k]||k;if(p)for(let k in p)s=s.replace(new RegExp('\\{'+k+'\\}','g'),p[k]);return s;}
@@ -138,7 +138,7 @@ const ENEMIES=[
 {id:'malfoy',name_zh:'馬爾福',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死徒',desc_en:'Death Eater',hint_zh:'冷靜',hint_en:'Calm',hp:60}
 ];
 
-// 硬编码显示拼音（保留界面显示）
+// 硬编码显示拼音
 const DISPLAY_PINYIN = {
     '除你武器': 'chú nǐ wǔ qì',
     '統統石化': 'tōng tōng shí huà',
@@ -165,7 +165,7 @@ const SIMPLIFIED_MAP = {
 const state={
 score:0,lives:3,currentEnemy:null,lastEnemy:null,currentSpellKey:null,isRecording:false,
 battleLocked:false,enemyDefeated:false,enemyHp:0,maxEnemyHp:60,enemyStatus:'default',
-recognizing:false, // 新增：识别中标志
+recognizing:false, // 识别中标志
 xfAppid:'2600b137',xfApiKey:'8b012124ed213c06974cd469f29e134b',xfSecret:'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
 audioContext:null,processor:null,source:null,stream:null,pcmChunks:[],isCapturing:false,evaluating:false
 };
@@ -201,7 +201,7 @@ function setSpellDisplay(ch,pinyin,hint){
 function renderEnemy(){
  const area=dom.enemyArea;
  if(!state.currentEnemy && !state.enemyDefeated && state.lives>0){area.innerHTML=`<div class="empty-hint">${t('enemy_default')}</div>`;return;}
- // 若击败但没有 currentEnemy，用 lastEnemy 显示
+ // 胜利状态显示 _6
  if(!state.currentEnemy && state.enemyDefeated && state.lastEnemy){
     const e = state.lastEnemy;
     const name=getEnemyName(e);
@@ -220,7 +220,7 @@ function renderEnemy(){
      <div class="hp-text">${t('hp_label')} 0 / ${e.hp}</div>`;
     return;
  }
- // 若死亡（lives<=0）且没有 currentEnemy，用 lastEnemy 显示 _0
+ // 死亡状态显示 _0
  if(!state.currentEnemy && state.lives<=0 && state.lastEnemy){
     const e = state.lastEnemy;
     const name=getEnemyName(e);
@@ -537,9 +537,16 @@ async function handleRecord(){
    await handleBattleResult(effect,spellKey,enemy,score);
   }catch(err){
    console.error('❌ 評測錯誤:',err);
-   setFeedback(t('feedback_fail',{err:err.message}),'fail');
-   // 识别失败视为攻击失败，触发反击
-   await handleCounterAttack();
+   setFeedback(t('feedback_recog_fail'),'fail');
+   // 识别失败不触发反击，重置状态让用户重试
+   state.evaluating=false;
+   state.recognizing=false;
+   if(!state.battleLocked&&!state.enemyDefeated&&state.lives>0){
+    posBtns.forEach(b=>b.disabled=false);
+    dom.btnRecord.disabled=!state.currentSpellKey;
+   }
+   updateUI();
+   return;
   }finally{
    state.evaluating=false;
    state.recognizing=false;
@@ -566,7 +573,8 @@ async function handleBattleResult(effect,spellKey,enemy,score){
  await sleep(100); // 确保DOM更新后再显示伤害浮动
  if(hpLost>0){
   showDamageFloat(hpLost, isCritical||(effect==='overkill'), false);
- }else if(effect==='ineffective'){
+ }else{
+  // 即使伤害为0，也显示0（ineffective）
   showDamageFloat(0, false, false, true);
  }
  const statusMap={'除你武器':'expelliarmus','昏昏倒地':'stupefy','統統石化':'petrificus','呼神護衛':'patronus'};
@@ -578,7 +586,7 @@ async function handleBattleResult(effect,spellKey,enemy,score){
   state.enemyDefeated=true;
   state.enemyStatus='defeated';
   state.lastEnemy = enemy;
-  state.currentEnemy = null; // 清空以便显示胜利图片
+  state.currentEnemy = null;
   state.currentSpellKey=null;
   setSpellDisplay(null);
   posBtns.forEach(b=>b.classList.remove('active'));
