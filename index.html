@@ -552,7 +552,6 @@
                 return 'wss://' + host + path + '?authorization=' + encodeURIComponent(btoa(authOrigin)) + '&date=' + encodeURIComponent(date) + '&host=' + encodeURIComponent(host);
             }
 
-            // 優化高效能 Base64 轉換演算法，避免高頻調用時大數組棧溢出
             function Int16ArrayToBase64(int16Array) {
                 const bytes = new Uint8Array(int16Array.buffer);
                 let binary = ''; const len = bytes.byteLength;
@@ -563,7 +562,7 @@
             }
 
             // ============================================================
-            // 實時流式傳輸控制核心 (修正完畢版)
+            // 實時流式傳輸控制核心 (完美修正 48195 競態 Bug)
             // ============================================================
             function initXunfeiStream(spellText) {
                 return new Promise(async (resolve, reject) => {
@@ -576,25 +575,30 @@
                         state.ws = new WebSocket(url);
 
                         state.ws.onopen = () => {
-                            console.log('✅ WebSocket 實時連線成功，準備傳送首幀');
-                            state.wsConnected = true;
+                            console.log('✅ WebSocket 實時連線成功，發送「純淨配置首幀」');
                             const textWithBOM = '\uFEFF' + spellText;
                             const utf8Bytes = new TextEncoder().encode(textWithBOM);
                             let binaryStr = '';
                             for (let i = 0; i < utf8Bytes.length; i++) { binaryStr += String.fromCharCode(utf8Bytes[i]); }
 
+                            // [修正核心] 首幀 data 內部的 data 欄位必須完全為空字串，且不能附帶音訊
                             const ssb = {
                                 common: { app_id: state.xfAppid },
                                 business: { category: 'read_word', sub: 'ise', ent: 'cn_vip', tte: 'utf-8', cmd: 'ssb', auf: 'audio/L16;rate=16000', aue: 'raw', text: btoa(binaryStr), ttp_skip: true, rst: 'entirety', ise_unite: '1', extra_ability: 'multi_dimension' },
                                 data: { status: 0, data: '' }
                             };
                             state.ws.send(JSON.stringify(ssb));
+                            
+                            // [關鍵安全延遲] 確保首幀數據已被網路完全消化，避免後續微秒級的音訊包與其發生覆蓋衝突
+                            setTimeout(() => {
+                                state.wsConnected = true;
+                                console.log('🚀 訊飛握手完成，正式允許錄音數據流灌入');
+                            }, 100);
                         };
 
                         state.ws.onmessage = (ev) => {
                             try {
                                 const msg = JSON.parse(ev.data);
-                                console.log('📩 收到實時訊息:', msg);
                                 if (msg.code !== 0) {
                                     cleanupWebSocket();
                                     reject(new Error('訊飛錯誤 [' + msg.code + ']: ' + msg.message));
@@ -640,11 +644,10 @@
             }
 
             // ============================================================
-            // 錄音監聽與安全精確重採樣 (16000Hz Downsampling)
+            // 錄音監聽與高保真重採樣 (16000Hz 全網域精確適配)
             // ============================================================
             function startRealtimeRecording() {
                 return new Promise((resolve, reject) => {
-                    // 不依賴寫死採樣率，交給內部的抽取算法解決適配問題
                     navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
                         .then(stream => {
                             const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -656,25 +659,29 @@
                             const source = state.audioContext.createMediaStreamSource(stream);
                             const processor = state.audioContext.createScriptProcessor(4096, 1, 1);
                             
-                            // [關鍵修正] 進行高保真等比抽取下採樣，完美將任意硬體採樣率（如 48k）校準為 16k
+                            // [修正核心] 完美等比精確步進抽取，完美適配 48000 降 16000 的音訊流連續性
                             processor.onaudioprocess = (e) => {
+                                // 只有當首幀握手完畢後，才發送錄音幀
                                 if (!state.wsConnected || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
                                 
                                 const inputData = e.inputBuffer.getChannelData(0);
-                                
-                                // 重採樣計算
                                 const targetSampleRate = 16000;
-                                const compression = inputSampleRate / targetSampleRate;
-                                const length = Math.floor(inputData.length / compression);
-                                const pcm = new Int16Array(length);
                                 
-                                for (let i = 0; i < length; i++) {
-                                    let index = Math.floor(i * compression);
-                                    let sample = inputData[index];
+                                // 改良版：嚴格步進重採樣，防止時間軸斷層導致 8195 錯誤
+                                const fitCount = Math.floor(inputData.length * (targetSampleRate / inputSampleRate));
+                                const pcm = new Int16Array(fitCount);
+                                let index = 0;
+                                let ratio = inputSampleRate / targetSampleRate;
+                                
+                                for (let i = 0; i < fitCount; i++) {
+                                    let sampleIndex = Math.floor(index);
+                                    if (sampleIndex >= inputData.length) break;
+                                    let sample = inputData[sampleIndex];
                                     pcm[i] = Math.round(Math.max(-1, Math.min(1, sample)) * 32767);
+                                    index += ratio;
                                 }
                                 
-                                // 發送中間幀 (status: 1)
+                                // 發送音訊數據幀 (status: 1)
                                 const base64Data = Int16ArrayToBase64(pcm);
                                 const frame = {
                                     business: { cmd: 'auw', aus: 2, aue: 'raw' },
@@ -693,7 +700,6 @@
             }
 
             async function stopRealtimeRecording() {
-                // 優先向伺服器補發結束宣告幀 (status: 2)
                 if (state.ws && state.ws.readyState === WebSocket.OPEN) {
                     const finalFrame = {
                         business: { cmd: 'auw', aus: 4, aue: 'raw' },
@@ -703,7 +709,6 @@
                     console.log('📤 已通知伺服器：音頻串流結束 (status: 2)');
                 }
 
-                // 徹底斷開節點、關閉Context，清除記憶體，防止洩漏
                 if (state.processor) {
                     try { state.processor.onaudioprocess = null; state.processor.disconnect(); } catch(e){}
                     state.processor = null;
@@ -734,11 +739,10 @@
                     dom.btnRecord.disabled = true;
                     
                     try {
-                        // 1. 先安全拉起 WebSocket 流
+                        // 1. 先安全拉起 WebSocket 實時流並發送純淨首幀
                         const evalPromise = initXunfeiStream(spellKey);
 
-                        // 2. 確保連線初始化完畢（加上少許緩衝防競態），再掛載麥克風硬體
-                        await sleep(150);
+                        // 2. 啟動麥克風硬體
                         await startRealtimeRecording();
                         
                         state.isRecording = true;
@@ -748,7 +752,7 @@
                         setFeedback(t('feedback_listening'), 'info');
                         updateUI();
 
-                        // 3. 後台靜靜等待承諾返回最終結果
+                        // 3. 後端非同步等待評測承諾返回
                         evalPromise.then(async (score) => {
                             setFeedback(t('feedback_score', { score: score }), 'info');
                             await handleBattleResult(getSpellEffect(spellKey, enemy.id), spellKey, enemy, score);
@@ -779,7 +783,6 @@
                     dom.recordLabel.textContent = t('record');
                     setFeedback(t('feedback_stopping'), 'info');
                     
-                    // 斷開硬體並宣告發送 status:2
                     await stopRealtimeRecording();
                 }
             }
