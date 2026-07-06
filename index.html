@@ -232,18 +232,9 @@
             font-size: 3.6rem;
         }
         @keyframes floatUp {
-            0% {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0) scale(0.8);
-            }
-            40% {
-                opacity: 1;
-                transform: translateX(-50%) translateY(-60px) scale(1.2);
-            }
-            100% {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-140px) scale(1);
-            }
+            0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(0.8); }
+            40% { opacity: 1; transform: translateX(-50%) translateY(-60px) scale(1.2); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-140px) scale(1); }
         }
 
         /* ===== 部位按鈕 ===== */
@@ -271,14 +262,8 @@
             align-items: center;
             user-select: none;
         }
-        .positions .pos-btn .pos-icon {
-            font-size: 2rem;
-        }
-        .positions .pos-btn .pos-label {
-            font-weight: 400;
-            font-size: 0.75rem;
-            color: #c0b0a0;
-        }
+        .positions .pos-btn .pos-icon { font-size: 2rem; }
+        .positions .pos-btn .pos-label { font-weight: 400; font-size: 0.75rem; color: #c0b0a0; }
         .positions .pos-btn:hover:not(:disabled) {
             background: rgba(184, 150, 58, 0.12);
             border-color: #b8963a;
@@ -321,27 +306,10 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .spell-display .spell-char {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #f5d98a;
-            letter-spacing: 6px;
-        }
-        .spell-display .spell-pinyin {
-            font-size: 0.95rem;
-            color: #c0b0a0;
-            letter-spacing: 3px;
-            opacity: 0.7;
-        }
-        .spell-display .spell-hint {
-            font-size: 0.7rem;
-            color: #806850;
-        }
-        .spell-display .spell-empty {
-            color: #605040;
-            font-size: 0.85rem;
-            opacity: 0.5;
-        }
+        .spell-display .spell-char { font-size: 1.8rem; font-weight: 700; color: #f5d98a; letter-spacing: 6px; }
+        .spell-display .spell-pinyin { font-size: 0.95rem; color: #c0b0a0; letter-spacing: 3px; opacity: 0.7; }
+        .spell-display .spell-hint { font-size: 0.7rem; color: #806850; }
+        .spell-display .spell-empty { color: #605040; font-size: 0.85rem; opacity: 0.5; }
 
         /* ===== 操作列 ===== */
         .action-row {
@@ -371,28 +339,16 @@
             gap: 10px;
             box-shadow: 0 4px 20px rgba(138, 58, 74, 0.2);
         }
-        .action-row .btn-record:hover:not(:disabled) {
-            transform: scale(1.02);
-            border-color: rgba(220, 140, 160, 0.4);
-        }
-        .action-row .btn-record:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-            transform: none !important;
-        }
+        .action-row .btn-record:hover:not(:disabled) { transform: scale(1.02); border-color: rgba(220, 140, 160, 0.4); }
+        .action-row .btn-record:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
         .action-row .btn-record.recording {
             background: linear-gradient(135deg, #c04040, #802020);
             animation: pulse 1s infinite;
             border-color: #ff6060;
         }
         @keyframes pulse {
-            0%,
-            100% {
-                box-shadow: 0 0 20px rgba(200, 60, 60, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 50px rgba(200, 60, 60, 0.6);
-            }
+            0%, 100% { box-shadow: 0 0 20px rgba(200, 60, 60, 0.3); }
+            50% { box-shadow: 0 0 50px rgba(200, 60, 60, 0.6); }
         }
         .action-row .feedback {
             flex: 1.2;
@@ -410,113 +366,30 @@
             border: 1px solid rgba(255, 255, 255, 0.04);
             word-break: break-word;
         }
-        .action-row .feedback.success {
-            color: #7ddfa0;
-            border-color: rgba(100, 220, 150, 0.2);
-            background: rgba(60, 180, 100, 0.08);
-        }
-        .action-row .feedback.fail {
-            color: #ef8a8a;
-            border-color: rgba(220, 100, 100, 0.2);
-            background: rgba(180, 60, 60, 0.08);
-        }
-        .action-row .feedback.info {
-            color: #b0c8e8;
-            border-color: rgba(100, 150, 220, 0.15);
-            background: rgba(60, 100, 180, 0.06);
-        }
-        .action-row .feedback.warn {
-            color: #f0d080;
-            border-color: rgba(220, 200, 80, 0.15);
-            background: rgba(180, 160, 60, 0.06);
-        }
+        .action-row .feedback.success { color: #7ddfa0; border-color: rgba(100, 220, 150, 0.2); background: rgba(60, 180, 100, 0.08); }
+        .action-row .feedback.fail { color: #ef8a8a; border-color: rgba(220, 100, 100, 0.2); background: rgba(180, 60, 60, 0.08); }
+        .action-row .feedback.info { color: #b0c8e8; border-color: rgba(100, 150, 220, 0.15); background: rgba(60, 100, 180, 0.06); }
+        .action-row .feedback.warn { color: #f0d080; border-color: rgba(220, 200, 80, 0.15); background: rgba(180, 160, 60, 0.06); }
 
-        /* ===== 響應式 ===== */
+        /* ===== 響應式面版 ===== */
         @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.6rem;
-            }
-            .header h1 small {
-                font-size: 0.7rem;
-            }
-            .positions {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 5px;
-            }
-            .positions .pos-btn {
-                padding: 8px 2px;
-                font-size: 0.7rem;
-            }
-            .positions .pos-btn .pos-icon {
-                font-size: 1.6rem;
-            }
-            .status-bar {
-                font-size: 0.7rem;
-                padding: 4px 12px;
-            }
-            .action-row {
-                flex-direction: column;
-            }
-            .action-row .btn-record {
-                width: 100%;
-                min-width: unset;
-            }
-            .action-row .feedback {
-                width: 100%;
-                min-height: 36px;
-                font-size: 0.8rem;
-            }
-            .enemy-area .enemy-img {
-                width: 80px;
-                height: 80px;
-            }
-            .enemy-area .enemy-name {
-                font-size: 1.3rem;
-            }
-            .enemy-area {
-                min-height: 160px;
-                padding: 12px 14px;
-            }
-            .enemy-avatar-wrap {
-                min-height: 80px;
-            }
-            .spell-display .spell-char {
-                font-size: 1.4rem;
-            }
-            .hp-bar-wrap {
-                max-width: 200px;
-                height: 10px;
-            }
-            .damage-float {
-                font-size: 2rem;
-            }
-            .damage-float.critical {
-                font-size: 2.6rem;
-            }
-        }
-
-        @media (max-width: 380px) {
-            .enemy-area .enemy-img {
-                width: 60px;
-                height: 60px;
-            }
-            .enemy-area {
-                min-height: 130px;
-                padding: 8px 10px;
-            }
-            .enemy-avatar-wrap {
-                min-height: 60px;
-            }
-            .positions .pos-btn .pos-icon {
-                font-size: 1.3rem;
-            }
-            .status-bar .stat {
-                font-size: 0.6rem;
-            }
-            .status-bar .btn-start {
-                font-size: 0.7rem;
-                padding: 4px 14px;
-            }
+            .header h1 { font-size: 1.6rem; }
+            .header h1 small { font-size: 0.7rem; }
+            .positions { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+            .positions .pos-btn { padding: 8px 2px; font-size: 0.7rem; }
+            .positions .pos-btn .pos-icon { font-size: 1.6rem; }
+            .status-bar { font-size: 0.7rem; padding: 4px 12px; }
+            .action-row { flex-direction: column; }
+            .action-row .btn-record { width: 100%; min-width: unset; }
+            .action-row .feedback { width: 100%; min-height: 36px; font-size: 0.8rem; }
+            .enemy-area .enemy-img { width: 80px; height: 80px; }
+            .enemy-area .enemy-name { font-size: 1.3rem; }
+            .enemy-area { min-height: 160px; padding: 12px 14px; }
+            .enemy-avatar-wrap { min-height: 80px; }
+            .spell-display .spell-char { font-size: 1.4rem; }
+            .hp-bar-wrap { max-width: 200px; height: 10px; }
+            .damage-float { font-size: 2rem; }
+            .damage-float.critical { font-size: 2.6rem; }
         }
     </style>
 </head>
@@ -574,7 +447,7 @@
                     enemy_status_expelliarmus: '被除你武器', enemy_status_stupefy: '被昏昏倒地',
                     enemy_status_petrificus: '被統統石化', enemy_status_patronus: '被呼神護衛',
                     enemy_status_attacking: '攻擊！', enemy_status_defeated: '被擊敗',
-                    feedback_stopping: '⏹️ 錄音停止，傳送評測…', feedback_connecting: '📡 連線訊飛評測中…', hp_label: '生命值'
+                    feedback_stopping: '⏹️ 錄音停止，等待最終評測結果…', feedback_connecting: '📡 連線訊飛伺服器中…', hp_label: '生命值'
                 },
                 en: {
                     score: 'Score', lives: 'Lives', start: 'Start', enemy_default: '🪄 Click "Start" to begin',
@@ -623,11 +496,11 @@
             const state = {
                 score: 0, lives: 3, currentEnemy: null, currentSpellKey: null, isRecording: false,
                 battleLocked: false, enemyDefeated: false, enemyHp: 0, maxEnemyHp: 60, enemyStatus: 'default',
-                damageDisplay: 0,
                 xfAppid: '2600b137',
                 xfApiKey: '8b012124ed213c06974cd469f29e134b',
-                xfApiSecret: 'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
-                audioContext: null, processor: null, source: null, stream: null, pcmChunks: [], isCapturing: false,
+                xfSecret: 'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
+                audioContext: null, processor: null, source: null, stream: null, 
+                ws: null, finalResolve: null, finalReject: null, accumulatedXml: '', finalScore: null, wsConnected: false
             };
 
             const $ = id => document.getElementById(id);
@@ -635,9 +508,9 @@
                 score: $('scoreDisplay'), lives: $('livesDisplay'), scoreLabel: $('scoreLabel'), livesLabel: $('livesLabel'),
                 enemyArea: $('enemyArea'), btnStart: $('btnStart'), posWand: $('posWand'), posBody: $('posBody'),
                 posForehead: $('posForehead'), posDefense: $('posDefense'), spellDisplay: $('spellDisplay'),
-                spellEmpty: $('spellEmpty'), btnRecord: $('btnRecord'), recordLabel: $('recordLabel'),
-                feedback: $('feedbackDisplay'), langToggle: $('langToggle'), labelWand: $('labelWand'),
-                labelBody: $('labelBody'), labelForehead: $('labelForehead'), labelDefense: $('labelDefense'),
+                btnRecord: $('btnRecord'), recordLabel: $('recordLabel'), feedback: $('feedbackDisplay'), 
+                langToggle: $('langToggle'), labelWand: $('labelWand'), labelBody: $('labelBody'), 
+                labelForehead: $('labelForehead'), labelDefense: $('labelDefense'),
             };
             const posBtns = [dom.posWand, dom.posBody, dom.posForehead, dom.posDefense];
             const posMap = { wand: dom.posWand, body: dom.posBody, forehead: dom.posForehead, defense: dom.posDefense };
@@ -653,9 +526,7 @@
                 let s = SPELLS[spellKey]; return s ? (s.effects[enemyId] || 'ineffective') : 'ineffective';
             }
 
-            function setFeedback(msg, type = 'info') {
-                dom.feedback.textContent = msg; dom.feedback.className = 'feedback ' + type;
-            }
+            function setFeedback(msg, type = 'info') { dom.feedback.textContent = msg; dom.feedback.className = 'feedback ' + type; }
 
             function setSpellDisplay(char, pinyin, hint) {
                 if (!char) { dom.spellDisplay.innerHTML = `<div class="spell-empty">${t('spell_empty')}</div>`; return; }
@@ -663,29 +534,24 @@
             }
 
             function renderEnemy() {
-                const area = dom.enemyArea;
-                if (!state.currentEnemy) { area.innerHTML = `<div class="empty-hint">${t('enemy_default')}</div>`; return; }
-                const e = state.currentEnemy;
-                const name = getEnemyName(e); const desc = getEnemyDesc(e); const hint = getEnemyHint(e);
+                const area = dom.enemyArea; if (!state.currentEnemy) { area.innerHTML = `<div class="empty-hint">${t('enemy_default')}</div>`; return; }
+                const e = state.currentEnemy; const name = getEnemyName(e); const desc = getEnemyDesc(e); const hint = getEnemyHint(e);
                 const statusMap = { 'default': 0, 'expelliarmus': 1, 'stupefy': 2, 'petrificus': 3, 'patronus': 4, 'attacking': 5, 'defeated': 6 };
-                const statusNum = statusMap[state.enemyStatus] || 0;
-                const imgSrc = `images/${e.id}_${statusNum}.png`;
-                const statusKey = 'enemy_status_' + state.enemyStatus;
-                const statusText = t(statusKey) || t('enemy_status_default');
+                const imgSrc = `images/${e.id}_${statusMap[state.enemyStatus] || 0}.png`;
                 const hpPercent = Math.max(0, Math.min(100, (state.enemyHp / state.maxEnemyHp) * 100));
                 let hpClass = 'high'; if (hpPercent < 25) hpClass = 'low'; else if (hpPercent < 55) hpClass = 'mid';
 
                 area.innerHTML = `
-              <div class="enemy-avatar-wrap" id="enemyAvatarWrap">
-                <img class="enemy-img" src="${imgSrc}" alt="${name}" onerror="this.style.display='none'; document.getElementById('fallback-emoji-${e.id}').style.display='block';">
-                <span id="fallback-emoji-${e.id}" style="font-size:4rem; display:none;">${e.emoji}</span>
-              </div>
-              <div class="enemy-name">${name}</div>
-              <div class="enemy-status">${statusText} · ${desc}</div>
-              <div class="enemy-hint">${hint}</div>
-              <div class="hp-bar-wrap"><div class="hp-bar-fill ${hpClass}" style="width:${hpPercent}%;"></div></div>
-              <div class="hp-text">${t('hp_label')} ${state.enemyHp} / ${state.maxEnemyHp}</div>
-            `;
+                    <div class="enemy-avatar-wrap" id="enemyAvatarWrap">
+                        <img class="enemy-img" src="${imgSrc}" alt="${name}" onerror="this.style.display='none'; document.getElementById('fallback-emoji-${e.id}').style.display='block';">
+                        <span id="fallback-emoji-${e.id}" style="font-size:4rem; display:none;">${e.emoji}</span>
+                    </div>
+                    <div class="enemy-name">${name}</div>
+                    <div class="enemy-status">${t('enemy_status_' + state.enemyStatus) || t('enemy_status_default')} · ${desc}</div>
+                    <div class="enemy-hint">${hint}</div>
+                    <div class="hp-bar-wrap"><div class="hp-bar-fill ${hpClass}" style="width:${hpPercent}%;"></div></div>
+                    <div class="hp-text">${t('hp_label')} ${state.enemyHp} / ${state.maxEnemyHp}</div>
+                `;
             }
 
             function showDamageFloat(amount, isHeal = false, isCritical = false) {
@@ -725,142 +591,215 @@
                 return 'wss://' + host + path + '?authorization=' + encodeURIComponent(btoa(authOrigin)) + '&date=' + encodeURIComponent(date) + '&host=' + encodeURIComponent(host);
             }
 
-            function startPCMCapture() {
-                return new Promise((resolve, reject) => {
-                    navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true } })
-                        .then(async stream => {
-                            if (!state.audioContext) state.audioContext = new(window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-                            if (state.audioContext.state === 'suspended') await state.audioContext.resume();
-                            const source = state.audioContext.createMediaStreamSource(stream);
-                            const processor = state.audioContext.createScriptProcessor(4096, 1, 1);
-                            const chunks = [];
-                            processor.onaudioprocess = (e) => {
-                                const data = e.inputBuffer.getChannelData(0); const pcm = new Int16Array(data.length);
-                                for (let i = 0; i < data.length; i++) { pcm[i] = Math.round(Math.max(-1, Math.min(1, data[i])) * 32767); }
-                                chunks.push(pcm);
-                            };
-                            source.connect(processor); processor.connect(state.audioContext.destination);
-                            state.processor = processor; state.source = source; state.stream = stream; state.pcmChunks = chunks; state.isCapturing = true;
-                            resolve();
-                        }).catch(err => reject(new Error('麥克風權限被拒絕: ' + err.message)));
-                });
-            }
-
-            function stopPCMCapture() {
-                return new Promise(async (resolve) => {
-                    if (state.audioContext && state.isCapturing) {
-                        state.source.disconnect(); state.processor.disconnect();
-                        state.stream.getTracks().forEach(t => t.stop()); await state.audioContext.suspend();
-                        let total = state.pcmChunks.reduce((a, b) => a + b.length, 0), combined = new Int16Array(total), offset = 0;
-                        for (let arr of state.pcmChunks) { combined.set(arr, offset); offset += arr.length; }
-                        state.isCapturing = false; resolve(combined.buffer);
-                    } else { resolve(new Int16Array(0).buffer); }
-                });
+            // ============================================================
+            // 核心安全 Base64 轉換器
+            // ============================================================
+            function Int16ArrayToBase64(int16Array) {
+                const bytes = new Uint8Array(int16Array.buffer);
+                let binary = ''; const len = bytes.byteLength;
+                for (let i = 0; i < len; i += 8192) {
+                    binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + 8192, len)));
+                }
+                return btoa(binary);
             }
 
             // ============================================================
-            //  完美修正：帶有精確間隔控制與分幀傳輸的訊飛標準串流協議
+            // 真正的實時流式傳輸控制核心
             // ============================================================
-            function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText) {
+            function initXunfeiStream(spellText) {
                 return new Promise(async (resolve, reject) => {
-                    try {
-                        const url = await buildWsUrl(apiKey, apiSecret, appid);
-                        console.log('🔗 連線 URL:', url);
-                        const ws = new WebSocket(url);
-                        let score = null, isResolved = false, accumulatedXml = '';
-                        
-                        const timeoutId = setTimeout(() => {
-                            if (!isResolved && ws.readyState !== WebSocket.CLOSED) { ws.close(); reject(new Error('連線逾時 (15秒)')); }
-                        }, 15000);
+                    state.finalResolve = resolve; state.finalReject = reject;
+                    state.accumulatedXml = ''; state.finalScore = null; state.wsConnected = false;
 
-                        ws.onopen = async () => {
-                            console.log('✅ WebSocket 已連線');
+                    try {
+                        const url = await buildWsUrl(state.xfApiKey, state.xfSecret, state.xfAppid);
+                        console.log('🔗 正在連線流式伺服器 URL:', url);
+                        state.ws = new WebSocket(url);
+
+                        state.ws.onopen = () => {
+                            console.log('✅ WebSocket 實時連線成功，準備傳送首幀');
+                            state.wsConnected = true;
                             const textWithBOM = '\uFEFF' + spellText;
                             const utf8Bytes = new TextEncoder().encode(textWithBOM);
                             let binaryStr = '';
                             for (let i = 0; i < utf8Bytes.length; i++) { binaryStr += String.fromCharCode(utf8Bytes[i]); }
 
-                            // 1. 發送 ssb 首幀 (status: 0)
+                            // 發送首幀 (status: 0)
                             const ssb = {
-                                common: { app_id: appid },
+                                common: { app_id: state.xfAppid },
                                 business: { category: 'read_word', sub: 'ise', ent: 'cn_vip', tte: 'utf-8', cmd: 'ssb', auf: 'audio/L16;rate=16000', aue: 'raw', text: btoa(binaryStr), ttp_skip: true, rst: 'entirety', ise_unite: '1', extra_ability: 'multi_dimension' },
                                 data: { status: 0, data: '' }
                             };
-                            ws.send(JSON.stringify(ssb));
-                            console.log('📤 發送 ssb 幀 (詞語)');
-
-                            // 首幀發送後稍微延遲 100 毫秒，給訊飛伺服器緩衝和初始化的時間
-                            await sleep(100);
-
-                            const totalBytes = pcmBuffer.byteLength;
-                            if (totalBytes === 0) { ws.close(); reject(new Error('音頻數據為空')); return; }
-
-                            // 2. 模擬真實串流切片與發送（使用訊飛官方推薦的 12288 位元組單幀大小）
-                            let offset = 0, chunkSize = 12288;
-                            while (offset < totalBytes) {
-                                // 判斷 WebSocket 是否在傳輸途中被意外關閉，防止拋出異常
-                                if (ws.readyState !== WebSocket.OPEN) break;
-
-                                const end = Math.min(offset + chunkSize, totalBytes);
-                                const chunk = pcmBuffer.slice(offset, end);
-                                const isLastChunk = (end === totalBytes);
-                                
-                                const chunkBinary = String.fromCharCode.apply(null, new Uint8Array(chunk));
-                                const frame = {
-                                    business: { cmd: 'auw', aus: isLastChunk ? 4 : 2, aue: 'raw' },
-                                    data: { status: isLastChunk ? 2 : 1, data: btoa(chunkBinary) }
-                                };
-                                ws.send(JSON.stringify(frame));
-                                offset = end;
-
-                                // 每發送一幀，嚴格加入 40 毫秒間隔（模擬 16k 採樣率下 40ms 的音頻長度）
-                                // 這能徹底杜絕訊飛接收端的緩衝溢出（iSEInputAppend error 8195）
-                                if (!isLastChunk) {
-                                    await sleep(40);
-                                }
-                            }
-                            console.log('📤 音頻數據流式發送完畢，總字節:', totalBytes);
+                            state.ws.send(JSON.stringify(ssb));
                         };
 
-                        ws.onmessage = (ev) => {
+                        state.ws.onmessage = (ev) => {
                             try {
                                 const msg = JSON.parse(ev.data);
-                                console.log('📩 收到訊息:', msg);
+                                console.log('📩 收到實時訊息:', msg);
                                 if (msg.code !== 0) {
-                                    clearTimeout(timeoutId); isResolved = true;
+                                    cleanupWebSocket();
                                     reject(new Error('訊飛錯誤 [' + msg.code + ']: ' + msg.message));
-                                    ws.close(); return;
+                                    return;
                                 }
                                 if (msg.data && msg.data.data) {
-                                    accumulatedXml += atob(msg.data.data);
-                                    let match = accumulatedXml.match(/<read_word[^>]*total_score="([\d.]+)"/) || 
-                                                accumulatedXml.match(/<sentence[^>]*total_score="([\d.]+)"/) || 
-                                                accumulatedXml.match(/total_score value="([\d.]+)"/);
+                                    state.accumulatedXml += atob(msg.data.data);
+                                    let match = state.accumulatedXml.match(/<read_word[^>]*total_score="([\d.]+)"/) || 
+                                                state.accumulatedXml.match(/<sentence[^>]*total_score="([\d.]+)"/) || 
+                                                state.accumulatedXml.match(/total_score value="([\d.]+)"/);
                                     if (match) {
-                                        score = parseFloat(match[1]); clearTimeout(timeoutId); isResolved = true;
-                                        ws.close(); resolve(score); return;
+                                        state.finalScore = parseFloat(match[1]);
+                                        cleanupWebSocket(); resolve(state.finalScore); return;
                                     }
                                 }
                                 if (msg.data && msg.data.status === 2) {
-                                    clearTimeout(timeoutId); isResolved = true; ws.close();
-                                    resolve(score !== null ? score : 0);
+                                    cleanupWebSocket();
+                                    resolve(state.finalScore !== null ? state.finalScore : 0);
                                 }
                             } catch (e) {
-                                clearTimeout(timeoutId); isResolved = true; reject(new Error('解析回應失敗: ' + e.message));
+                                cleanupWebSocket(); reject(new Error('解析回應失敗: ' + e.message));
                             }
                         };
-                        ws.onerror = (err) => {
-                            clearTimeout(timeoutId); if (!isResolved) { isResolved = true; reject(new Error('WebSocket 連線失敗')); }
+
+                        state.ws.onerror = (err) => { cleanupWebSocket(); reject(new Error('WebSocket 連線異常')); };
+                        state.ws.onclose = (ev) => {
+                            if (state.finalScore !== null) resolve(state.finalScore);
+                            else reject(new Error('伺服器連線已關閉 (code:' + ev.code + ')'));
                         };
-                        ws.onclose = (ev) => {
-                            clearTimeout(timeoutId);
-                            if (!isResolved) {
-                                isResolved = true;
-                                if (score !== null) resolve(score); else reject(new Error('連線中斷 (code:' + ev.code + ')'));
-                            }
-                        };
+
                     } catch (e) { reject(e); }
                 });
+            }
+
+            function cleanupWebSocket() {
+                if (state.ws) {
+                    if (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING) {
+                        state.ws.close();
+                    }
+                    state.ws = null;
+                }
+                state.wsConnected = false;
+            }
+
+            // ============================================================
+            // 錄音與實時推送整合
+            // ============================================================
+            function startRealtimeRecording() {
+                return new Promise((resolve, reject) => {
+                    navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true } })
+                        .then(async stream => {
+                            if (!state.audioContext) state.audioContext = new(window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                            if (state.audioContext.state === 'suspended') await state.audioContext.resume();
+                            
+                            const source = state.audioContext.createMediaStreamSource(stream);
+                            const processor = state.audioContext.createScriptProcessor(4096, 1, 1);
+                            
+                            // 真正即時流：當麥克風收到聲音緩衝，直接不回頭轉碼發送！
+                            processor.onaudioprocess = (e) => {
+                                if (!state.wsConnected || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+                                
+                                const data = e.inputBuffer.getChannelData(0);
+                                const pcm = new Int16Array(data.length);
+                                for (let i = 0; i < data.length; i++) {
+                                    pcm[i] = Math.round(Math.max(-1, Math.min(1, data[i])) * 32767);
+                                }
+                                
+                                // 中間幀發送 (status: 1)
+                                const base64Data = Int16ArrayToBase64(pcm);
+                                const frame = {
+                                    business: { cmd: 'auw', aus: 2, aue: 'raw' },
+                                    data: { status: 1, data: base64Data }
+                                };
+                                state.ws.send(JSON.stringify(frame));
+                            };
+
+                            source.connect(processor);
+                            processor.connect(state.audioContext.destination);
+                            
+                            state.processor = processor; state.source = source; state.stream = stream;
+                            resolve();
+                        }).catch(err => reject(new Error('麥克風權限被拒絕: ' + err.message)));
+                });
+            }
+
+            async function stopRealtimeRecording() {
+                if (state.processor && state.stream) {
+                    state.source.disconnect(); state.processor.disconnect();
+                    state.stream.getTracks().forEach(t => t.stop());
+                    if (state.audioContext) await state.audioContext.suspend();
+                }
+
+                // 錄音停止時，向伺服器發送最後一幀結束宣告 (status: 2)
+                if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+                    const finalFrame = {
+                        business: { cmd: 'auw', aus: 4, aue: 'raw' },
+                        data: { status: 2, data: '' }
+                    };
+                    state.ws.send(JSON.stringify(finalFrame));
+                    console.log('📤 已通知伺服器：音頻串流結束 (status: 2)');
+                }
+            }
+
+            // ============================================================
+            // 遊戲邏輯與流程
+            // ============================================================
+            async function handleRecord() {
+                if (!state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated) return;
+                const spellKey = state.currentSpellKey, enemy = state.currentEnemy;
+
+                if (!state.isRecording) {
+                    // 【第一步】先打開 WebSocket 與初始化訊飛
+                    setFeedback(t('feedback_connecting'), 'info');
+                    dom.btnRecord.disabled = true;
+                    
+                    try {
+                        // 建立異步評測 promise 的監聽
+                        const evalPromise = initXunfeiStream(spellKey);
+
+                        // 【第二步】麥克風啟動並啟動即時傳輸
+                        await startRealtimeRecording();
+                        
+                        state.isRecording = true;
+                        dom.btnRecord.classList.add('recording');
+                        dom.btnRecord.disabled = false;
+                        dom.recordLabel.textContent = t('recording');
+                        setFeedback(t('feedback_listening'), 'info');
+                        updateUI();
+
+                        // 背景守候最終辨識結果
+                        evalPromise.then(async (score) => {
+                            setFeedback(t('feedback_score', { score: score }), 'info');
+                            await handleBattleResult(getSpellEffect(spellKey, enemy.id), spellKey, enemy, score);
+                        }).catch(async (err) => {
+                            setFeedback(t('feedback_fail', { err: err.message }), 'fail');
+                            await sleep(1500); await handleCounterAttack();
+                        }).finally(() => {
+                            if (!state.battleLocked && !state.enemyDefeated && state.lives > 0) {
+                                posBtns.forEach(b => b.disabled = false);
+                                dom.btnRecord.disabled = !state.currentSpellKey;
+                            }
+                            updateUI();
+                        });
+
+                    } catch (err) {
+                        setFeedback(t('feedback_fail', { err: err.message }), 'fail');
+                        cleanupWebSocket();
+                        state.isRecording = false;
+                        dom.btnRecord.classList.remove('recording');
+                        dom.recordLabel.textContent = t('record');
+                        updateUI();
+                    }
+                } else {
+                    // 使用者主動按下「停止錄音」
+                    dom.btnRecord.disabled = true;
+                    state.isRecording = false;
+                    dom.btnRecord.classList.remove('recording');
+                    dom.recordLabel.textContent = t('record');
+                    setFeedback(t('feedback_stopping'), 'info');
+                    
+                    // 終止硬體錄製，並補發結束訊號給伺服器，接下來等待上面的 evalPromise 自行回傳
+                    await stopRealtimeRecording();
+                }
             }
 
             function startAdventure() {
@@ -872,7 +811,7 @@
                 }
                 const enemy = pick(ENEMIES); state.currentEnemy = enemy; state.currentSpellKey = null;
                 state.enemyDefeated = false; state.battleLocked = false; state.enemyStatus = 'default';
-                state.enemyHp = enemy.hp; state.maxEnemyHp = enemy.hp; state.damageDisplay = 0;
+                state.enemyHp = enemy.hp; state.maxEnemyHp = enemy.hp;
                 setSpellDisplay(null); setFeedback(t('feedback_encounter', { name: getEnemyName(enemy) }), 'info');
                 posBtns.forEach(b => b.classList.remove('active')); updateUI();
                 posBtns.forEach(b => b.disabled = false); dom.btnRecord.disabled = true;
@@ -887,40 +826,6 @@
                 setSpellDisplay(spellKey, SPELLS[spellKey].pinyin, '「' + getSpellDesc(spellKey) + '」');
                 setFeedback(t('feedback_spell_ready', { spell: spellKey }), 'info');
                 dom.btnRecord.disabled = false; updateUI();
-            }
-
-            async function handleRecord() {
-                if (!state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated) return;
-                const spellKey = state.currentSpellKey, enemy = state.currentEnemy;
-
-                if (!state.isRecording) {
-                    state.isRecording = true; dom.btnRecord.classList.add('recording'); dom.recordLabel.textContent = t('recording');
-                    setFeedback(t('feedback_listening'), 'info'); updateUI();
-                    try { await startPCMCapture(); } catch (err) {
-                        setFeedback(t('feedback_fail', { err: err.message }), 'fail');
-                        state.isRecording = false; dom.btnRecord.classList.remove('recording'); dom.recordLabel.textContent = t('record'); updateUI();
-                    }
-                } else {
-                    dom.btnRecord.disabled = true; state.isRecording = false; dom.btnRecord.classList.remove('recording');
-                    dom.recordLabel.textContent = t('record'); setFeedback(t('feedback_stopping'), 'info'); updateUI();
-                    try {
-                        const pcmBuffer = await stopPCMCapture();
-                        if (pcmBuffer.byteLength === 0) { setFeedback('❌ 未錄到音頻，請重新嘗試', 'fail'); updateUI(); return; }
-                        setFeedback(t('feedback_connecting'), 'info'); dom.btnRecord.disabled = true; posBtns.forEach(b => b.disabled = true);
-
-                        const score = await evaluateWithXunfei(pcmBuffer, state.xfAppid, state.xfApiKey, state.xfApiSecret, spellKey);
-                        setFeedback(t('feedback_score', { score: score }), 'info');
-                        await handleBattleResult(getSpellEffect(spellKey, enemy.id), spellKey, enemy, score);
-                    } catch (err) {
-                        setFeedback(t('feedback_fail', { err: err.message }), 'fail');
-                        await sleep(1500); await handleCounterAttack();
-                    } finally {
-                        if (!state.battleLocked && !state.enemyDefeated && state.lives > 0) {
-                            posBtns.forEach(b => b.disabled = false); dom.btnRecord.disabled = !state.currentSpellKey;
-                        }
-                        updateUI();
-                    }
-                }
             }
 
             function resetBattleTurn(enemy) {
