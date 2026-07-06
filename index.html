@@ -656,7 +656,7 @@
                 });
             }
 
-            // ============ 訊飛評測（先錄音完畢後一次性發送） ============
+            // ============ 訊飛評測（修正版：等待 ssb 確認後再發送音頻） ============
             function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText) {
                 return new Promise(async (resolve, reject) => {
                     try {
@@ -665,12 +665,51 @@
                         const ws = new WebSocket(url);
                         let score = null;
                         let isResolved = false;
+                        let ssbConfirmed = false;
+                        let audioSent = false;
+                        let audioSendPromiseResolve = null;
+                        const audioSendPromise = new Promise(res => { audioSendPromiseResolve = res; });
+
                         const timeoutId = setTimeout(() => {
                             if (!isResolved && ws.readyState !== WebSocket.CLOSED) {
                                 ws.close();
                                 reject(new Error('連線逾時 (15秒)'));
                             }
                         }, 15000);
+
+                        // 發送音頻的函數（在確認後調用）
+                        const sendAudio = async () => {
+                            const total = pcmBuffer.byteLength;
+                            if (total === 0) {
+                                reject(new Error('音頻數據為空'));
+                                return;
+                            }
+                            let offset = 0;
+                            const chunkSize = 1280;
+                            let frameCount = 0;
+                            while (offset < total) {
+                                if (ws.readyState !== WebSocket.OPEN) {
+                                    console.warn('⚠️ 連線中斷，停止發送');
+                                    break;
+                                }
+                                const end = Math.min(offset + chunkSize, total);
+                                const chunk = pcmBuffer.slice(offset, end);
+                                const isLast = (end === total);
+                                const dataStatus = isLast ? 2 : 1;
+                                const ausVal = isLast ? 4 : (frameCount === 0 ? 1 : 2);
+                                const frame = {
+                                    business: { cmd: 'auw', aus: ausVal, aue: 'raw' },
+                                    data: { status: dataStatus, data: btoa(String.fromCharCode(...new Uint8Array(chunk))) }
+                                };
+                                ws.send(JSON.stringify(frame));
+                                frameCount++;
+                                offset = end;
+                                await sleep(30);
+                            }
+                            console.log('📤 發送音頻幀數:', frameCount, '總字節:', total);
+                            audioSent = true;
+                            // 最後一幀發送完畢，可等待評分
+                        };
 
                         ws.onopen = async () => {
                             console.log('✅ WebSocket 已連線');
@@ -699,38 +738,7 @@
                             };
                             ws.send(JSON.stringify(ssb));
                             console.log('📤 發送 ssb 幀');
-
-                            // 發送音頻數據
-                            const total = pcmBuffer.byteLength;
-                            if (total === 0) {
-                                ws.close();
-                                reject(new Error('音頻數據為空'));
-                                return;
-                            }
-                            let offset = 0;
-                            const chunkSize = 1280;
-                            let frameCount = 0;
-                            while (offset < total) {
-                                if (ws.readyState !== WebSocket.OPEN) {
-                                    console.warn('⚠️ 連線中斷，停止發送');
-                                    break;
-                                }
-                                const end = Math.min(offset + chunkSize, total);
-                                const chunk = pcmBuffer.slice(offset, end);
-                                const isLast = (end === total);
-                                const dataStatus = isLast ? 2 : 1;
-                                const ausVal = isLast ? 4 : (frameCount === 0 ? 1 : 2);
-                                const frame = {
-                                    business: { cmd: 'auw', aus: ausVal, aue: 'raw' },
-                                    data: { status: dataStatus, data: btoa(String.fromCharCode(...new Uint8Array(chunk))) }
-                                };
-                                ws.send(JSON.stringify(frame));
-                                frameCount++;
-                                offset = end;
-                                // 小延遲避免發送過快
-                                await sleep(30);
-                            }
-                            console.log('📤 發送音頻幀數:', frameCount, '總字節:', total);
+                            // 等待 ssb 確認（在 onmessage 中觸發）
                         };
 
                         ws.onmessage = (ev) => {
@@ -744,6 +752,20 @@
                                     ws.close();
                                     return;
                                 }
+                                // 檢查是否為 ssb 確認（即沒有 data.data 字段）
+                                if (!ssbConfirmed && (!msg.data || !msg.data.data)) {
+                                    ssbConfirmed = true;
+                                    console.log('✅ ssb 已確認，開始發送音頻');
+                                    // 開始發送音頻（不阻塞消息處理）
+                                    sendAudio().catch(err => {
+                                        clearTimeout(timeoutId);
+                                        isResolved = true;
+                                        reject(err);
+                                        ws.close();
+                                    });
+                                    return;
+                                }
+                                // 處理評分結果
                                 if (msg.data && msg.data.data) {
                                     const xmlStr = atob(msg.data.data);
                                     console.log('📄 XML 結果:', xmlStr);
