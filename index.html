@@ -96,7 +96,7 @@ zh:{score:'分數',lives:'生命',start:'開始冒險',enemy_default:'🪄 點�
 wand:'魔杖',body:'身體',forehead:'額頭',defense:'自衛',spell_empty:'🔮 選擇一個部位以顯示咒語',
 record:'開始唸咒',recording:'停止錄音',feedback_wait:'💬 等待你的行動…',feedback_encounter:'⚔️ 遭遇了 {name}！選擇咒語！',
 feedback_spell_ready:'🔮 準備唸出「{spell}」',feedback_listening:'🎤 錄音中，再次點擊按鈕停止…',
-feedback_score:'📊 評分：{score} 分',feedback_fail:'❌ 錯誤: {err}',feedback_weak:'⚠️ 「{spell}」效果微弱！',
+feedback_score:'📊 評分（聲韻調均值）：{score} 分',feedback_fail:'❌ 錯誤: {err}',feedback_weak:'⚠️ 「{spell}」效果微弱！',
 feedback_dodge:'🌀 成功閃避反擊！再試一次！',feedback_dodge_fail:'💥 閃避失敗，遭受反擊！',
 feedback_ineffective:'💔 「{spell}」對 {enemy} 無效！',feedback_overkill:'🔥 「{spell}」過度強大！不被鼓勵！',
 feedback_overkill_penalty:'⚖️ 濫用強大咒語，扣除 5 分。',feedback_hit:'💀 反擊命中！剩餘生命：{lives}',
@@ -112,7 +112,7 @@ en:{score:'Score',lives:'Lives',start:'Start',enemy_default:'🪄 Click "Start" 
 wand:'Wand',body:'Body',forehead:'Forehead',defense:'Defense',spell_empty:'🔮 Select a body part',
 record:'Record',recording:'Stop',feedback_wait:'💬 Awaiting action…',feedback_encounter:'⚔️ Encountered {name}! Choose a spell!',
 feedback_spell_ready:'🔮 Ready to cast "{spell}"',feedback_listening:'🎤 Recording… click again to stop',
-feedback_score:'📊 Score: {score}',feedback_fail:'❌ Error: {err}',feedback_weak:'⚠️ "{spell}" weak effect!',
+feedback_score:'📊 Score (avg of initials/finals/tones): {score}',feedback_fail:'❌ Error: {err}',feedback_weak:'⚠️ "{spell}" weak effect!',
 feedback_dodge:'🌀 Dodged counterattack! Try again!',feedback_dodge_fail:'💥 Failed to dodge!',
 feedback_ineffective:'💔 "{spell}" no effect on {enemy}!',feedback_overkill:'🔥 "{spell}" overkill! Not encouraged!',
 feedback_overkill_penalty:'⚖️ Penalty -5 points.',feedback_hit:'💀 Hit! Lives left: {lives}',
@@ -237,7 +237,7 @@ function startPCMCapture(){
    const inRate=state.audioContext.sampleRate;
    console.log('🎤 實際採樣率:',inRate);
    const source=state.audioContext.createMediaStreamSource(stream);
-   const processor=state.audioContext.createScriptProcessor(2048,1,1); // 較小緩衝區
+   const processor=state.audioContext.createScriptProcessor(2048,1,1);
    state.pcmChunks=[];
    processor.onaudioprocess=(e)=>{
     const input=e.inputBuffer.getChannelData(0);
@@ -278,7 +278,7 @@ function stopPCMCapture(){
  });
 }
 
-// ---------- 訊飛評測（優化參數，固定 read_word） ----------
+// ---------- 訊飛評測：提取聲母、韻母、聲調分數並取平均 ----------
 function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellText){
  return new Promise(async (resolve,reject)=>{
   try{
@@ -288,8 +288,7 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellText){
    let score=null,isResolved=false,ssbConfirmed=false;
    const timeoutId=setTimeout(()=>{if(!isResolved&&ws.readyState!==WebSocket.CLOSED){ws.close();reject(new Error('連線逾時 (15秒)'));}},15000);
 
-   // 固定為 read_word（所有咒語均為短語）
-   const category='read_word';
+   const category='read_word'; // 所有咒語均為詞語
 
    ws.onopen=async()=>{
     console.log('✅ WebSocket 已連線');
@@ -342,7 +341,7 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellText){
         const frame={business:{cmd:'auw',aus:aus,aue:'raw'},data:{status:dataStatus,data:btoa(String.fromCharCode(...new Uint8Array(chunk)))}};
         ws.send(JSON.stringify(frame));
         frameCount++;offset=end;
-        setTimeout(sendNext,30); // 縮短間隔至 30ms
+        setTimeout(sendNext,30);
        };
        sendNext();
       },100);
@@ -351,8 +350,48 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellText){
      if(msg.data && msg.data.data){
       const xmlStr=atob(msg.data.data);
       console.log('📄 XML 結果:',xmlStr);
-      let match=xmlStr.match(/<read_word[^>]*total_score="([\d.]+)"/)||xmlStr.match(/<sentence[^>]*total_score="([\d.]+)"/)||xmlStr.match(/total_score value="([\d.]+)"/);
-      if(match){score=parseFloat(match[1]);clearTimeout(timeoutId);isResolved=true;ws.close();resolve(score);}
+      // 使用 DOMParser 解析 XML
+      const parser=new DOMParser();
+      const xmlDoc=parser.parseFromString(xmlStr,'text/xml');
+      // 嘗試獲取根元素（read_word 或 sentence）
+      let root=xmlDoc.querySelector('read_word') || xmlDoc.querySelector('sentence');
+      let initScore=null,finalScore=null,toneScore=null;
+      if(root){
+       initScore=parseFloat(root.getAttribute('init_score'));
+       finalScore=parseFloat(root.getAttribute('final_score'));
+       toneScore=parseFloat(root.getAttribute('tone_score'));
+      }
+      // 如果根節點沒有，則嘗試獲取第一個 word 元素
+      if(initScore===null || isNaN(initScore) || finalScore===null || isNaN(finalScore) || toneScore===null || isNaN(toneScore)){
+       const word=xmlDoc.querySelector('word');
+       if(word){
+        initScore=parseFloat(word.getAttribute('init_score'));
+        finalScore=parseFloat(word.getAttribute('final_score'));
+        toneScore=parseFloat(word.getAttribute('tone_score'));
+       }
+      }
+      // 如果仍然沒有，回退到 total_score
+      if(initScore===null || isNaN(initScore) || finalScore===null || isNaN(finalScore) || toneScore===null || isNaN(toneScore)){
+       let total=root?parseFloat(root.getAttribute('total_score')):NaN;
+       if(isNaN(total)){
+        const totalMatch=xmlStr.match(/total_score="([\d.]+)"/);
+        if(totalMatch) total=parseFloat(totalMatch[1]);
+       }
+       if(!isNaN(total)){
+        score=total;
+        console.warn('⚠️ 未找到聲韻調分數，使用 total_score:',score);
+       }else{
+        score=0;
+       }
+      }else{
+       // 計算平均值
+       score=Math.round((initScore+finalScore+toneScore)/3);
+       console.log(`📊 聲母:${initScore} 韻母:${finalScore} 聲調:${toneScore} → 平均:${score}`);
+      }
+      clearTimeout(timeoutId);
+      isResolved=true;
+      ws.close();
+      resolve(score);
      }
     }catch(e){clearTimeout(timeoutId);isResolved=true;reject(new Error('解析回應失敗: '+e.message));}
    };
