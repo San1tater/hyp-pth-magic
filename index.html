@@ -292,7 +292,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 讯飞评测（统一 read_word，格式符合文档） =====
+// ===== 讯飞评测（每个咒语独立硬编码拼音） =====
 function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
  return new Promise((resolve,reject)=>{
   let ws=null,resolved=false,ssbConfirmed=false;
@@ -308,14 +308,26 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
 
     ws.onopen=()=>{
      console.log('✅ WebSocket 已連線');
-     // 修正：按照文档格式，每行一个词，下一行拼音
-     const pinyinStr = SPELLS[spellKey].pinyin;
+     // 每个咒语独立硬编码拼音，不引用任何变量
+     let pinyinStr;
+     if (spellKey === '除你武器') {
+       pinyinStr = 'chu2|ni3|wu3|qi4';
+     } else if (spellKey === '統統石化') {
+       pinyinStr = 'tong1|tong1|shi2|hua4';
+     } else if (spellKey === '昏昏倒地') {
+       pinyinStr = 'hun1|hun1|dao3|di4';
+     } else if (spellKey === '呼神護衛') {
+       pinyinStr = 'hu1|shen2|hu4|wei4';
+     } else {
+       reject(new Error('未知咒語'));
+       return;
+     }
      const paper = `<customizer: interphonic>\n${spellText}\n${pinyinStr}`;
      console.log('📝 發送試卷 (category: read_word):\n', paper);
      const ssb={
       common:{app_id:appid},
       business:{
-       category:'read_word',          // 统一为 read_word
+       category:'read_word',
        language:'zh_cn',
        sub:'ise',
        ent:'cn_vip',
