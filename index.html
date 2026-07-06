@@ -113,6 +113,7 @@
             transform: none;
         }
 
+        /* ===== 敵人區域 (更大) ===== */
         .enemy-area {
             background: rgba(0, 0, 0, 0.5);
             border-radius: 28px;
@@ -170,6 +171,7 @@
             letter-spacing: 2px;
         }
 
+        /* ===== 血量條 ===== */
         .hp-bar-wrap {
             width: 100%;
             max-width: 300px;
@@ -206,6 +208,7 @@
             margin-top: 2px;
         }
 
+        /* ===== 傷害飄字 ===== */
         .damage-float {
             position: absolute;
             top: 10%;
@@ -243,6 +246,7 @@
             }
         }
 
+        /* ===== 部位按鈕 ===== */
         .positions {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -303,6 +307,7 @@
             background: rgba(80, 180, 200, 0.2);
         }
 
+        /* ===== 咒語顯示 ===== */
         .spell-display {
             background: rgba(0, 0, 0, 0.45);
             border-radius: 20px;
@@ -338,6 +343,7 @@
             opacity: 0.5;
         }
 
+        /* ===== 操作列 ===== */
         .action-row {
             display: flex;
             gap: 12px;
@@ -425,6 +431,7 @@
             background: rgba(180, 160, 60, 0.06);
         }
 
+        /* ===== 響應式 ===== */
         @media (max-width: 480px) {
             .header h1 {
                 font-size: 1.6rem;
@@ -549,7 +556,9 @@
         (function() {
             'use strict';
 
-            // ===================== 多語言 =====================
+            // ============================================================
+            //  多語言
+            // ============================================================
             const LANG = {
                 zh: {
                     score: '分數',
@@ -650,7 +659,9 @@
                 return s;
             }
 
-            // ===================== 遊戲數據 =====================
+            // ============================================================
+            //  遊戲數據
+            // ============================================================
             const ENEMIES = [{
                 id: 'dementor',
                 name_zh: '攝魂怪',
@@ -723,7 +734,9 @@
             };
             const POS_TO_SPELL = { wand: '除你武器', body: '統統石化', forehead: '昏昏倒地', defense: '呼神護衛' };
 
-            // ===================== 狀態 =====================
+            // ============================================================
+            //  狀態
+            // ============================================================
             const state = {
                 score: 0,
                 lives: 3,
@@ -735,21 +748,21 @@
                 enemyHp: 0,
                 maxEnemyHp: 60,
                 enemyStatus: 'default',
-                // 訊飛配置（硬編碼，不顯示UI）
+                damageDisplay: 0,
                 xfAppid: '2600b137',
                 xfApiKey: '8b012124ed213c06974cd469f29e134b',
                 xfApiSecret: 'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
-                // 音頻
                 audioContext: null,
                 processor: null,
                 source: null,
                 stream: null,
                 pcmChunks: [],
                 isCapturing: false,
-                sampleRate: 16000, // 將由實際context更新
             };
 
-            // ===================== DOM 引用 =====================
+            // ============================================================
+            //  DOM 引用
+            // ============================================================
             const $ = id => document.getElementById(id);
             const dom = {
                 score: $('scoreDisplay'),
@@ -776,7 +789,9 @@
             const posBtns = [dom.posWand, dom.posBody, dom.posForehead, dom.posDefense];
             const posMap = { wand: dom.posWand, body: dom.posBody, forehead: dom.posForehead, defense: dom.posDefense };
 
-            // ===================== 工具 =====================
+            // ============================================================
+            //  工具
+            // ============================================================
             function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
 
             function pick(arr) { return arr[rand(0, arr.length - 1)]; }
@@ -811,7 +826,9 @@
                     (hint ? `<div class="spell-hint">${hint}</div>` : '');
             }
 
-            // ===================== 渲染 =====================
+            // ============================================================
+            //  渲染：敵人 + 血量 + 傷害飄字
+            // ============================================================
             function renderEnemy() {
                 const area = dom.enemyArea;
                 if (!state.currentEnemy) {
@@ -881,7 +898,9 @@
                 renderEnemy();
             }
 
-            // ===================== UI 更新 =====================
+            // ============================================================
+            //  UI 更新
+            // ============================================================
             function updateUI() {
                 dom.score.textContent = state.score;
                 dom.lives.textContent = state.lives;
@@ -908,7 +927,9 @@
                 dom.langToggle.textContent = lang === 'zh' ? 'EN / 中' : '中 / EN';
             }
 
-            // ===================== 訊飛簽名 =====================
+            // ============================================================
+            //  訊飛簽名
+            // ============================================================
             async function buildWsUrl(apiKey, apiSecret, appid) {
                 const host = 'ise-api.xfyun.cn';
                 const path = '/v2/open-ise';
@@ -930,23 +951,24 @@
                 return url;
             }
 
-            // ===================== PCM 錄音（使用實際採樣率） =====================
+            // ============================================================
+            //  PCM 錄音 (全局重用 AudioContext)
+            // ============================================================
             function startPCMCapture() {
                 return new Promise((resolve, reject) => {
                     navigator.mediaDevices.getUserMedia({
                             audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true,
                                 noiseSuppression: true }
                         })
-                        .then(stream => {
-                            // 創建 AudioContext，使用實際採樣率
-                            const ctx = new(window.AudioContext || window.webkitAudioContext)();
-                            // 如果瀏覽器不支持 16000，則使用實際採樣率
-                            const actualRate = ctx.sampleRate;
-                            state.sampleRate = actualRate;
-                            console.log('實際採樣率:', actualRate);
-
-                            const source = ctx.createMediaStreamSource(stream);
-                            const processor = ctx.createScriptProcessor(4096, 1, 1);
+                        .then(async stream => {
+                            if (!state.audioContext) {
+                                state.audioContext = new(window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                            }
+                            if (state.audioContext.state === 'suspended') {
+                                await state.audioContext.resume();
+                            }
+                            const source = state.audioContext.createMediaStreamSource(stream);
+                            const processor = state.audioContext.createScriptProcessor(4096, 1, 1);
                             const chunks = [];
                             processor.onaudioprocess = (e) => {
                                 const data = e.inputBuffer.getChannelData(0);
@@ -958,8 +980,7 @@
                                 chunks.push(pcm);
                             };
                             source.connect(processor);
-                            processor.connect(ctx.destination);
-                            state.audioContext = ctx;
+                            processor.connect(state.audioContext.destination);
                             state.processor = processor;
                             state.source = source;
                             state.stream = stream;
@@ -972,12 +993,12 @@
             }
 
             function stopPCMCapture() {
-                return new Promise((resolve) => {
-                    if (state.audioContext) {
+                return new Promise(async (resolve) => {
+                    if (state.audioContext && state.isCapturing) {
                         state.source.disconnect();
                         state.processor.disconnect();
                         state.stream.getTracks().forEach(t => t.stop());
-                        state.audioContext.close();
+                        await state.audioContext.suspend();
                         let total = state.pcmChunks.reduce((a, b) => a + b.length, 0);
                         let combined = new Int16Array(total);
                         let offset = 0;
@@ -993,8 +1014,10 @@
                 });
             }
 
-            // ===================== 訊飛評測（修復協議） =====================
-            function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText, sampleRate) {
+            // ============================================================
+            //  訊飛評測（修復協議狀態碼與高效二進位轉換）
+            // ============================================================
+            function evaluateWithXunfei(pcmBuffer, appid, apiKey, apiSecret, spellText) {
                 return new Promise(async (resolve, reject) => {
                     try {
                         const url = await buildWsUrl(apiKey, apiSecret, appid);
@@ -1013,7 +1036,6 @@
                         ws.onopen = async () => {
                             console.log('✅ WebSocket 已連線');
 
-                            // ssb 幀：text 為 Base64 編碼的 UTF-8（含 BOM）
                             const textWithBOM = '\uFEFF' + spellText;
                             const utf8Bytes = new TextEncoder().encode(textWithBOM);
                             let binaryStr = '';
@@ -1021,9 +1043,6 @@
                                 binaryStr += String.fromCharCode(utf8Bytes[i]);
                             }
                             const textBase64 = btoa(binaryStr);
-
-                            // 使用實際採樣率
-                            const aufStr = `audio/L16;rate=${sampleRate}`;
 
                             const ssb = {
                                 common: { app_id: appid },
@@ -1033,7 +1052,7 @@
                                     ent: 'cn_vip',
                                     tte: 'utf-8',
                                     cmd: 'ssb',
-                                    auf: aufStr,
+                                    auf: 'audio/L16;rate=16000',
                                     aue: 'raw',
                                     text: textBase64,
                                     ttp_skip: true,
@@ -1044,7 +1063,7 @@
                                 data: { status: 0, data: '' }
                             };
                             ws.send(JSON.stringify(ssb));
-                            console.log('📤 發送 ssb 幀 (詞語), auf=' + aufStr);
+                            console.log('📤 發送 ssb 幀 (詞語)');
 
                             const total = pcmBuffer.byteLength;
                             if (total === 0) { ws.close();
@@ -1058,17 +1077,12 @@
                                 const chunk = pcmBuffer.slice(offset, end);
                                 const isLast = (end === total);
 
-                                // ★ 修復：正確的 aus 和 status
-                                // aus: 1=開始, 2=中間, 4=結束
-                                // data.status: 0=第一幀, 1=中間, 2=最後一幀
+                                // 標準訊飛協議：首幀 status=0, 中間幀 status=1, 尾幀 status=2
                                 const ausVal = isLast ? 4 : (frameCount === 0 ? 1 : 2);
                                 const dataStatus = isLast ? 2 : (frameCount === 0 ? 0 : 1);
 
-                                let chunkBinary = '';
-                                const chunkBytes = new Uint8Array(chunk);
-                                for (let i = 0; i < chunkBytes.length; i++) {
-                                    chunkBinary += String.fromCharCode(chunkBytes[i]);
-                                }
+                                // 高效轉換二進位字串
+                                const chunkBinary = String.fromCharCode.apply(null, new Uint8Array(chunk));
 
                                 const frame = {
                                     business: { cmd: 'auw', aus: ausVal, aue: 'raw' },
@@ -1108,7 +1122,7 @@
                                         return;
                                     }
                                 }
-                                if (msg.data && msg.data.status === 2) {
+                                if (msg.data && msg.data.status === 2) { // 配合尾幀 status=2 結束
                                     clearTimeout(timeoutId);
                                     isResolved = true;
                                     ws.close();
@@ -1141,7 +1155,9 @@
                 });
             }
 
-            // ===================== 戰鬥核心 =====================
+            // ============================================================
+            //  戰鬥核心
+            // ============================================================
             function startAdventure() {
                 if (state.battleLocked || state.isRecording) return;
                 if (state.lives <= 0) {
@@ -1164,6 +1180,7 @@
                 state.enemyStatus = 'default';
                 state.enemyHp = enemy.hp;
                 state.maxEnemyHp = enemy.hp;
+                state.damageDisplay = 0;
                 setSpellDisplay(null);
                 setFeedback(t('feedback_encounter', { name: getEnemyName(enemy) }), 'info');
                 posBtns.forEach(b => b.classList.remove('active'));
@@ -1188,7 +1205,9 @@
                 updateUI();
             }
 
-            // ===================== 錄音與評測 =====================
+            // ============================================================
+            //  錄音與評測
+            // ============================================================
             async function handleRecord() {
                 if (!state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated) return;
                 const spellKey = state.currentSpellKey;
@@ -1232,8 +1251,7 @@
                             state.xfAppid,
                             state.xfApiKey,
                             state.xfApiSecret,
-                            spellKey,
-                            state.sampleRate // 傳入實際採樣率
+                            spellKey
                         );
                         setFeedback(t('feedback_score', { score: score }), 'info');
                         const effect = getSpellEffect(spellKey, enemy.id);
@@ -1382,7 +1400,9 @@
                 resetBattleTurn(state.currentEnemy);
             }
 
-            // ===================== 初始化 =====================
+            // ============================================================
+            //  初始化
+            // ============================================================
             function init() {
                 try {
                     const saved = localStorage.getItem('hp_spell_config');
@@ -1401,8 +1421,7 @@
                     updateUI();
                     if (state.currentSpellKey) {
                         const s = SPELLS[state.currentSpellKey];
-                        if (s) setSpellDisplay(state.currentSpellKey, s.pinyin, '「' + getSpellDesc(state.currentSpellKey) +
-                            '」');
+                        if (s) setSpellDisplay(state.currentSpellKey, s.pinyin, '「' + getSpellDesc(state.currentSpellKey) + '」');
                     }
                     if (!state.currentEnemy) setFeedback(t('feedback_wait'), 'info');
                     else setFeedback(t('feedback_encounter', { name: getEnemyName(state.currentEnemy) }), 'info');
