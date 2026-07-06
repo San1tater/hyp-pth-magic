@@ -115,7 +115,7 @@ wand:'Wand',body:'Body',forehead:'Forehead',defense:'Defense',spell_empty:'🔮 
 record:'Record',recording:'Stop',feedback_wait:'💬 Awaiting action…',feedback_encounter:'⚔️ Encountered {name}! Choose a spell!',
 feedback_spell_ready:'🔮 Ready to cast "{spell}"',feedback_listening:'🎤 Recording… click again to stop',
 feedback_score:'📊 Score (0-100): {score}',feedback_fail:'❌ Error: {err}',feedback_weak:'⚠️ "{spell}" weak effect!',
-feedback_dodge:'🌀 Dodged counterattack! Try again!',feedback_dodge_fail:'💥 Failed to dodge!',
+feedback_dodge:'Dodged counterattack! Try again!',feedback_dodge_fail:'💥 Failed to dodge!',
 feedback_ineffective:'💔 "{spell}" no effect on {enemy}!',feedback_overkill:'🔥 "{spell}" overkill! Not encouraged!',
 feedback_overkill_penalty:'⚖️ Penalty -5 points.',feedback_hit:'💀 Hit! Lives left: {lives}',
 feedback_gameover:'💀 You fell… Click "Start" to restart',feedback_retry:'🔄 Continue fighting {name}, choose a spell!',
@@ -137,10 +137,10 @@ const ENEMIES=[
 {id:'malfoy',name_zh:'馬爾福',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死徒',desc_en:'Death Eater',hint_zh:'冷靜',hint_en:'Calm',hp:60}
 ];
 const SPELLS={
-'除你武器':{pinyin:'chu2|ni3|wu3|qi4',pos:'wand',label_zh:'魔杖',label_en:'Wand',effects:{dementor:'ineffective',voldemort:'effective',malfoy:'weak'},desc_zh:'繳械咒',desc_en:'Disarm'},
-'統統石化':{pinyin:'tong1|tong1|shi2|hua4',pos:'body',label_zh:'身體',label_en:'Body',effects:{dementor:'ineffective',voldemort:'ineffective',malfoy:'overkill'},desc_zh:'束縛咒',desc_en:'Petrify'},
-'昏昏倒地':{pinyin:'hun1|hun1|dao3|di4',pos:'forehead',label_zh:'額頭',label_en:'Forehead',effects:{dementor:'weak',voldemort:'weak',malfoy:'effective'},desc_zh:'昏迷咒',desc_en:'Stun'},
-'呼神護衛':{pinyin:'hu1|shen2|hu4|wei4',pos:'defense',label_zh:'自衛',label_en:'Defense',effects:{dementor:'effective',voldemort:'ineffective',malfoy:'ineffective'},desc_zh:'守護咒',desc_en:'Patronus'}
+'除你武器':{pinyin:'ch u 2 n i 3 u 3 q i 4',pos:'wand',label_zh:'魔杖',label_en:'Wand',effects:{dementor:'ineffective',voldemort:'effective',malfoy:'weak'},desc_zh:'繳械咒',desc_en:'Disarm'},
+'統統石化':{pinyin:'t ong 1 t ong 1 sh i 2 h ua 4',pos:'body',label_zh:'身體',label_en:'Body',effects:{dementor:'ineffective',voldemort:'ineffective',malfoy:'overkill'},desc_zh:'束縛咒',desc_en:'Petrify'},
+'昏昏倒地':{pinyin:'h un 1 h un 1 d ao 3 d i 4',pos:'forehead',label_zh:'額頭',label_en:'Forehead',effects:{dementor:'weak',voldemort:'weak',malfoy:'effective'},desc_zh:'昏迷咒',desc_en:'Stun'},
+'呼神護衛':{pinyin:'h u 1 sh en 2 h u 4 ui 4',pos:'defense',label_zh:'自衛',label_en:'Defense',effects:{dementor:'effective',voldemort:'ineffective',malfoy:'ineffective'},desc_zh:'守護咒',desc_en:'Patronus'}
 };
 const POS_TO_SPELL={wand:'除你武器',body:'統統石化',forehead:'昏昏倒地',defense:'呼神護衛'};
 
@@ -565,6 +565,7 @@ async function handleBattleResult(effect,spellKey,enemy,score){
   case 'overkill':damage=Math.round(score*5);state.score=Math.max(0,state.score-5);setFeedback(t('feedback_overkill_penalty'),'warn');break;
  }
  const hpLost=Math.min(damage,state.enemyHp);
+ state.score=Math.max(0,state.score); // 防止分數變成負數
  state.enemyHp=Math.max(0,state.enemyHp-hpLost);
  renderEnemy();
  await sleep(100);
@@ -612,7 +613,7 @@ async function handleCounterAttack(){
 
 function init(){
  try{const saved=localStorage.getItem('hp_spell_config');if(saved){const cfg=JSON.parse(saved);if(cfg.lang)lang=cfg.lang;}}catch(e){}
- dom.langToggle.addEventListener('click',()=>{lang=(lang==='zh')?'en':'zh';try{localStorage.setItem('hp_spell_config',JSON.stringify({lang:lang}));}catch(e){}updateUI();if(state.currentSpellKey){const s=SPELLS[state.currentSpellKey];if(s)setSpellDisplay(state.currentSpellKey,s.pinyin.replace(/\|/g,'|'),'「'+getSpellDesc(state.currentSpellKey)+'」');}if(!state.currentEnemy)setFeedback(t('feedback_wait'),'info');else setFeedback(t('feedback_encounter',{name:getEnemyName(state.currentEnemy)}),'info');});
+ dom.langToggle.addEventListener('click',()=>{lang=(lang==='zh')?'en':'zh';try{localStorage.setItem('hp_spell_config',JSON.stringify({lang:lang}));}catch(e){}updateUI();if(state.currentSpellKey){const s=SPELLS[state.currentSpellKey];if(s)setSpellDisplay(state.currentSpellKey,s.pinyin.replace(/\\|/g,'|'),'「'+getSpellDesc(state.currentSpellKey)+'」');}if(!state.currentEnemy)setFeedback(t('feedback_wait'),'info');else setFeedback(t('feedback_encounter',{name:getEnemyName(state.currentEnemy)}),'info');});
  dom.btnStart.addEventListener('click',startAdventure);
  dom.posWand.addEventListener('click',()=>selectPosition('wand'));
  dom.posBody.addEventListener('click',()=>selectPosition('body'));
