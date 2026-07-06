@@ -36,6 +36,7 @@
         .damage-float{position:absolute;top:5%;left:50%;transform:translateX(-50%);font-size:4rem;font-weight:900;pointer-events:none;opacity:0;z-index:30;text-shadow:0 0 40px rgba(255,60,60,.8),0 4px 30px rgba(0,0,0,.9);animation:floatUp 1.4s ease-out forwards;color:#ff3333}
         .damage-float.heal{color:#60e090;text-shadow:0 0 40px rgba(60,220,120,.6),0 4px 30px rgba(0,0,0,.9)}
         .damage-float.critical{color:#ffd040;text-shadow:0 0 60px rgba(255,200,60,.8),0 4px 30px rgba(0,0,0,.9);font-size:5rem}
+        .damage-float.counter{color:#ff8866;font-size:3rem;text-shadow:0 0 30px rgba(255,100,60,.6),0 4px 20px rgba(0,0,0,.8)}
         @keyframes floatUp{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(.6)}30%{opacity:1;transform:translateX(-50%) translateY(-40px) scale(1.2)}100%{opacity:0;transform:translateX(-50%) translateY(-160px) scale(1)}}
         .positions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;flex-shrink:0}
         .positions .pos-btn{background:rgba(255,255,255,.04);border:1.5px solid rgba(184,150,58,.2);border-radius:20px;padding:10px 4px;cursor:pointer;transition:.25s;text-align:center;color:#ddd0c0;font-family:inherit;font-size:.8rem;backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;user-select:none}
@@ -63,7 +64,7 @@
         .action-row .feedback.fail{color:#ef8a8a;border-color:rgba(220,100,100,.2);background:rgba(180,60,60,.08)}
         .action-row .feedback.info{color:#b0c8e8;border-color:rgba(100,150,220,.15);background:rgba(60,100,180,.06)}
         .action-row .feedback.warn{color:#f0d080;border-color:rgba(220,200,80,.15);background:rgba(180,160,60,.06)}
-        @media(max-width:480px){.header h1{font-size:1.6rem}.header h1 small{font-size:.7rem}.positions{grid-template-columns:repeat(4,1fr);gap:5px}.positions .pos-btn{padding:8px 2px;font-size:.7rem}.positions .pos-btn .pos-icon{font-size:1.6rem}.status-bar{font-size:.7rem;padding:4px 12px}.action-row{flex-direction:column}.action-row .btn-record{width:100%;min-width:unset}.action-row .feedback{width:100%;min-height:36px;font-size:.8rem}.enemy-area .enemy-img{width:80px;height:80px}.enemy-area .enemy-name{font-size:1.3rem}.enemy-area{min-height:160px;padding:12px 14px}.enemy-avatar-wrap{min-height:80px}.spell-display .spell-char{font-size:1.4rem}.hp-bar-wrap{max-width:200px;height:10px}.damage-float{font-size:3rem}.damage-float.critical{font-size:3.8rem}}
+        @media(max-width:480px){.header h1{font-size:1.6rem}.header h1 small{font-size:.7rem}.positions{grid-template-columns:repeat(4,1fr);gap:5px}.positions .pos-btn{padding:8px 2px;font-size:.7rem}.positions .pos-btn .pos-icon{font-size:1.6rem}.status-bar{font-size:.7rem;padding:4px 12px}.action-row{flex-direction:column}.action-row .btn-record{width:100%;min-width:unset}.action-row .feedback{width:100%;min-height:36px;font-size:.8rem}.enemy-area .enemy-img{width:80px;height:80px}.enemy-area .enemy-name{font-size:1.3rem}.enemy-area{min-height:160px;padding:12px 14px}.enemy-avatar-wrap{min-height:80px}.spell-display .spell-char{font-size:1.4rem}.hp-bar-wrap{max-width:200px;height:10px}.damage-float{font-size:3rem}.damage-float.critical{font-size:3.8rem}.damage-float.counter{font-size:2.5rem}}
     </style>
 </head>
 <body>
@@ -128,12 +129,13 @@ feedback_stopping:'⏹️ Recording stopped, sending for evaluation…',feedback
 let lang='zh';
 function t(k,p){let s=LANG[lang][k]||k;if(p)for(let k in p)s=s.replace(new RegExp('\\{'+k+'\\}','g'),p[k]);return s;}
 
+// ---------- 敵人與咒語 ----------
 const ENEMIES=[
 {id:'dementor',name_zh:'攝魂怪',name_en:'Dementor',emoji:'👻',desc_zh:'黑暗化身',desc_en:'Darkness',hint_zh:'守護之力',hint_en:'Patronus',hp:60},
 {id:'voldemort',name_zh:'伏地魔',name_en:'Voldemort',emoji:'🐍',desc_zh:'黑魔王',desc_en:'Dark Lord',hint_zh:'解除武器',hint_en:'Disarm',hp:60},
 {id:'malfoy',name_zh:'馬爾福',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死徒',desc_en:'Death Eater',hint_zh:'冷靜',hint_en:'Calm',hp:60}
 ];
-// 修正拼音：使用带声调数字的格式，并用 | 分隔
+// 拼音格式：带声调数字，用 | 分隔
 const SPELLS={
 '除你武器':{pinyin:'chu2|ni3|wu3|qi4',pos:'wand',label_zh:'魔杖',label_en:'Wand',effects:{dementor:'ineffective',voldemort:'effective',malfoy:'weak'},desc_zh:'繳械咒',desc_en:'Disarm'},
 '統統石化':{pinyin:'tong3|tong3|shi2|hua4',pos:'body',label_zh:'身體',label_en:'Body',effects:{dementor:'ineffective',voldemort:'ineffective',malfoy:'overkill'},desc_zh:'束縛咒',desc_en:'Petrify'},
@@ -142,6 +144,7 @@ const SPELLS={
 };
 const POS_TO_SPELL={wand:'除你武器',body:'統統石化',forehead:'昏昏倒地',defense:'呼神護衛'};
 
+// ---------- 遊戲狀態 ----------
 const state={
 score:0,lives:3,currentEnemy:null,currentSpellKey:null,isRecording:false,
 battleLocked:false,enemyDefeated:false,enemyHp:0,maxEnemyHp:60,enemyStatus:'default',
@@ -149,6 +152,7 @@ xfAppid:'2600b137',xfApiKey:'8b012124ed213c06974cd469f29e134b',xfSecret:'MWNkZTQ
 audioContext:null,processor:null,source:null,stream:null,pcmChunks:[],isCapturing:false,evaluating:false
 };
 
+// ---------- DOM 捷徑 ----------
 const $=id=>document.getElementById(id);
 const dom={
 score:$('scoreDisplay'),lives:$('livesDisplay'),scoreLabel:$('scoreLabel'),livesLabel:$('livesLabel'),
@@ -161,6 +165,7 @@ labelForehead:$('labelForehead'),labelDefense:$('labelDefense')
 const posBtns=[dom.posWand,dom.posBody,dom.posForehead,dom.posDefense];
 const posMap={wand:dom.posWand,body:dom.posBody,forehead:dom.posForehead,defense:dom.posDefense};
 
+// ---------- 工具 ----------
 function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function pick(a){return a[rand(0,a.length-1)];}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
@@ -173,6 +178,7 @@ function getSpellEffect(k,eid){let s=SPELLS[k];return s?(s.effects[eid]||'ineffe
 function setFeedback(msg,type='info'){dom.feedback.textContent=msg;dom.feedback.className='feedback '+type;}
 function setSpellDisplay(ch,pinyin,hint){if(!ch){dom.spellDisplay.innerHTML=`<div class="spell-empty">${t('spell_empty')}</div>`;return;}dom.spellDisplay.innerHTML=`<div class="spell-char">${ch}</div><div class="spell-pinyin">${pinyin}</div>`+(hint?`<div class="spell-hint">${hint}</div>`:'');}
 
+// ---------- 渲染敵人 ----------
 function renderEnemy(){
  const area=dom.enemyArea;
  if(!state.currentEnemy){area.innerHTML=`<div class="empty-hint">${t('enemy_default')}</div>`;return;}
@@ -192,16 +198,26 @@ function renderEnemy(){
  <div class="hp-bar-wrap"><div class="hp-bar-fill ${hpClass}" style="width:${hpPercent}%;"></div></div>
  <div class="hp-text">${t('hp_label')} ${state.enemyHp} / ${state.maxEnemyHp}</div>`;
 }
-function showDamageFloat(amt,heal=false,critical=false){
- const wrap=document.getElementById('enemyAvatarWrap');if(!wrap)return;
- const el=document.createElement('div');el.className='damage-float';
- if(heal)el.classList.add('heal');if(critical)el.classList.add('critical');
- const sign=heal?'+':'-';
- el.textContent=`${sign}${Math.abs(amt)}`;
- wrap.appendChild(el);setTimeout(()=>{if(el.parentNode)el.remove();},1500);
+
+// ---------- 傷害飄字（醒目） ----------
+function showDamageFloat(amt, type='damage'){
+ const wrap=document.getElementById('enemyAvatarWrap');
+ if(!wrap)return;
+ const el=document.createElement('div');
+ el.className='damage-float';
+ if(type==='heal')el.classList.add('heal');
+ else if(type==='critical')el.classList.add('critical');
+ else if(type==='counter')el.classList.add('counter');
+ const prefix = (type==='heal') ? '+' : '-';
+ el.textContent = prefix + Math.abs(amt);
+ el.style.zIndex='999';
+ wrap.appendChild(el);
+ setTimeout(()=>{if(el.parentNode)el.remove();},1600);
 }
+
 function setEnemyStatus(s){state.enemyStatus=s;renderEnemy();}
 
+// ---------- 更新 UI ----------
 function updateUI(){
  dom.score.textContent=state.score;dom.lives.textContent=state.lives;
  dom.scoreLabel.textContent=t('score');dom.livesLabel.textContent=t('lives');
@@ -212,11 +228,12 @@ function updateUI(){
  const recEval=state.isRecording||state.evaluating;
  posBtns.forEach(b=>b.disabled=!hasEnemy||recEval);
  dom.btnRecord.disabled=!state.currentEnemy||!state.currentSpellKey||state.battleLocked||state.enemyDefeated||state.lives<=0||state.evaluating;
- dom.btnStart.disabled=state.isRecording||state.battleLocked||state.evaluating;
+ dom.btnStart.disabled=state.isRecording||state.evaluating; // 允许点击重置
  if(state.lives<=0){posBtns.forEach(b=>b.disabled=true);dom.btnRecord.disabled=true;dom.btnStart.disabled=false;}
  dom.langToggle.textContent=lang==='zh'?'EN / 中':'中 / EN';
 }
 
+// ---------- 訊飛簽名 ----------
 async function buildWsUrl(apiKey,apiSecret,appid){
  const host='ise-api.xfyun.cn',path='/v2/open-ise',date=new Date().toUTCString();
  const signStr='host: '+host+'\n'+'date: '+date+'\n'+'GET '+path+' HTTP/1.1';
@@ -229,7 +246,7 @@ async function buildWsUrl(apiKey,apiSecret,appid){
  return 'wss://'+host+path+'?authorization='+encodeURIComponent(btoa(authOrigin))+'&date='+encodeURIComponent(date)+'&host='+encodeURIComponent(host);
 }
 
-// ---------- 錄音：收集 PCM 片段（線性插值重採樣至 16kHz） ----------
+// ---------- 錄音 ----------
 function startPCMCapture(){
  return new Promise((resolve,reject)=>{
   navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})
@@ -280,22 +297,27 @@ function stopPCMCapture(){
  });
 }
 
-// ---------- 訊飛評測：修正 text 格式為“漢字 拼音|拼音|...” ----------
-function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
+// ---------- 訊飛評測（使用拼音標注） ----------
+function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey){
  return new Promise(async (resolve,reject)=>{
   try{
    const url=await buildWsUrl(apiKey,apiSecret,appid);
    console.log('🔗 連線 URL:',url);
    const ws=new WebSocket(url);
    let score=null,isResolved=false,ssbConfirmed=false;
-   const timeoutId=setTimeout(()=>{if(!isResolved&&ws.readyState!==WebSocket.CLOSED){ws.close();reject(new Error('連線逾時 (15秒)'));}},15000);
+   const timeoutId=setTimeout(()=>{
+    if(!isResolved&&ws.readyState!==WebSocket.CLOSED){
+     ws.close();
+     reject(new Error('連線逾時 (15秒)'));
+    }
+   },15000);
 
-   // 構建帶拼音的文本： "除你武器 chu2|ni3|wu3|qi4"
+   const spellText=spellKey;
    const pinyinStr=SPELLS[spellKey].pinyin; // 如 "chu2|ni3|wu3|qi4"
    const annotatedText=spellText+' '+pinyinStr;
    console.log('📝 發送文本:',annotatedText);
 
-   const category='read_word'; // 詞語評測
+   const category='read_word';
 
    ws.onopen=async()=>{
     console.log('✅ WebSocket 已連線');
@@ -319,14 +341,21 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
      data:{status:0,data:''}
     };
     ws.send(JSON.stringify(ssb));
-    console.log('📤 發送 ssb 幀，category:',category);
+    console.log('📤 發送 ssb 幀');
    };
 
    ws.onmessage=(ev)=>{
     try{
      const msg=JSON.parse(ev.data);
      console.log('📩 收到訊息:',msg);
-     if(msg.code!==0){clearTimeout(timeoutId);isResolved=true;reject(new Error('訊飛錯誤 ['+msg.code+']: '+msg.message));ws.close();return;}
+     if(msg.code!==0){
+      clearTimeout(timeoutId);
+      isResolved=true;
+      reject(new Error('訊飛錯誤 ['+msg.code+']: '+msg.message));
+      ws.close();
+      return;
+     }
+     // ssb 確認
      if(!ssbConfirmed && (!msg.data||!msg.data.data)){
       ssbConfirmed=true;
       console.log('✅ ssb 已確認，開始發送音頻...');
@@ -354,6 +383,7 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
       },100);
       return;
      }
+     // 評分結果
      if(msg.data && msg.data.data){
       const xmlStr=atob(msg.data.data);
       console.log('📄 XML 結果:',xmlStr);
@@ -366,7 +396,7 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
        finalScore=parseFloat(root.getAttribute('final_score'));
        toneScore=parseFloat(root.getAttribute('tone_score'));
       }
-      if(initScore===null || isNaN(initScore) || finalScore===null || isNaN(finalScore) || toneScore===null || isNaN(toneScore)){
+      if(initScore===null||isNaN(initScore)||finalScore===null||isNaN(finalScore)||toneScore===null||isNaN(toneScore)){
        const word=xmlDoc.querySelector('word');
        if(word){
         initScore=parseFloat(word.getAttribute('init_score'));
@@ -374,7 +404,7 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
         toneScore=parseFloat(word.getAttribute('tone_score'));
        }
       }
-      if(initScore===null || isNaN(initScore) || finalScore===null || isNaN(finalScore) || toneScore===null || isNaN(toneScore)){
+      if(initScore===null||isNaN(initScore)||finalScore===null||isNaN(finalScore)||toneScore===null||isNaN(toneScore)){
        let total=root?parseFloat(root.getAttribute('total_score')):NaN;
        if(isNaN(total)){
         const totalMatch=xmlStr.match(/total_score="([\d.]+)"/);
@@ -400,31 +430,27 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
 
 // ---------- 遊戲邏輯 ----------
 function startAdventure(){
- // 如果處於鎖定或錄音/評測中，不處理
- if(state.battleLocked||state.isRecording||state.evaluating)return;
- // 若生命為0，重置遊戲狀態
- if(state.lives<=0){
-  state.lives=3;
-  state.score=0;
-  state.battleLocked=false;
-  state.enemyDefeated=false;
-  state.currentEnemy=null;
-  state.currentSpellKey=null;
-  state.enemyHp=0;
-  state.maxEnemyHp=60;
-  state.enemyStatus='default';
-  setSpellDisplay(null);
-  posBtns.forEach(b=>b.classList.remove('active'));
-  setFeedback(t('feedback_restart'),'info');
-  updateUI();
-  // 強制清除任何殘留的戰鬥狀態
-  state.battleLocked=false;
-  state.enemyDefeated=false;
-  dom.btnStart.disabled=false;
- }
+ // 如果正在錄音或評測，不允許重置
+ if(state.isRecording||state.evaluating)return;
+
+ // 強制重置所有遊戲狀態（無論當前是否存活）
+ state.lives=3;
+ state.score=0;
+ state.battleLocked=false;
+ state.enemyDefeated=false;
+ state.currentEnemy=null;
+ state.currentSpellKey=null;
+ state.enemyStatus='default';
+ state.enemyHp=0;
+ state.maxEnemyHp=60;
+ setSpellDisplay(null);
+ posBtns.forEach(b=>b.classList.remove('active'));
+ setFeedback(t('feedback_restart'),'info');
+ updateUI();
+
+ // 隨機選擇一個敵人
  const enemy=pick(ENEMIES);
  state.currentEnemy=enemy;
- state.currentSpellKey=null;
  state.enemyDefeated=false;
  state.battleLocked=false;
  state.enemyStatus='default';
@@ -461,17 +487,28 @@ async function handleRecord(){
   if(pcmBuffer.byteLength===0){setFeedback('❌ 未錄到音頻，請重新嘗試','fail');dom.btnRecord.disabled=false;updateUI();return;}
   state.evaluating=true;posBtns.forEach(b=>b.disabled=true);dom.btnRecord.disabled=true;setFeedback(t('feedback_connecting'),'info');updateUI();
   try{
-   const score=await evaluateWithXunfei(pcmBuffer,state.xfAppid,state.xfApiKey,state.xfSecret,spellKey,spellKey);
+   const score=await evaluateWithXunfei(pcmBuffer,state.xfAppid,state.xfApiKey,state.xfSecret,spellKey);
    setFeedback(t('feedback_score',{score:score}),'info');
    const effect=getSpellEffect(spellKey,enemy.id);
    await handleBattleResult(effect,spellKey,enemy,score);
-  }catch(err){setFeedback(t('feedback_fail',{err:err.message}),'fail');await handleCounterAttack();}
-  finally{state.evaluating=false;if(!state.battleLocked&&!state.enemyDefeated&&state.lives>0){posBtns.forEach(b=>b.disabled=false);dom.btnRecord.disabled=!state.currentSpellKey;}updateUI();}
+  }catch(err){
+   setFeedback(t('feedback_fail',{err:err.message}),'fail');
+   // 評分失敗後，仍進行反擊（但無傷害）
+   await handleCounterAttack();
+  }finally{
+   state.evaluating=false;
+   if(!state.battleLocked&&!state.enemyDefeated&&state.lives>0){
+    posBtns.forEach(b=>b.disabled=false);
+    dom.btnRecord.disabled=!state.currentSpellKey;
+   }
+   updateUI();
+  }
  }
 }
 
 async function handleBattleResult(effect,spellKey,enemy,score){
- state.battleLocked=true;let damage=0,isKill=false,bonusMsg='',bonusPts=0,isCritical=false;
+ state.battleLocked=true;
+ let damage=0,isKill=false,bonusMsg='',bonusPts=0,isCritical=false;
  switch(effect){
   case 'effective':damage=Math.round(score);if(damage>=60){isKill=true;isCritical=true;bonusPts=(score>=90?5:(score>=75?2:0));bonusMsg=bonusPts>0?(score>=90?t('bonus_perfect'):t('bonus_great')):'';}break;
   case 'weak':damage=Math.round(score*0.5);break;
@@ -480,19 +517,31 @@ async function handleBattleResult(effect,spellKey,enemy,score){
  }
  const hpLost=Math.min(damage,state.enemyHp);
  state.enemyHp=Math.max(0,state.enemyHp-hpLost);
- if(hpLost>0)showDamageFloat(hpLost,false,isCritical||(effect==='overkill'));
- else if(effect==='ineffective')showDamageFloat(0,false,false);
+
+ // 顯示對敵傷害（必顯示）
+ if(hpLost>0){
+  if(isCritical||effect==='overkill') showDamageFloat(hpLost,'critical');
+  else showDamageFloat(hpLost,'damage');
+ }else{
+  // 無效或0傷害，顯示 -0 或提示
+  showDamageFloat(0,'ineffective');
+ }
+
  renderEnemy();
  const statusMap={'除你武器':'expelliarmus','昏昏倒地':'stupefy','統統石化':'petrificus','呼神護衛':'patronus'};
  setEnemyStatus(statusMap[spellKey]||'default');
  await sleep(1200);
+
  if(state.enemyHp<=0||isKill){
   state.score+=10+bonusPts;
   setFeedback(t('feedback_victory',{name:getEnemyName(enemy),score:10+bonusPts,bonus:bonusMsg}),'success');
   state.enemyDefeated=true;setEnemyStatus('defeated');state.currentEnemy=null;state.currentSpellKey=null;setSpellDisplay(null);posBtns.forEach(b=>b.classList.remove('active'));state.battleLocked=false;updateUI();
-  await sleep(1500);if(state.lives>0){setFeedback(t('feedback_next'),'info');startAdventure();}else{setFeedback(t('feedback_gameover'),'fail');}
+  await sleep(1500);
+  if(state.lives>0){setFeedback(t('feedback_next'),'info');startAdventure();}else{setFeedback(t('feedback_gameover'),'fail');}
   return;
  }
+
+ // 未擊殺，根據效果決定反擊
  if(effect==='effective'){await handleCounterAttack();}
  else if(effect==='weak'){
   if(Math.random()<0.5){setFeedback(t('feedback_dodge'),'success');await sleep(1500);resetBattleTurn(enemy);}
@@ -500,25 +549,43 @@ async function handleBattleResult(effect,spellKey,enemy,score){
  }else if(effect==='ineffective'||effect==='overkill'){
   if(effect==='ineffective')setFeedback(t('feedback_ineffective',{spell:spellKey,enemy:getEnemyName(enemy)}),'fail');
   else setFeedback(t('feedback_overkill',{spell:spellKey}),'warn');
-  await sleep(1500);await handleCounterAttack();
+  await sleep(1500);
+  await handleCounterAttack();
  }
 }
+
 function resetBattleTurn(enemy){
  state.battleLocked=false;state.currentSpellKey=null;setSpellDisplay(null);posBtns.forEach(b=>b.classList.remove('active'));
  setFeedback(t('feedback_retry',{name:getEnemyName(enemy)}),'info');updateUI();posBtns.forEach(b=>b.disabled=false);dom.btnRecord.disabled=true;setEnemyStatus('default');renderEnemy();
 }
+
 async function handleCounterAttack(){
  if(state.lives<=0)return;
- state.lives-=1;setEnemyStatus('attacking');setFeedback(t('feedback_hit',{lives:state.lives}),'fail');updateUI();showDamageFloat(1,false,false);
+ state.lives-=1;
+ setEnemyStatus('attacking');
+ setFeedback(t('feedback_hit',{lives:state.lives}),'fail');
+ updateUI();
+ // 敵人反擊，固定扣1，用 counter 樣式
+ showDamageFloat(1,'counter');
  await sleep(1500);
  if(state.lives<=0){
   setFeedback(t('feedback_gameover'),'fail');
-  state.battleLocked=true;state.enemyDefeated=true;state.currentEnemy=null;state.currentSpellKey=null;setSpellDisplay(null);posBtns.forEach(b=>b.classList.remove('active'));updateUI();dom.btnStart.disabled=false;setEnemyStatus('defeated');renderEnemy();
+  state.battleLocked=true;
+  state.enemyDefeated=true;
+  state.currentEnemy=null;
+  state.currentSpellKey=null;
+  setSpellDisplay(null);
+  posBtns.forEach(b=>b.classList.remove('active'));
+  updateUI();
+  dom.btnStart.disabled=false;
+  setEnemyStatus('defeated');
+  renderEnemy();
   return;
  }
  resetBattleTurn(state.currentEnemy);
 }
 
+// ---------- 初始化 ----------
 function init(){
  try{const saved=localStorage.getItem('hp_spell_config');if(saved){const cfg=JSON.parse(saved);if(cfg.lang)lang=cfg.lang;}}catch(e){}
  dom.langToggle.addEventListener('click',()=>{lang=(lang==='zh')?'en':'zh';try{localStorage.setItem('hp_spell_config',JSON.stringify({lang:lang}));}catch(e){}updateUI();if(state.currentSpellKey){const s=SPELLS[state.currentSpellKey];if(s)setSpellDisplay(state.currentSpellKey,s.pinyin.replace(/\|/g,' '),'「'+getSpellDesc(state.currentSpellKey)+'」');}if(!state.currentEnemy)setFeedback(t('feedback_wait'),'info');else setFeedback(t('feedback_encounter',{name:getEnemyName(state.currentEnemy)}),'info');});
