@@ -3,219 +3,37 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title> 魔法對決</title>
+    <title>哈利波特 · 魔法對決</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Noto Sans TC', 'Segoe UI', sans-serif;
-            background: #0a0a12;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            width: 100vw;
-            height: 100vh;
-            max-width: 100%;
-            background: linear-gradient(160deg, #1a1025, #0f0a1a);
-            border: 2px solid #b8963a;
-            padding: 16px 20px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-shrink: 0;
-        }
-        .header h1 {
-            font-family: 'MedievalSharp', cursive;
-            font-size: 2.2rem;
-            background: linear-gradient(180deg, #f5d98a, #c9a050);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 4px;
-        }
-        .header h1 small {
-            font-size: 1rem;
-            -webkit-text-fill-color: #b8963a;
-            opacity: 0.7;
-        }
-        .lang-switch {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(184, 150, 58, 0.25);
-            border-radius: 30px;
-            padding: 4px 14px;
-            color: #ddd0c0;
-            font-size: 0.8rem;
-            cursor: pointer;
-            font-family: inherit;
-            transition: 0.2s;
-        }
-        .lang-switch:hover {
-            border-color: #b8963a;
-            background: rgba(184, 150, 58, 0.1);
-        }
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 60px;
-            padding: 6px 16px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(184, 150, 58, 0.15);
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .status-bar .stat {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #ddd0c0;
-            font-size: 0.9rem;
-        }
-        .status-bar .stat .value {
-            font-weight: 700;
-            color: #f5d98a;
-            font-size: 1.1rem;
-            min-width: 20px;
-        }
-        .status-bar .btn-start {
-            background: linear-gradient(135deg, #b8963a, #8a6f2a);
-            border: none;
-            color: #1a1025;
-            font-weight: 700;
-            padding: 6px 24px;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: 0.25s;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        .status-bar .btn-start:hover {
-            transform: scale(1.04);
-            box-shadow: 0 6px 25px rgba(184, 150, 58, 0.45);
-        }
-        .status-bar .btn-start:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* ===== 敵人區域 ===== */
-        .enemy-area {
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 28px;
-            padding: 16px 20px 14px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(184, 150, 58, 0.12);
-            text-align: center;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            position: relative;
-            overflow: visible;
-        }
-        .enemy-avatar-wrap {
-            min-height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            position: relative;
-        }
-        .enemy-area .enemy-img {
-            width: 120px;
-            height: 120px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 40px rgba(184, 150, 58, 0.15));
-            transition: transform 0.3s;
-            max-width: 100%;
-        }
-        .enemy-area .enemy-img:hover {
-            transform: scale(1.05);
-        }
-        .enemy-area .enemy-name {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #f5d98a;
-            margin: 2px 0 0;
-        }
-        .enemy-area .enemy-status {
-            font-size: 0.9rem;
-            color: #b0a090;
-        }
-        .enemy-area .enemy-hint {
-            font-size: 0.75rem;
-            color: #806850;
-            margin-top: 2px;
-        }
-        .enemy-area .empty-hint {
-            color: #706050;
-            font-size: 1.1rem;
-            opacity: 0.5;
-            letter-spacing: 2px;
-        }
-
-        /* ===== 血量條 ===== */
-        .hp-bar-wrap {
-            width: 100%;
-            max-width: 300px;
-            height: 14px;
-            background: rgba(60, 20, 20, 0.7);
-            border-radius: 20px;
-            margin: 8px auto 2px;
-            overflow: hidden;
-            border: 1px solid rgba(184, 150, 58, 0.15);
-            position: relative;
-        }
-        .hp-bar-fill {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #e04040, #f08060);
-            border-radius: 20px;
-            transition: width 0.45s ease;
-            position: relative;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans TC', 'Segoe UI', sans-serif; background: #0a0a12; overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { width: 100vw; height: 100vh; max-width: 100%; background: linear-gradient(160deg, #1a1025, #0f0a1a); border: 2px solid #b8963a; padding: 16px 20px; display: flex; flex-direction: column; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
+        .header h1 { font-family: 'MedievalSharp', cursive; font-size: 2.2rem; background: linear-gradient(180deg, #f5d98a, #c9a050); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 4px; }
+        .header h1 small { font-size: 1rem; -webkit-text-fill-color: #b8963a; opacity: 0.7; }
+        .lang-switch { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(184, 150, 58, 0.25); border-radius: 30px; padding: 4px 14px; color: #ddd0c0; font-size: 0.8rem; cursor: pointer; font-family: inherit; transition: 0.2s; }
+        .lang-switch:hover { border-color: #b8963a; background: rgba(184, 150, 58, 0.1); }
+        .status-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.04); border-radius: 60px; padding: 6px 16px; margin-bottom: 12px; border: 1px solid rgba(184, 150, 58, 0.15); flex-shrink: 0; flex-wrap: wrap; gap: 6px; }
+        .status-bar .stat { display: flex; align-items: center; gap: 6px; color: #ddd0c0; font-size: 0.9rem; }
+        .status-bar .stat .value { font-weight: 700; color: #f5d98a; font-size: 1.1rem; min-width: 20px; }
+        .status-bar .btn-start { background: linear-gradient(135deg, #b8963a, #8a6f2a); border: none; color: #1a1025; font-weight: 700; padding: 6px 24px; border-radius: 40px; cursor: pointer; transition: 0.25s; font-family: inherit; font-size: 0.9rem; }
+        .status-bar .btn-start:hover { transform: scale(1.04); box-shadow: 0 6px 25px rgba(184, 150, 58, 0.45); }
+        .status-bar .btn-start:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .enemy-area { background: rgba(0, 0, 0, 0.5); border-radius: 28px; padding: 16px 20px 14px; margin-bottom: 12px; border: 1px solid rgba(184, 150, 58, 0.12); text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; position: relative; overflow: visible; }
+        .enemy-avatar-wrap { min-height: 120px; display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
+        .enemy-area .enemy-img { width: 120px; height: 120px; object-fit: contain; filter: drop-shadow(0 0 40px rgba(184, 150, 58, 0.15)); transition: transform 0.3s; max-width: 100%; }
+        .enemy-area .enemy-img:hover { transform: scale(1.05); }
+        .enemy-area .enemy-name { font-size: 1.6rem; font-weight: 700; color: #f5d98a; margin: 2px 0 0; }
+        .enemy-area .enemy-status { font-size: 0.9rem; color: #b0a090; }
+        .enemy-area .enemy-hint { font-size: 0.75rem; color: #806850; margin-top: 2px; }
+        .enemy-area .empty-hint { color: #706050; font-size: 1.1rem; opacity: 0.5; letter-spacing: 2px; }
+        .hp-bar-wrap { width: 100%; max-width: 300px; height: 14px; background: rgba(60, 20, 20, 0.7); border-radius: 20px; margin: 8px auto 2px; overflow: hidden; border: 1px solid rgba(184, 150, 58, 0.15); position: relative; }
+        .hp-bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #e04040, #f08060); border-radius: 20px; transition: width 0.45s ease; position: relative; }
         .hp-bar-fill.low { background: linear-gradient(90deg, #c02020, #e05050); }
         .hp-bar-fill.mid { background: linear-gradient(90deg, #d08030, #f0a050); }
         .hp-bar-fill.high { background: linear-gradient(90deg, #40a060, #60d080); }
-        .hp-text {
-            font-size: 0.7rem;
-            color: #ddd0c0;
-            opacity: 0.7;
-            letter-spacing: 1px;
-            margin-top: 2px;
-        }
-
-        /* ===== 傷害飄字 ===== */
-        .damage-float {
-            position: absolute;
-            top: 10%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 2.8rem;
-            font-weight: 900;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 20;
-            text-shadow: 0 0 30px rgba(255, 60, 60, 0.6), 0 4px 20px rgba(0, 0, 0, 0.8);
-            animation: floatUp 1.2s ease-out forwards;
-        }
+        .hp-text { font-size: 0.7rem; color: #ddd0c0; opacity: 0.7; letter-spacing: 1px; margin-top: 2px; }
+        .damage-float { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); font-size: 2.8rem; font-weight: 900; pointer-events: none; opacity: 0; z-index: 20; text-shadow: 0 0 30px rgba(255, 60, 60, 0.6), 0 4px 20px rgba(0, 0, 0, 0.8); animation: floatUp 1.2s ease-out forwards; }
         .damage-float.heal { color: #60e090; text-shadow: 0 0 30px rgba(60, 220, 120, 0.5), 0 4px 20px rgba(0, 0, 0, 0.8); }
         .damage-float.critical { color: #ffd040; text-shadow: 0 0 50px rgba(255, 200, 60, 0.7), 0 4px 20px rgba(0, 0, 0, 0.8); font-size: 3.6rem; }
         @keyframes floatUp {
@@ -223,32 +41,8 @@
             40% { opacity: 1; transform: translateX(-50%) translateY(-60px) scale(1.2); }
             100% { opacity: 0; transform: translateX(-50%) translateY(-140px) scale(1); }
         }
-
-        /* ===== 部位按鈕 ===== */
-        .positions {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
-            flex-shrink: 0;
-        }
-        .positions .pos-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1.5px solid rgba(184, 150, 58, 0.2);
-            border-radius: 20px;
-            padding: 10px 4px;
-            cursor: pointer;
-            transition: 0.25s;
-            text-align: center;
-            color: #ddd0c0;
-            font-family: inherit;
-            font-size: 0.8rem;
-            backdrop-filter: blur(4px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            user-select: none;
-        }
+        .positions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; flex-shrink: 0; }
+        .positions .pos-btn { background: rgba(255, 255, 255, 0.04); border: 1.5px solid rgba(184, 150, 58, 0.2); border-radius: 20px; padding: 10px 4px; cursor: pointer; transition: 0.25s; text-align: center; color: #ddd0c0; font-family: inherit; font-size: 0.8rem; backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; user-select: none; }
         .positions .pos-btn .pos-icon { font-size: 2rem; }
         .positions .pos-btn .pos-label { font-weight: 400; font-size: 0.75rem; color: #c0b0a0; }
         .positions .pos-btn:hover:not(:disabled) { background: rgba(184, 150, 58, 0.12); border-color: #b8963a; transform: translateY(-2px); }
@@ -257,100 +51,33 @@
         .positions .pos-btn.defense { border-color: rgba(80, 180, 200, 0.3); background: rgba(80, 180, 200, 0.06); }
         .positions .pos-btn.defense:hover:not(:disabled) { border-color: #60c8e0; background: rgba(80, 180, 200, 0.15); }
         .positions .pos-btn.defense.active { border-color: #80d8f0; background: rgba(80, 180, 200, 0.2); }
-
-        /* ===== 咒語顯示 ===== */
-        .spell-display {
-            background: rgba(0, 0, 0, 0.45);
-            border-radius: 20px;
-            padding: 10px 16px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(184, 150, 58, 0.1);
-            min-height: 64px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
+        .spell-display { background: rgba(0, 0, 0, 0.45); border-radius: 20px; padding: 10px 16px; margin-bottom: 10px; border: 1px solid rgba(184, 150, 58, 0.1); min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
         .spell-display .spell-char { font-size: 1.8rem; font-weight: 700; color: #f5d98a; letter-spacing: 6px; }
         .spell-display .spell-pinyin { font-size: 0.95rem; color: #c0b0a0; letter-spacing: 3px; opacity: 0.7; }
         .spell-display .spell-hint { font-size: 0.7rem; color: #806850; }
         .spell-display .spell-empty { color: #605040; font-size: 0.85rem; opacity: 0.5; }
-
-        /* ===== 操作列 ===== */
-        .action-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-        }
-        .action-row .btn-record {
-            flex: 1;
-            min-width: 120px;
-            background: linear-gradient(135deg, #8a3a4a, #5a2a3a);
-            border: 1px solid rgba(200, 100, 120, 0.3);
-            border-radius: 60px;
-            padding: 12px 16px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: #f5e0d0;
-            cursor: pointer;
-            transition: 0.25s;
-            font-family: inherit;
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 20px rgba(138, 58, 74, 0.2);
-        }
+        .action-row { display: flex; gap: 12px; margin-bottom: 12px; flex-shrink: 0; flex-wrap: wrap; }
+        .action-row .btn-record { flex: 1; min-width: 120px; background: linear-gradient(135deg, #8a3a4a, #5a2a3a); border: 1px solid rgba(200, 100, 120, 0.3); border-radius: 60px; padding: 12px 16px; font-size: 1rem; font-weight: 700; color: #f5e0d0; cursor: pointer; transition: 0.25s; font-family: inherit; letter-spacing: 2px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 20px rgba(138, 58, 74, 0.2); }
         .action-row .btn-record:hover:not(:disabled) { transform: scale(1.02); border-color: rgba(220, 140, 160, 0.4); }
         .action-row .btn-record:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
         .action-row .btn-record.recording { background: linear-gradient(135deg, #c04040, #802020); animation: pulse 1s infinite; border-color: #ff6060; }
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(200, 60, 60, 0.3); }
-            50% { box-shadow: 0 0 50px rgba(200, 60, 60, 0.6); }
-        }
-        .action-row .feedback {
-            flex: 1.2;
-            min-width: 100px;
-            padding: 8px 14px;
-            border-radius: 16px;
-            background: rgba(0, 0, 0, 0.3);
-            color: #ddd0c0;
-            font-size: 0.85rem;
-            text-align: center;
-            min-height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            word-break: break-word;
-        }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px rgba(200, 60, 60, 0.3); } 50% { box-shadow: 0 0 50px rgba(200, 60, 60, 0.6); } }
+        .action-row .feedback { flex: 1.2; min-width: 100px; padding: 8px 14px; border-radius: 16px; background: rgba(0, 0, 0, 0.3); color: #ddd0c0; font-size: 0.85rem; text-align: center; min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.04); word-break: break-word; }
         .action-row .feedback.success { color: #7ddfa0; border-color: rgba(100, 220, 150, 0.2); background: rgba(60, 180, 100, 0.08); }
         .action-row .feedback.fail { color: #ef8a8a; border-color: rgba(220, 100, 100, 0.2); background: rgba(180, 60, 60, 0.08); }
         .action-row .feedback.info { color: #b0c8e8; border-color: rgba(100, 150, 220, 0.15); background: rgba(60, 100, 180, 0.06); }
         .action-row .feedback.warn { color: #f0d080; border-color: rgba(220, 200, 80, 0.15); background: rgba(180, 160, 60, 0.06); }
 
         @media (max-width: 480px) {
-            .header h1 { font-size: 1.6rem; }
-            .header h1 small { font-size: 0.7rem; }
+            .header h1 { font-size: 1.6rem; } .header h1 small { font-size: 0.7rem; }
             .positions { grid-template-columns: repeat(4, 1fr); gap: 5px; }
-            .positions .pos-btn { padding: 8px 2px; font-size: 0.7rem; }
-            .positions .pos-btn .pos-icon { font-size: 1.6rem; }
-            .status-bar { font-size: 0.7rem; padding: 4px 12px; }
-            .action-row { flex-direction: column; }
-            .action-row .btn-record { width: 100%; min-width: unset; }
-            .action-row .feedback { width: 100%; min-height: 36px; font-size: 0.8rem; }
-            .enemy-area .enemy-img { width: 80px; height: 80px; }
-            .enemy-area .enemy-name { font-size: 1.3rem; }
-            .enemy-area { min-height: 160px; padding: 12px 14px; }
-            .enemy-avatar-wrap { min-height: 80px; }
-            .spell-display .spell-char { font-size: 1.4rem; }
-            .hp-bar-wrap { max-width: 200px; height: 10px; }
-            .damage-float { font-size: 2rem; }
-            .damage-float.critical { font-size: 2.6rem; }
+            .positions .pos-btn { padding: 8px 2px; font-size: 0.7rem; } .positions .pos-btn .pos-icon { font-size: 1.6rem; }
+            .status-bar { font-size: 0.7rem; padding: 4px 12px; } .action-row { flex-direction: column; }
+            .action-row .btn-record { width: 100%; min-width: unset; } .action-row .feedback { width: 100%; min-height: 36px; font-size: 0.8rem; }
+            .enemy-area .enemy-img { width: 80px; height: 80px; } .enemy-area .enemy-name { font-size: 1.3rem; }
+            .enemy-area { min-height: 160px; padding: 12px 14px; } .enemy-avatar-wrap { min-height: 80px; }
+            .spell-display .spell-char { font-size: 1.4rem; } .hp-bar-wrap { max-width: 200px; height: 10px; }
+            .damage-float { font-size: 2rem; } .damage-float.critical { font-size: 2.6rem; }
         }
     </style>
 </head>
@@ -360,26 +87,21 @@
             <h1>⚡ 哈利波特 <small>魔法對決</small></h1>
             <button class="lang-switch" id="langToggle">EN / 中</button>
         </div>
-
         <div class="status-bar">
             <div class="stat"><span class="icon">🏆</span><span id="scoreLabel">分數</span><span class="value" id="scoreDisplay">0</span></div>
             <div class="stat"><span class="icon">❤️</span><span id="livesLabel">生命</span><span class="value" id="livesDisplay">3</span></div>
             <button class="btn-start" id="btnStart">開始冒險</button>
         </div>
-
         <div class="enemy-area" id="enemyArea">
             <div class="empty-hint">🪄 點擊「開始冒險」迎接挑戰</div>
         </div>
-
         <div class="positions" id="positionsContainer">
             <button class="pos-btn" data-pos="wand" id="posWand" disabled><span class="pos-icon">🪄</span><span class="pos-label" id="labelWand">魔杖</span></button>
             <button class="pos-btn" data-pos="body" id="posBody" disabled><span class="pos-icon">🧍</span><span class="pos-label" id="labelBody">身體</span></button>
             <button class="pos-btn" data-pos="forehead" id="posForehead" disabled><span class="pos-icon">👁</span><span class="pos-label" id="labelForehead">額頭</span></button>
             <button class="pos-btn defense" data-pos="defense" id="posDefense" disabled><span class="pos-icon">🛡️</span><span class="pos-label" id="labelDefense">自衛</span></button>
         </div>
-
         <div class="spell-display" id="spellDisplay"><div class="spell-empty" id="spellEmpty">🔮 選擇一個部位以顯示咒語</div></div>
-
         <div class="action-row">
             <button class="btn-record" id="btnRecord" disabled><span class="mic-icon">🎤</span><span id="recordLabel">開始唸咒</span></button>
             <div class="feedback" id="feedbackDisplay">💬 等待你的行動…</div>
@@ -455,13 +177,15 @@
             const POS_TO_SPELL = { wand: '除你武器', body: '統統石化', forehead: '昏昏倒地', defense: '呼神護衛' };
 
             const state = {
-                score: 0, lives: 3, currentEnemy: null, currentSpellKey: null, isRecording: false,
+                score: 0, lives: 3, currentEnemy: null, currentSpellKey: null, 
+                isRecording: false, isConnecting: false, // 🚀 引入獨立防連點並發狀態鎖
                 battleLocked: false, enemyDefeated: false, enemyHp: 0, maxEnemyHp: 60, enemyStatus: 'default',
                 xfAppid: '2600b137',
                 xfApiKey: '8b012124ed213c06974cd469f29e134b',
                 xfSecret: 'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
                 audioContext: null, processor: null, source: null, stream: null, 
-                ws: null, finalResolve: null, finalReject: null, accumulatedXml: '', finalScore: null, wsConnected: false
+                ws: null, finalResolve: null, finalReject: null, accumulatedXml: '', finalScore: null, wsConnected: false,
+                currentEvalPromise: null // 🚀 儲存當前評測生命週期的承諾
             };
 
             const $ = id => document.getElementById(id);
@@ -532,10 +256,14 @@
                 dom.labelWand.textContent = t('wand'); dom.labelBody.textContent = t('body');
                 dom.labelForehead.textContent = t('forehead'); dom.labelDefense.textContent = t('defense');
                 renderEnemy();
+                
+                // 🚀 當正在連線或正在錄音時，鎖定所有部位按鈕
                 const hasEnemy = !!state.currentEnemy && !state.battleLocked && !state.enemyDefeated;
-                posBtns.forEach(b => b.disabled = !hasEnemy || state.isRecording);
-                dom.btnRecord.disabled = !state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated || state.lives <= 0;
-                dom.btnStart.disabled = state.isRecording || state.battleLocked;
+                posBtns.forEach(b => b.disabled = !hasEnemy || state.isRecording || state.isConnecting);
+                
+                dom.btnRecord.disabled = !state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated || state.lives <= 0 || state.isConnecting;
+                dom.btnStart.disabled = state.isRecording || state.isConnecting || state.battleLocked;
+                
                 if (state.lives <= 0) { posBtns.forEach(b => b.disabled = true); dom.btnRecord.disabled = true; dom.btnStart.disabled = false; }
                 dom.langToggle.textContent = lang === 'zh' ? 'EN / 中' : '中 / EN';
             }
@@ -562,7 +290,7 @@
             }
 
             // ============================================================
-            // 實時流式傳輸控制核心 (修正為：連線成功並發送首幀後，才完成 Promise)
+            // 🛠️ 1. 重構 initXunfeiStream：只管連線與首幀發送，完全抽離評分回調
             // ============================================================
             function initXunfeiStream(spellText) {
                 return new Promise(async (resolve, reject) => {
@@ -573,11 +301,10 @@
                         console.log('🔗 正在連線流式伺服器 URL:', url);
                         state.ws = new WebSocket(url);
 
-                        // 設定超時防止 WebSocket 永久卡在連線中
                         const connectTimeout = setTimeout(() => {
                             if (!state.wsConnected) {
                                 cleanupWebSocket();
-                                reject(new Error('伺服器連線超時，請檢查網路環境'));
+                                reject(new Error('連線超時，請檢查網路環境'));
                             }
                         }, 5000);
 
@@ -599,54 +326,18 @@
                             setTimeout(() => {
                                 state.wsConnected = true;
                                 console.log('🚀 訊飛握手完成，正式允許錄音數據流灌入');
-                                // 【關鍵修改】此時才對外宣告：連線與首幀完全就緒，主執行緒可以開始啟動錄音
-                                resolve(); 
+                                resolve(); // 🎯 連線與配置成功，允許主流程推進
                             }, 150);
                         };
 
-                        state.ws.onmessage = (ev) => {
-                            try {
-                                const msg = JSON.parse(ev.data);
-                                if (msg.code !== 0) {
-                                    cleanupWebSocket();
-                                    if (state.finalReject) state.finalReject(new Error('訊飛錯誤 [' + msg.code + ']: ' + msg.message));
-                                    return;
-                                }
-                                if (msg.data && msg.data.data) {
-                                    state.accumulatedXml += atob(msg.data.data);
-                                    let match = state.accumulatedXml.match(/<read_word[^>]*total_score="([\d.]+)"/) || 
-                                                state.accumulatedXml.match(/<sentence[^>]*total_score="([\d.]+)"/) || 
-                                                state.accumulatedXml.match(/total_score value="([\d.]+)"/);
-                                    if (match) {
-                                        state.finalScore = parseFloat(match[1]);
-                                        cleanupWebSocket(); 
-                                        if (state.finalResolve) state.finalResolve(state.finalScore); 
-                                        return;
-                                    }
-                                }
-                                if (msg.data && msg.data.status === 2) {
-                                    cleanupWebSocket();
-                                    if (state.finalResolve) state.finalResolve(state.finalScore !== null ? state.finalScore : 0);
-                                }
-                            } catch (e) {
-                                cleanupWebSocket(); 
-                                if (state.finalReject) state.finalReject(new Error('解析回應失敗: ' + e.message));
-                            }
-                        };
-
                         state.ws.onerror = (err) => { 
+                            clearTimeout(connectTimeout);
                             cleanupWebSocket(); 
-                            reject(new Error('WebSocket 連線異常斷開')); 
-                            if (state.finalReject) state.finalReject(new Error('WebSocket 連線異常斷開'));
+                            reject(new Error('WebSocket 連線失敗')); 
                         };
                         
                         state.ws.onclose = (ev) => {
-                            cleanupWebSocket();
-                            if (state.finalScore !== null) {
-                                if (state.finalResolve) state.finalResolve(state.finalScore);
-                            } else {
-                                if (state.finalReject) state.finalReject(new Error('伺服器連線已關閉 (code:' + ev.code + ')'));
-                            }
+                            if (!state.wsConnected) reject(new Error('連線意外關閉 (code:' + ev.code + ')'));
                         };
 
                     } catch (e) { reject(e); }
@@ -683,22 +374,18 @@
                             
                             processor.onaudioprocess = (e) => {
                                 try {
-                                    // 防禦門禁：連線必須存在且完全打開才送，否則直接丟棄避免堆積
                                     if (!state.wsConnected || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
                                     
                                     const inputData = e.inputBuffer.getChannelData(0);
                                     const targetSampleRate = 16000;
-                                    
                                     const fitCount = Math.floor(inputData.length * (targetSampleRate / inputSampleRate));
                                     const pcm = new Int16Array(fitCount);
-                                    let index = 0;
-                                    let ratio = inputSampleRate / targetSampleRate;
+                                    let index = 0; let ratio = inputSampleRate / targetSampleRate;
                                     
                                     for (let i = 0; i < fitCount; i++) {
                                         let sampleIndex = Math.floor(index);
                                         if (sampleIndex >= inputData.length) break;
-                                        let sample = inputData[sampleIndex];
-                                        pcm[i] = Math.round(Math.max(-1, Math.min(1, sample)) * 32767);
+                                        pcm[i] = Math.round(Math.max(-1, Math.min(1, inputData[sampleIndex])) * 32767);
                                         index += ratio;
                                     }
                                     
@@ -724,7 +411,6 @@
 
             async function stopRealtimeRecording() {
                 console.log('🛑 開始安全關閉硬體與清理狀態...');
-                
                 if (state.ws && state.ws.readyState === WebSocket.OPEN) {
                     try {
                         const finalFrame = {
@@ -734,7 +420,6 @@
                         state.ws.send(JSON.stringify(finalFrame));
                     } catch(e){}
                 }
-
                 if (state.processor) {
                     try { state.processor.onaudioprocess = null; state.processor.disconnect(); } catch(e){}
                     state.processor = null;
@@ -743,104 +428,141 @@
                     try { state.source.disconnect(); } catch(e){}
                     state.source = null;
                 }
-                
                 if (state.stream) {
-                    try { state.stream.getTracks().forEach(track => {
-                        track.stop();
-                        console.log(`🔌 麥克風軌道 [${track.label}] 已釋放`);
-                    }); } catch(e){}
+                    try { state.stream.getTracks().forEach(track => { track.stop(); console.log(`🔌 麥克風軌道 [${track.label}] 已釋放`); }); } catch(e){}
                     state.stream = null;
                 }
-                
                 if (state.audioContext) {
-                    try {
-                        if (state.audioContext.state !== 'closed') {
-                            await state.audioContext.close();
-                            console.log('🎵 AudioContext 已關閉');
-                        }
-                    } catch(e){}
+                    try { if (state.audioContext.state !== 'closed') { await state.audioContext.close(); console.log('🎵 AudioContext 已關閉'); } } catch(e){}
                     state.audioContext = null;
                 }
-                
-                cleanupWebSocket();
             }
 
             // ============================================================
-            // 核心對決控制：實作完美的序列化執行 (先連線、再開麥克風)
+            // 🛠️ 2. 核心控制重構：嚴格遵守先 Promise 注入 -> 連線 -> 錄音 -> 停止分支處理
             // ============================================================
             async function handleRecord() {
                 if (!state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated) return;
+                
+                // 🛑 並發鎖防連點
+                if (state.isConnecting) return; 
+
                 const spellKey = state.currentSpellKey, enemy = state.currentEnemy;
 
                 if (!state.isRecording) {
+                    // 【分支 A：進入錄音流程】
+                    state.isConnecting = true;
                     setFeedback(t('feedback_connecting'), 'info');
-                    dom.btnRecord.disabled = true; // 防連點鎖定
+                    updateUI();
                     
                     try {
-                        // 步驟 1：【同步等待】直到網路連線建立、首幀配置成功送出
+                        // 🎯 1. 搶先創建評測 Promise 實例，杜絕異步回調為 null 錯誤
+                        const evalPromise = new Promise((res, rej) => {
+                            state.finalResolve = res; state.finalReject = rej;
+                        });
+                        state.currentEvalPromise = evalPromise;
+
+                        // 🎯 2. 先建立連線，等待 Websocket Open 完成
                         await initXunfeiStream(spellKey);
 
-                        // 步驟 2：網路就緒後，再【同步等待】拉起麥克風硬體
+                        // 🎯 3. 綁定監聽訊息回調 (確保此時 finalResolve 已就緒)
+                        if (state.ws) {
+                            state.ws.onmessage = (ev) => {
+                                try {
+                                    const msg = JSON.parse(ev.data);
+                                    if (msg.code !== 0) {
+                                        cleanupWebSocket();
+                                        if (state.finalReject) state.finalReject(new Error('訊飛錯誤 [' + msg.code + ']: ' + msg.message));
+                                        return;
+                                    }
+                                    if (msg.data && msg.data.data) {
+                                        state.accumulatedXml += atob(msg.data.data);
+                                        let match = state.accumulatedXml.match(/<read_word[^>]*total_score="([\d.]+)"/) || 
+                                                    state.accumulatedXml.match(/<sentence[^>]*total_score="([\d.]+)"/) || 
+                                                    state.accumulatedXml.match(/total_score value="([\d.]+)"/);
+                                        if (match) {
+                                            state.finalScore = parseFloat(match[1]);
+                                            cleanupWebSocket(); 
+                                            if (state.finalResolve) state.finalResolve(state.finalScore); 
+                                            return;
+                                        }
+                                    }
+                                    if (msg.data && msg.data.status === 2) {
+                                        cleanupWebSocket();
+                                        if (state.finalResolve) state.finalResolve(state.finalScore !== null ? state.finalScore : 0);
+                                    }
+                                } catch (e) {
+                                    cleanupWebSocket(); if (state.finalReject) state.finalReject(e);
+                                }
+                            };
+                            state.ws.onerror = () => { cleanupWebSocket(); if (state.finalReject) state.finalReject(new Error('網路連線異常中斷')); };
+                            state.ws.onclose = (ev) => {
+                                cleanupWebSocket();
+                                if (state.finalScore !== null) { if (state.finalResolve) state.finalResolve(state.finalScore); } 
+                                else { if (state.finalReject) state.finalReject(new Error('連線已被伺服器關閉')); }
+                            };
+                        }
+
+                        // 🎯 4. 喚醒錄音硬體
                         await startRealtimeRecording();
                         
-                        // 建立結果評測的異步 Promise
-                        const evalPromise = new Promise((res, rej) => {
-                            state.finalResolve = res;
-                            state.finalReject = rej;
-                        });
-
-                        // 步驟 3：狀態切換與介面更新 (此時才正式宣告錄音中)
+                        // 🎯 5. 解鎖連線鎖，正式切換至錄音狀態
                         state.isRecording = true;
+                        state.isConnecting = false;
                         dom.btnRecord.classList.add('recording');
-                        dom.btnRecord.disabled = false;
-                        dom.recordLabel.textContent = t('recording');
                         setFeedback(t('feedback_listening'), 'info');
                         updateUI();
 
-                        // 步驟 4：非同步監聽訊飛返回的語音評測結果
-                        evalPromise.then(async (score) => {
-                            setFeedback(t('feedback_score', { score: score }), 'info');
-                            await handleBattleResult(getSpellEffect(spellKey, enemy.id), spellKey, enemy, score);
-                        }).catch(async (err) => {
-                            console.error('❌ 評測失敗詳情:', err);
-                            setFeedback(t('feedback_fail', { err: err.message }), 'fail');
-                            await sleep(1500); 
-                            await handleCounterAttack();
-                        }).finally(async () => {
-                            // 【終極安全保障】無論結果成功或失敗，強制完全重置
-                            state.isRecording = false;
-                            dom.btnRecord.classList.remove('recording');
-                            dom.recordLabel.textContent = t('record');
-                            
-                            await stopRealtimeRecording(); 
-                            
-                            if (!state.battleLocked && !state.enemyDefeated && state.lives > 0) {
-                                posBtns.forEach(b => b.disabled = false);
-                                dom.btnRecord.disabled = !state.currentSpellKey;
-                            }
-                            updateUI();
-                        });
-
                     } catch (err) {
-                        // 如果步驟 1 或 步驟 2 噴出錯誤，會在進入錄音前被這裡捕捉，原地徹底釋放硬體並解鎖 UI
-                        console.error('❌ 初始化網路或麥克風失敗:', err);
+                        console.error('❌ 初始化失敗:', err);
                         setFeedback(t('feedback_fail', { err: err.message }), 'fail');
                         state.isRecording = false;
-                        dom.btnRecord.classList.remove('recording');
-                        dom.recordLabel.textContent = t('record');
+                        state.isConnecting = false;
                         await stopRealtimeRecording();
+                        cleanupWebSocket();
                         updateUI();
                     }
                 } else {
-                    // 使用者點擊停止
+                    // 【分支 B：使用者點擊停止錄音】
+                    state.isConnecting = true; // 鎖定 UI
                     dom.btnRecord.disabled = true;
                     setFeedback(t('feedback_stopping'), 'info');
-                    await stopRealtimeRecording();
+                    
+                    try {
+                        // 🎯 1. 關閉麥克風，送出結束訊號
+                        await stopRealtimeRecording();
+
+                        // 🎯 2. 【核心改進】在停止分支中，同步等待先前創建好的 evalPromise 結果
+                        const score = await state.currentEvalPromise;
+                        
+                        // 🎯 3. 拿到分數，點燃戰鬥引擎
+                        setFeedback(t('feedback_score', { score: score }), 'info');
+                        await handleBattleResult(getSpellEffect(spellKey, enemy.id), spellKey, enemy, score);
+
+                    } catch (err) {
+                        console.error('❌ 評測失敗或被中斷:', err);
+                        setFeedback(t('feedback_fail', { err: err.message }), 'fail');
+                        await sleep(1500); 
+                        await handleCounterAttack();
+                    } finally {
+                        // 🎯 4. 終極解鎖，徹底清理全域變數與重置按鈕
+                        state.isRecording = false;
+                        state.isConnecting = false;
+                        state.currentEvalPromise = null;
+                        cleanupWebSocket();
+                        dom.btnRecord.classList.remove('recording');
+                        
+                        if (!state.battleLocked && !state.enemyDefeated && state.lives > 0) {
+                            posBtns.forEach(b => b.disabled = false);
+                            dom.btnRecord.disabled = !state.currentSpellKey;
+                        }
+                        updateUI();
+                    }
                 }
             }
 
             function startAdventure() {
-                if (state.battleLocked || state.isRecording) return;
+                if (state.battleLocked || state.isRecording || state.isConnecting) return;
                 if (state.lives <= 0) {
                     state.lives = 3; state.score = 0; state.battleLocked = false; state.enemyDefeated = false;
                     state.currentEnemy = null; state.currentSpellKey = null; setSpellDisplay(null);
@@ -856,7 +578,7 @@
             }
 
             function selectPosition(posKey) {
-                if (!state.currentEnemy || state.battleLocked || state.isRecording || state.enemyDefeated) return;
+                if (!state.currentEnemy || state.battleLocked || state.isRecording || state.isConnecting || state.enemyDefeated) return;
                 const spellKey = POS_TO_SPELL[posKey]; if (!spellKey) return;
                 state.currentSpellKey = spellKey; posBtns.forEach(b => b.classList.remove('active'));
                 const btn = posMap[posKey]; if (btn) btn.classList.add('active');
