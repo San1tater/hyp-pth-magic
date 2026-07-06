@@ -134,7 +134,6 @@ const ENEMIES=[
 {id:'voldemort',name_zh:'伏地魔',name_en:'Voldemort',emoji:'🐍',desc_zh:'黑魔王',desc_en:'Dark Lord',hint_zh:'解除武器',hint_en:'Disarm',hp:60},
 {id:'malfoy',name_zh:'馬爾福',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死徒',desc_en:'Death Eater',hint_zh:'冷靜',hint_en:'Calm',hp:60}
 ];
-// 拼音用 | 分隔每个音节
 const SPELLS={
 '除你武器':{pinyin:'chu2|ni3|wu3|qi4',pos:'wand',label_zh:'魔杖',label_en:'Wand',effects:{dementor:'ineffective',voldemort:'effective',malfoy:'weak'},desc_zh:'繳械咒',desc_en:'Disarm'},
 '統統石化':{pinyin:'tong1|tong1|shi2|hua4',pos:'body',label_zh:'身體',label_en:'Body',effects:{dementor:'ineffective',voldemort:'ineffective',malfoy:'overkill'},desc_zh:'束縛咒',desc_en:'Petrify'},
@@ -291,8 +290,8 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 讯飞评测：针对不同咒语采用不同试卷格式，并增加重试 =====
-function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText,retry=false){
+// ===== 讯飞评测：根据咒语动态选择题型 =====
+function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
  return new Promise((resolve,reject)=>{
   let ws=null,resolved=false,ssbConfirmed=false;
   let timeoutId=setTimeout(()=>{
@@ -307,22 +306,19 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText,
 
     ws.onopen=()=>{
      console.log('✅ WebSocket 已連線');
-     // 构建试卷：对于除你武器和呼神護衛，尝试去掉 <customizer:interphonic> 标签
-     let paper;
-     const pinyinStr=SPELLS[spellKey].pinyin;
-     if(!retry && (spellKey==='除你武器' || spellKey==='呼神護衛')){
-      // 第一次尝试：使用不带标签的格式
-      paper = spellText + ' ' + pinyinStr.replace(/\|/g, ' '); // 空格分隔
-      console.log('📝 使用無標籤格式:', paper);
-     } else {
-      // 默认格式（带标签）
-      paper = '<customizer:interphonic>\n' + spellText + ' ' + pinyinStr;
-      console.log('📝 使用標準標籤格式:\n', paper);
+     // 根據咒語选择题型：除你武器和呼神護衛用 read_sentence，其他用 read_word
+     let category = 'read_word';
+     if (spellKey === '除你武器' || spellKey === '呼神護衛') {
+       category = 'read_sentence';
      }
+     const pinyinStr = SPELLS[spellKey].pinyin;
+     // 使用带标签的标准格式（始终使用 <customizer:interphonic>）
+     const paper = '<customizer:interphonic>\n' + spellText + ' ' + pinyinStr;
+     console.log('📝 發送試卷 (category: '+category+'):\n', paper);
      const ssb={
       common:{app_id:appid},
       business:{
-       category:'read_word',
+       category:category,
        language:'zh_cn',
        sub:'ise',
        ent:'cn_vip',
@@ -346,20 +342,6 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText,
      try{
       const msg=JSON.parse(ev.data);
       console.log('📩 收到:',msg);
-      // 如果错误码是48195 且 不是重试，则关闭连接并用重试方式重新调用
-      if(msg.code===48195 && !retry){
-       if(!resolved){
-        resolved=true;
-        clearTimeout(timeoutId);
-        ws.close();
-        console.warn('⚠️ 48195錯誤，切換格式重試...');
-        // 重新调用本函数，但标记为 retry
-        evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText,true)
-         .then(score=>resolve(score))
-         .catch(err=>reject(err));
-       }
-       return;
-      }
       if(msg.code!==0){
        if(!resolved){resolved=true;clearTimeout(timeoutId);ws.close();reject(new Error('訊飛錯誤 '+msg.code+': '+msg.message));}
        return;
@@ -399,14 +381,14 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText,
 
        let parser=new DOMParser();
        let xmlDoc=parser.parseFromString(xmlStr,'text/xml');
-       let root=xmlDoc.querySelector('read_word');
+       let root=xmlDoc.querySelector('read_word') || xmlDoc.querySelector('sentence') || xmlDoc.querySelector('read_sentence');
        let phoneScore=null, toneScore=null, totalScore=null;
 
        if(root){
         phoneScore = parseFloat(root.getAttribute('phone_score'));
         toneScore = parseFloat(root.getAttribute('tone_score'));
         totalScore = parseFloat(root.getAttribute('total_score'));
-        console.log('📊 解析 read_word 節點:', {phoneScore, toneScore, totalScore});
+        console.log('📊 解析根節點:', {phoneScore, toneScore, totalScore});
        }
 
        if(isNaN(phoneScore) || isNaN(toneScore)){
@@ -547,8 +529,7 @@ async function handleBattleResult(effect,spellKey,enemy,score){
  const hpLost=Math.min(damage,state.enemyHp);
  state.enemyHp=Math.max(0,state.enemyHp-hpLost);
  renderEnemy();
- // 延迟确保 DOM 更新
- await sleep(100);
+ await sleep(100); // 确保 DOM 更新
  if(hpLost>0){
   showDamageFloat(hpLost, isCritical||(effect==='overkill'), false);
  }else if(effect==='ineffective'){
