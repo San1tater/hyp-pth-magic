@@ -5,66 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>哈利波特 · 魔法對決</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Noto Sans TC','Segoe UI',sans-serif;background:#0a0a12;overflow:hidden;height:100vh;display:flex;align-items:center;justify-content:center}
-        .container{width:100vw;height:100vh;max-width:100%;background:linear-gradient(160deg,#1a1025,#0f0a1a);border:2px solid #b8963a;padding:16px 20px;display:flex;flex-direction:column;overflow-y:auto}
-        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-shrink:0}
-        .header h1{font-family:'MedievalSharp',cursive;font-size:2.2rem;background:linear-gradient(180deg,#f5d98a,#c9a050);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px}
-        .header h1 small{font-size:1rem;-webkit-text-fill-color:#b8963a;opacity:.7}
-        .lang-switch{background:rgba(255,255,255,.06);border:1px solid rgba(184,150,58,.25);border-radius:30px;padding:4px 14px;color:#ddd0c0;font-size:.8rem;cursor:pointer;font-family:inherit;transition:.2s}
-        .lang-switch:hover{border-color:#b8963a;background:rgba(184,150,58,.1)}
-        .status-bar{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border-radius:60px;padding:6px 16px;margin-bottom:12px;border:1px solid rgba(184,150,58,.15);flex-shrink:0;flex-wrap:wrap;gap:6px}
-        .status-bar .stat{display:flex;align-items:center;gap:6px;color:#ddd0c0;font-size:.9rem}
-        .status-bar .stat .value{font-weight:700;color:#f5d98a;font-size:1.1rem;min-width:20px}
-        .status-bar .btn-start{background:linear-gradient(135deg,#b8963a,#8a6f2a);border:none;color:#1a1025;font-weight:700;padding:6px 24px;border-radius:40px;cursor:pointer;transition:.25s;font-family:inherit;font-size:.9rem}
-        .status-bar .btn-start:hover{transform:scale(1.04);box-shadow:0 6px 25px rgba(184,150,58,.45)}
-        .status-bar .btn-start:disabled{opacity:.4;cursor:not-allowed;transform:none}
-        .enemy-area{background:rgba(0,0,0,.5);border-radius:28px;padding:16px 20px 14px;margin-bottom:12px;border:1px solid rgba(184,150,58,.12);text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:visible}
-        .enemy-avatar-wrap{min-height:120px;display:flex;align-items:center;justify-content:center;width:100%;position:relative}
-        .enemy-area .enemy-img{width:120px;height:120px;object-fit:contain;filter:drop-shadow(0 0 40px rgba(184,150,58,.15));transition:transform .3s;max-width:100%}
-        .enemy-area .enemy-img:hover{transform:scale(1.05)}
-        .enemy-area .enemy-name{font-size:1.6rem;font-weight:700;color:#f5d98a;margin:2px 0 0}
-        .enemy-area .enemy-status{font-size:.9rem;color:#b0a090}
-        .enemy-area .enemy-hint{font-size:.75rem;color:#806850;margin-top:2px}
-        .enemy-area .empty-hint{color:#706050;font-size:1.1rem;opacity:.5;letter-spacing:2px}
-        .hp-bar-wrap{width:100%;max-width:300px;height:14px;background:rgba(60,20,20,.7);border-radius:20px;margin:8px auto 2px;overflow:hidden;border:1px solid rgba(184,150,58,.15);position:relative}
-        .hp-bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#e04040,#f08060);border-radius:20px;transition:width .45s ease;position:relative}
-        .hp-bar-fill.low{background:linear-gradient(90deg,#c02020,#e05050)}
-        .hp-bar-fill.mid{background:linear-gradient(90deg,#d08030,#f0a050)}
-        .hp-bar-fill.high{background:linear-gradient(90deg,#40a060,#60d080)}
-        .hp-text{font-size:.7rem;color:#ddd0c0;opacity:.7;letter-spacing:1px;margin-top:2px}
-        .damage-float{position:absolute;top:5%;left:50%;transform:translateX(-50%);font-size:4rem;font-weight:900;pointer-events:none;opacity:0;z-index:999;text-shadow:0 0 40px rgba(255,60,60,.8),0 4px 30px rgba(0,0,0,.9);animation:floatUp 1.4s ease-out forwards;color:#ff3333;font-family:'Impact','Arial Black',sans-serif}
-        .damage-float.heal{color:#60e090;text-shadow:0 0 40px rgba(60,220,120,.6),0 4px 30px rgba(0,0,0,.9)}
-        .damage-float.critical{color:#ffd700;font-size:5rem;text-shadow:0 0 60px rgba(255,215,0,.8),0 4px 30px rgba(0,0,0,.9)}
-        .damage-float.ineffective{color:#8888aa;font-size:2.8rem;text-shadow:0 0 30px rgba(136,136,170,.4),0 4px 20px rgba(0,0,0,.8)}
-        @keyframes floatUp{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(.6)}30%{opacity:1;transform:translateX(-50%) translateY(-40px) scale(1.2)}100%{opacity:0;transform:translateX(-50%) translateY(-160px) scale(1)}}
-        .positions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;flex-shrink:0}
-        .positions .pos-btn{background:rgba(255,255,255,.04);border:1.5px solid rgba(184,150,58,.2);border-radius:20px;padding:10px 4px;cursor:pointer;transition:.25s;text-align:center;color:#ddd0c0;font-family:inherit;font-size:.8rem;backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;user-select:none}
-        .positions .pos-btn .pos-icon{font-size:2rem}
-        .positions .pos-btn .pos-label{font-weight:400;font-size:.75rem;color:#c0b0a0}
-        .positions .pos-btn:hover:not(:disabled){background:rgba(184,150,58,.12);border-color:#b8963a;transform:translateY(-2px)}
-        .positions .pos-btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
-        .positions .pos-btn.active{background:rgba(184,150,58,.18);border-color:#f5d98a;box-shadow:0 0 30px rgba(184,150,58,.08)}
-        .positions .pos-btn.defense{border-color:rgba(80,180,200,.3);background:rgba(80,180,200,.06)}
-        .positions .pos-btn.defense:hover:not(:disabled){border-color:#60c8e0;background:rgba(80,180,200,.15)}
-        .positions .pos-btn.defense.active{border-color:#80d8f0;background:rgba(80,180,200,.2)}
-        .spell-display{background:rgba(0,0,0,.45);border-radius:20px;padding:10px 16px;margin-bottom:10px;border:1px solid rgba(184,150,58,.1);min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-        .spell-display .spell-char{font-size:1.8rem;font-weight:700;color:#f5d98a;letter-spacing:6px}
-        .spell-display .spell-pinyin{font-size:.95rem;color:#c0b0a0;letter-spacing:3px;opacity:.7}
-        .spell-display .spell-hint{font-size:.7rem;color:#806850}
-        .spell-display .spell-empty{color:#605040;font-size:.85rem;opacity:.5}
-        .action-row{display:flex;gap:12px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap}
-        .action-row .btn-record{flex:1;min-width:120px;background:linear-gradient(135deg,#8a3a4a,#5a2a3a);border:1px solid rgba(200,100,120,.3);border-radius:60px;padding:12px 16px;font-size:1rem;font-weight:700;color:#f5e0d0;cursor:pointer;transition:.25s;font-family:inherit;letter-spacing:2px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(138,58,74,.2)}
-        .action-row .btn-record:hover:not(:disabled){transform:scale(1.02);border-color:rgba(220,140,160,.4)}
-        .action-row .btn-record:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
-        .action-row .btn-record.recording{background:linear-gradient(135deg,#c04040,#802020);animation:pulse 1s infinite;border-color:#ff6060}
-        @keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(200,60,60,.3)}50%{box-shadow:0 0 50px rgba(200,60,60,.6)}}
-        .action-row .feedback{flex:1.2;min-width:100px;padding:8px 14px;border-radius:16px;background:rgba(0,0,0,.3);color:#ddd0c0;font-size:.85rem;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.04);word-break:break-word}
-        .action-row .feedback.success{color:#7ddfa0;border-color:rgba(100,220,150,.2);background:rgba(60,180,100,.08)}
-        .action-row .feedback.fail{color:#ef8a8a;border-color:rgba(220,100,100,.2);background:rgba(180,60,60,.08)}
-        .action-row .feedback.info{color:#b0c8e8;border-color:rgba(100,150,220,.15);background:rgba(60,100,180,.06)}
-        .action-row .feedback.warn{color:#f0d080;border-color:rgba(220,200,80,.15);background:rgba(180,160,60,.06)}
-        @media(max-width:480px){.header h1{font-size:1.6rem}.header h1 small{font-size:.7rem}.positions{grid-template-columns:repeat(4,1fr);gap:5px}.positions .pos-btn{padding:8px 2px;font-size:.7rem}.positions .pos-btn .pos-icon{font-size:1.6rem}.status-bar{font-size:.7rem;padding:4px 12px}.action-row{flex-direction:column}.action-row .btn-record{width:100%;min-width:unset}.action-row .feedback{width:100%;min-height:36px;font-size:.8rem}.enemy-area .enemy-img{width:80px;height:80px}.enemy-area .enemy-name{font-size:1.3rem}.enemy-area{min-height:160px;padding:12px 14px}.enemy-avatar-wrap{min-height:80px}.spell-display .spell-char{font-size:1.4rem}.hp-bar-wrap{max-width:200px;height:10px}.damage-float{font-size:3rem}.damage-float.critical{font-size:3.8rem}}
+        /* 样式完全同之前，不省略，但此处压缩成一行以节省篇幅，实际请保留完整样式 */
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Noto Sans TC','Segoe UI',sans-serif;background:#0a0a12;overflow:hidden;height:100vh;display:flex;align-items:center;justify-content:center}.container{width:100vw;height:100vh;max-width:100%;background:linear-gradient(160deg,#1a1025,#0f0a1a);border:2px solid #b8963a;padding:16px 20px;display:flex;flex-direction:column;overflow-y:auto}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-shrink:0}.header h1{font-family:'MedievalSharp',cursive;font-size:2.2rem;background:linear-gradient(180deg,#f5d98a,#c9a050);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px}.header h1 small{font-size:1rem;-webkit-text-fill-color:#b8963a;opacity:.7}.lang-switch{background:rgba(255,255,255,.06);border:1px solid rgba(184,150,58,.25);border-radius:30px;padding:4px 14px;color:#ddd0c0;font-size:.8rem;cursor:pointer;font-family:inherit;transition:.2s}.lang-switch:hover{border-color:#b8963a;background:rgba(184,150,58,.1)}.status-bar{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.04);border-radius:60px;padding:6px 16px;margin-bottom:12px;border:1px solid rgba(184,150,58,.15);flex-shrink:0;flex-wrap:wrap;gap:6px}.status-bar .stat{display:flex;align-items:center;gap:6px;color:#ddd0c0;font-size:.9rem}.status-bar .stat .value{font-weight:700;color:#f5d98a;font-size:1.1rem;min-width:20px}.status-bar .btn-start{background:linear-gradient(135deg,#b8963a,#8a6f2a);border:none;color:#1a1025;font-weight:700;padding:6px 24px;border-radius:40px;cursor:pointer;transition:.25s;font-family:inherit;font-size:.9rem}.status-bar .btn-start:hover{transform:scale(1.04);box-shadow:0 6px 25px rgba(184,150,58,.45)}.status-bar .btn-start:disabled{opacity:.4;cursor:not-allowed;transform:none}.enemy-area{background:rgba(0,0,0,.5);border-radius:28px;padding:16px 20px 14px;margin-bottom:12px;border:1px solid rgba(184,150,58,.12);text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:visible}.enemy-avatar-wrap{min-height:120px;display:flex;align-items:center;justify-content:center;width:100%;position:relative}.enemy-area .enemy-img{width:120px;height:120px;object-fit:contain;filter:drop-shadow(0 0 40px rgba(184,150,58,.15));transition:transform .3s;max-width:100%}.enemy-area .enemy-img:hover{transform:scale(1.05)}.enemy-area .enemy-name{font-size:1.6rem;font-weight:700;color:#f5d98a;margin:2px 0 0}.enemy-area .enemy-status{font-size:.9rem;color:#b0a090}.enemy-area .enemy-hint{font-size:.75rem;color:#806850;margin-top:2px}.enemy-area .empty-hint{color:#706050;font-size:1.1rem;opacity:.5;letter-spacing:2px}.hp-bar-wrap{width:100%;max-width:300px;height:14px;background:rgba(60,20,20,.7);border-radius:20px;margin:8px auto 2px;overflow:hidden;border:1px solid rgba(184,150,58,.15);position:relative}.hp-bar-fill{height:100%;width:100%;background:linear-gradient(90deg,#e04040,#f08060);border-radius:20px;transition:width .45s ease;position:relative}.hp-bar-fill.low{background:linear-gradient(90deg,#c02020,#e05050)}.hp-bar-fill.mid{background:linear-gradient(90deg,#d08030,#f0a050)}.hp-bar-fill.high{background:linear-gradient(90deg,#40a060,#60d080)}.hp-text{font-size:.7rem;color:#ddd0c0;opacity:.7;letter-spacing:1px;margin-top:2px}.damage-float{position:absolute;top:5%;left:50%;transform:translateX(-50%);font-size:4rem;font-weight:900;pointer-events:none;opacity:0;z-index:999;text-shadow:0 0 40px rgba(255,60,60,.8),0 4px 30px rgba(0,0,0,.9);animation:floatUp 1.4s ease-out forwards;color:#ff3333;font-family:'Impact','Arial Black',sans-serif}.damage-float.heal{color:#60e090;text-shadow:0 0 40px rgba(60,220,120,.6),0 4px 30px rgba(0,0,0,.9)}.damage-float.critical{color:#ffd700;font-size:5rem;text-shadow:0 0 60px rgba(255,215,0,.8),0 4px 30px rgba(0,0,0,.9)}.damage-float.ineffective{color:#8888aa;font-size:2.8rem;text-shadow:0 0 30px rgba(136,136,170,.4),0 4px 20px rgba(0,0,0,.8)}@keyframes floatUp{0%{opacity:1;transform:translateX(-50%) translateY(0) scale(.6)}30%{opacity:1;transform:translateX(-50%) translateY(-40px) scale(1.2)}100%{opacity:0;transform:translateX(-50%) translateY(-160px) scale(1)}}.positions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;flex-shrink:0}.positions .pos-btn{background:rgba(255,255,255,.04);border:1.5px solid rgba(184,150,58,.2);border-radius:20px;padding:10px 4px;cursor:pointer;transition:.25s;text-align:center;color:#ddd0c0;font-family:inherit;font-size:.8rem;backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;user-select:none}.positions .pos-btn .pos-icon{font-size:2rem}.positions .pos-btn .pos-label{font-weight:400;font-size:.75rem;color:#c0b0a0}.positions .pos-btn:hover:not(:disabled){background:rgba(184,150,58,.12);border-color:#b8963a;transform:translateY(-2px)}.positions .pos-btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}.positions .pos-btn.active{background:rgba(184,150,58,.18);border-color:#f5d98a;box-shadow:0 0 30px rgba(184,150,58,.08)}.positions .pos-btn.defense{border-color:rgba(80,180,200,.3);background:rgba(80,180,200,.06)}.positions .pos-btn.defense:hover:not(:disabled){border-color:#60c8e0;background:rgba(80,180,200,.15)}.positions .pos-btn.defense.active{border-color:#80d8f0;background:rgba(80,180,200,.2)}.spell-display{background:rgba(0,0,0,.45);border-radius:20px;padding:10px 16px;margin-bottom:10px;border:1px solid rgba(184,150,58,.1);min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}.spell-display .spell-char{font-size:1.8rem;font-weight:700;color:#f5d98a;letter-spacing:6px}.spell-display .spell-pinyin{font-size:.95rem;color:#c0b0a0;letter-spacing:3px;opacity:.7}.spell-display .spell-hint{font-size:.7rem;color:#806850}.spell-display .spell-empty{color:#605040;font-size:.85rem;opacity:.5}.action-row{display:flex;gap:12px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap}.action-row .btn-record{flex:1;min-width:120px;background:linear-gradient(135deg,#8a3a4a,#5a2a3a);border:1px solid rgba(200,100,120,.3);border-radius:60px;padding:12px 16px;font-size:1rem;font-weight:700;color:#f5e0d0;cursor:pointer;transition:.25s;font-family:inherit;letter-spacing:2px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(138,58,74,.2)}.action-row .btn-record:hover:not(:disabled){transform:scale(1.02);border-color:rgba(220,140,160,.4)}.action-row .btn-record:disabled{opacity:.35;cursor:not-allowed;transform:none!important}.action-row .btn-record.recording{background:linear-gradient(135deg,#c04040,#802020);animation:pulse 1s infinite;border-color:#ff6060}@keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(200,60,60,.3)}50%{box-shadow:0 0 50px rgba(200,60,60,.6)}}.action-row .feedback{flex:1.2;min-width:100px;padding:8px 14px;border-radius:16px;background:rgba(0,0,0,.3);color:#ddd0c0;font-size:.85rem;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.04);word-break:break-word}.action-row .feedback.success{color:#7ddfa0;border-color:rgba(100,220,150,.2);background:rgba(60,180,100,.08)}.action-row .feedback.fail{color:#ef8a8a;border-color:rgba(220,100,100,.2);background:rgba(180,60,60,.08)}.action-row .feedback.info{color:#b0c8e8;border-color:rgba(100,150,220,.15);background:rgba(60,100,180,.06)}.action-row .feedback.warn{color:#f0d080;border-color:rgba(220,200,80,.15);background:rgba(180,160,60,.06)}@media(max-width:480px){.header h1{font-size:1.6rem}.header h1 small{font-size:.7rem}.positions{grid-template-columns:repeat(4,1fr);gap:5px}.positions .pos-btn{padding:8px 2px;font-size:.7rem}.positions .pos-btn .pos-icon{font-size:1.6rem}.status-bar{font-size:.7rem;padding:4px 12px}.action-row{flex-direction:column}.action-row .btn-record{width:100%;min-width:unset}.action-row .feedback{width:100%;min-height:36px;font-size:.8rem}.enemy-area .enemy-img{width:80px;height:80px}.enemy-area .enemy-name{font-size:1.3rem}.enemy-area{min-height:160px;padding:12px 14px}.enemy-avatar-wrap{min-height:80px}.spell-display .spell-char{font-size:1.4rem}.hp-bar-wrap{max-width:200px;height:10px}.damage-float{font-size:3rem}.damage-float.critical{font-size:3.8rem}}
     </style>
 </head>
 <body>
@@ -148,6 +90,20 @@ const SIMPLIFIED_MAP = {
   '統統石化':'统统石化',
   '昏昏倒地':'昏昏倒地',
   '呼神護衛':'呼神护卫'
+};
+
+// ===== 呼神护卫测试开关 =====
+// 将下面的 TEST_MODE 设置为 'homophone' 或 'plaintext'
+// 'homophone' : 使用同音字替换（拼音不变）测试词库
+// 'plaintext': 纯文本模式，不发送拼音，让引擎自己识别
+// 注释掉其中一个即可切换
+const TEST_MODE = 'homophone';   // 默认使用同音字方案
+// const TEST_MODE = 'plaintext'; // 取消注释此行以使用纯文本方案
+
+// 同音字替换表（每个字与原来拼音完全一致）
+const HOMOPHONE_MAP = {
+  '呼神護衛': '忽神护未'  // hu1 shen2 hu4 wei4，每个字同音
+  // 也可换成其他同音组合，只要每个字拼音相同即可
 };
 
 const state={
@@ -298,7 +254,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 讯飞评测：对“呼神护卫”用 read_sentence（无句号），其他用 read_word =====
+// ===== 讯飞评测函数（包含测试开关） =====
 function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
  return new Promise((resolve,reject)=>{
   let ws=null,resolved=false,ssbConfirmed=false;
@@ -315,15 +271,50 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
     ws.onopen=()=>{
      console.log('✅ WebSocket 已連線');
      
-     // 特殊处理：呼神护卫改用 read_sentence（不加句号）
+     // 基础参数
      let category = 'read_word';
      let text = SIMPLIFIED_MAP[spellKey] || spellKey;
+     let pinyin = SPELLS[spellKey].pinyin;
+     
+     // ===== 对“呼神護衛”进行实验性处理 =====
      if (spellKey === '呼神護衛') {
-       category = 'read_sentence';
-       // 文本不加句号，保持与拼音字数一致
-       text = '呼神护卫';
+       if (TEST_MODE === 'homophone') {
+         // 方案一：同音字替换（文本换成同音字，拼音不变）
+         text = HOMOPHONE_MAP[spellKey] || '忽神护未'; // 默认
+         // category 保持 read_word，因为仍是词组形式，但文本变了
+         console.log('🧪 使用同音字测试模式，文本替换为:', text);
+       } else if (TEST_MODE === 'plaintext') {
+         // 方案二：纯文本模式，不发送拼音（移除pinyin）
+         // 注意：中文评测通常必须提供拼音，但为了验证，我们尝试只发文本
+         category = 'read_sentence'; // 句子模式允许无拼音？
+         // 但官方文档要求拼音标注试卷必须带拼音，否则可能报错
+         // 我们改为纯文本格式（不带 <customizer:interphonic> 标记）
+         // 实际上，纯文本试卷格式是直接发送文本内容，不加拼音
+         // 我们构造一个纯文本试卷，不带拼音
+         // 对于 read_sentence，纯文本格式为直接文本，不加拼音
+         // 这里我们使用纯文本试卷（不加 <customizer> 标记）
+         // 但为了与ssb结构兼容，我们将 text 设为纯文本，pinyin 置空？
+         // 根据文档，如果使用纯文本试卷，则不需要拼音，但 text 字段应只包含文本
+         // 我们直接在 paper 中只放文本，不加拼音。
+         // 在下面的 paper 构造中，我们将只放文本
+         // 下面会特殊处理
+         console.log('🧪 使用纯文本模式测试（不带拼音）');
+       }
      }
-     const paper = `<customizer:interphonic>\n${text}\n${SPELLS[spellKey].pinyin}`;
+     
+     // 构造试卷
+     let paper;
+     if (spellKey === '呼神護衛' && TEST_MODE === 'plaintext') {
+       // 纯文本试卷：不使用 <customizer:interphonic> 标记，直接发文本
+       // 对于 read_sentence，纯文本格式直接是文本内容
+       paper = text; // 例如 "呼神护卫"
+       category = 'read_sentence';
+       // 注意：此时 ssb 的 business 中不要设置 text 为带标记的格式
+     } else {
+       // 标准拼音标注试卷
+       paper = `<customizer:interphonic>\n${text}\n${pinyin}`;
+     }
+     
      console.log('📝 發送試卷 (category: '+category+'):\n', paper);
      
      const ssb={
@@ -345,6 +336,16 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
       },
       data:{status:0,data:''}
      };
+     
+     // 如果是纯文本模式，需要调整 business 中的 text 为纯文本，且不加标记
+     if (spellKey === '呼神護衛' && TEST_MODE === 'plaintext') {
+       // 对于纯文本试卷，text 字段直接放文本内容，不加自定义标签
+       ssb.business.text = text; // 直接是 "呼神护卫"
+       // 同时确保 category 为 read_sentence 或 read_word，但纯文本不支持 read_word？
+       // 根据文档，read_word 也支持纯文本（逗号分隔），但我们这里是单个句子，用 read_sentence
+       ssb.business.category = 'read_sentence';
+     }
+     
      ws.send(JSON.stringify(ssb));
      console.log('📤 ssb 已發送');
     };
@@ -448,7 +449,7 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
  });
 }
 
-// ============ 遊戲邏輯 ============
+// ============ 遊戲邏輯（完全不变） ============
 function startAdventure(){
  if(state.lives<=0){
   state.lives=3;
