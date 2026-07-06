@@ -562,11 +562,10 @@
             }
 
             // ============================================================
-            // 實時流式傳輸控制核心 (完美修正 48195 競態 Bug)
+            // 實時流式傳輸控制核心 (修正為：連線成功並發送首幀後，才完成 Promise)
             // ============================================================
             function initXunfeiStream(spellText) {
                 return new Promise(async (resolve, reject) => {
-                    state.finalResolve = resolve; state.finalReject = reject;
                     state.accumulatedXml = ''; state.finalScore = null; state.wsConnected = false;
 
                     try {
@@ -574,14 +573,22 @@
                         console.log('🔗 正在連線流式伺服器 URL:', url);
                         state.ws = new WebSocket(url);
 
+                        // 設定超時防止 WebSocket 永久卡在連線中
+                        const connectTimeout = setTimeout(() => {
+                            if (!state.wsConnected) {
+                                cleanupWebSocket();
+                                reject(new Error('伺服器連線超時，請檢查網路環境'));
+                            }
+                        }, 5000);
+
                         state.ws.onopen = () => {
+                            clearTimeout(connectTimeout);
                             console.log('✅ WebSocket 實時連線成功，發送「純淨配置首幀」');
                             const textWithBOM = '\uFEFF' + spellText;
                             const utf8Bytes = new TextEncoder().encode(textWithBOM);
                             let binaryStr = '';
                             for (let i = 0; i < utf8Bytes.length; i++) { binaryStr += String.fromCharCode(utf8Bytes[i]); }
 
-                            // [修正核心] 首幀 data 內部的 data 欄位必須完全為空字串，且不能附帶音訊
                             const ssb = {
                                 common: { app_id: state.xfAppid },
                                 business: { category: 'read_word', sub: 'ise', ent: 'cn_vip', tte: 'utf-8', cmd: 'ssb', auf: 'audio/L16;rate=16000', aue: 'raw', text: btoa(binaryStr), ttp_skip: true, rst: 'entirety', ise_unite: '1', extra_ability: 'multi_dimension' },
@@ -589,11 +596,12 @@
                             };
                             state.ws.send(JSON.stringify(ssb));
                             
-                            // [關鍵安全延遲] 確保首幀數據已被網路完全消化，避免後續微秒級的音訊包與其發生覆蓋衝突
                             setTimeout(() => {
                                 state.wsConnected = true;
                                 console.log('🚀 訊飛握手完成，正式允許錄音數據流灌入');
-                            }, 100);
+                                // 【關鍵修改】此時才對外宣告：連線與首幀完全就緒，主執行緒可以開始啟動錄音
+                                resolve(); 
+                            }, 150);
                         };
 
                         state.ws.onmessage = (ev) => {
@@ -601,7 +609,7 @@
                                 const msg = JSON.parse(ev.data);
                                 if (msg.code !== 0) {
                                     cleanupWebSocket();
-                                    reject(new Error('訊飛錯誤 [' + msg.code + ']: ' + msg.message));
+                                    if (state.finalReject) state.finalReject(new Error('訊飛錯誤 [' + msg.code + ']: ' + msg.message));
                                     return;
                                 }
                                 if (msg.data && msg.data.data) {
@@ -611,22 +619,34 @@
                                                 state.accumulatedXml.match(/total_score value="([\d.]+)"/);
                                     if (match) {
                                         state.finalScore = parseFloat(match[1]);
-                                        cleanupWebSocket(); resolve(state.finalScore); return;
+                                        cleanupWebSocket(); 
+                                        if (state.finalResolve) state.finalResolve(state.finalScore); 
+                                        return;
                                     }
                                 }
                                 if (msg.data && msg.data.status === 2) {
                                     cleanupWebSocket();
-                                    resolve(state.finalScore !== null ? state.finalScore : 0);
+                                    if (state.finalResolve) state.finalResolve(state.finalScore !== null ? state.finalScore : 0);
                                 }
                             } catch (e) {
-                                cleanupWebSocket(); reject(new Error('解析回應失敗: ' + e.message));
+                                cleanupWebSocket(); 
+                                if (state.finalReject) state.finalReject(new Error('解析回應失敗: ' + e.message));
                             }
                         };
 
-                        state.ws.onerror = (err) => { cleanupWebSocket(); reject(new Error('WebSocket 連線異常')); };
+                        state.ws.onerror = (err) => { 
+                            cleanupWebSocket(); 
+                            reject(new Error('WebSocket 連線異常斷開')); 
+                            if (state.finalReject) state.finalReject(new Error('WebSocket 連線異常斷開'));
+                        };
+                        
                         state.ws.onclose = (ev) => {
-                            if (state.finalScore !== null) resolve(state.finalScore);
-                            else reject(new Error('伺服器連線已關閉 (code:' + ev.code + ')'));
+                            cleanupWebSocket();
+                            if (state.finalScore !== null) {
+                                if (state.finalResolve) state.finalResolve(state.finalScore);
+                            } else {
+                                if (state.finalReject) state.finalReject(new Error('伺服器連線已關閉 (code:' + ev.code + ')'));
+                            }
                         };
 
                     } catch (e) { reject(e); }
@@ -635,16 +655,18 @@
 
             function cleanupWebSocket() {
                 if (state.ws) {
-                    if (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING) {
-                        state.ws.close();
-                    }
+                    try {
+                        if (state.ws.readyState === WebSocket.OPEN || state.ws.readyState === WebSocket.CONNECTING) {
+                            state.ws.close();
+                        }
+                    } catch(e){}
                     state.ws = null;
                 }
                 state.wsConnected = false;
             }
 
             // ============================================================
-            // 錄音監聽與高保真重採樣 (16000Hz 全網域精確適配)
+            // 錄音監聽與安全防護
             // ============================================================
             function startRealtimeRecording() {
                 return new Promise((resolve, reject) => {
@@ -659,35 +681,36 @@
                             const source = state.audioContext.createMediaStreamSource(stream);
                             const processor = state.audioContext.createScriptProcessor(4096, 1, 1);
                             
-                            // [修正核心] 完美等比精確步進抽取，完美適配 48000 降 16000 的音訊流連續性
                             processor.onaudioprocess = (e) => {
-                                // 只有當首幀握手完畢後，才發送錄音幀
-                                if (!state.wsConnected || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
-                                
-                                const inputData = e.inputBuffer.getChannelData(0);
-                                const targetSampleRate = 16000;
-                                
-                                // 改良版：嚴格步進重採樣，防止時間軸斷層導致 8195 錯誤
-                                const fitCount = Math.floor(inputData.length * (targetSampleRate / inputSampleRate));
-                                const pcm = new Int16Array(fitCount);
-                                let index = 0;
-                                let ratio = inputSampleRate / targetSampleRate;
-                                
-                                for (let i = 0; i < fitCount; i++) {
-                                    let sampleIndex = Math.floor(index);
-                                    if (sampleIndex >= inputData.length) break;
-                                    let sample = inputData[sampleIndex];
-                                    pcm[i] = Math.round(Math.max(-1, Math.min(1, sample)) * 32767);
-                                    index += ratio;
+                                try {
+                                    // 防禦門禁：連線必須存在且完全打開才送，否則直接丟棄避免堆積
+                                    if (!state.wsConnected || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+                                    
+                                    const inputData = e.inputBuffer.getChannelData(0);
+                                    const targetSampleRate = 16000;
+                                    
+                                    const fitCount = Math.floor(inputData.length * (targetSampleRate / inputSampleRate));
+                                    const pcm = new Int16Array(fitCount);
+                                    let index = 0;
+                                    let ratio = inputSampleRate / targetSampleRate;
+                                    
+                                    for (let i = 0; i < fitCount; i++) {
+                                        let sampleIndex = Math.floor(index);
+                                        if (sampleIndex >= inputData.length) break;
+                                        let sample = inputData[sampleIndex];
+                                        pcm[i] = Math.round(Math.max(-1, Math.min(1, sample)) * 32767);
+                                        index += ratio;
+                                    }
+                                    
+                                    const base64Data = Int16ArrayToBase64(pcm);
+                                    const frame = {
+                                        business: { cmd: 'auw', aus: 2, aue: 'raw' },
+                                        data: { status: 1, data: base64Data }
+                                    };
+                                    state.ws.send(JSON.stringify(frame));
+                                } catch (err) {
+                                    console.error('⚠️ 音訊幀傳送失敗:', err.message);
                                 }
-                                
-                                // 發送音訊數據幀 (status: 1)
-                                const base64Data = Int16ArrayToBase64(pcm);
-                                const frame = {
-                                    business: { cmd: 'auw', aus: 2, aue: 'raw' },
-                                    data: { status: 1, data: base64Data }
-                                };
-                                state.ws.send(JSON.stringify(frame));
                             };
 
                             source.connect(processor);
@@ -695,18 +718,21 @@
                             
                             state.processor = processor; state.source = source; state.stream = stream;
                             resolve();
-                        }).catch(err => reject(new Error('麥克風權限被拒絕: ' + err.message)));
+                        }).catch(err => reject(new Error('麥克風權限被拒絕或裝置不可用: ' + err.message)));
                 });
             }
 
             async function stopRealtimeRecording() {
+                console.log('🛑 開始安全關閉硬體與清理狀態...');
+                
                 if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-                    const finalFrame = {
-                        business: { cmd: 'auw', aus: 4, aue: 'raw' },
-                        data: { status: 2, data: '' }
-                    };
-                    state.ws.send(JSON.stringify(finalFrame));
-                    console.log('📤 已通知伺服器：音頻串流結束 (status: 2)');
+                    try {
+                        const finalFrame = {
+                            business: { cmd: 'auw', aus: 4, aue: 'raw' },
+                            data: { status: 2, data: '' }
+                        };
+                        state.ws.send(JSON.stringify(finalFrame));
+                    } catch(e){}
                 }
 
                 if (state.processor) {
@@ -717,18 +743,30 @@
                     try { state.source.disconnect(); } catch(e){}
                     state.source = null;
                 }
+                
                 if (state.stream) {
-                    try { state.stream.getTracks().forEach(t => t.stop()); } catch(e){}
+                    try { state.stream.getTracks().forEach(track => {
+                        track.stop();
+                        console.log(`🔌 麥克風軌道 [${track.label}] 已釋放`);
+                    }); } catch(e){}
                     state.stream = null;
                 }
+                
                 if (state.audioContext) {
-                    try { await state.audioContext.close(); } catch(e){}
+                    try {
+                        if (state.audioContext.state !== 'closed') {
+                            await state.audioContext.close();
+                            console.log('🎵 AudioContext 已關閉');
+                        }
+                    } catch(e){}
                     state.audioContext = null;
                 }
+                
+                cleanupWebSocket();
             }
 
             // ============================================================
-            // 遊戲邏輯與對決流程
+            // 核心對決控制：實作完美的序列化執行 (先連線、再開麥克風)
             // ============================================================
             async function handleRecord() {
                 if (!state.currentEnemy || !state.currentSpellKey || state.battleLocked || state.enemyDefeated) return;
@@ -736,15 +774,22 @@
 
                 if (!state.isRecording) {
                     setFeedback(t('feedback_connecting'), 'info');
-                    dom.btnRecord.disabled = true;
+                    dom.btnRecord.disabled = true; // 防連點鎖定
                     
                     try {
-                        // 1. 先安全拉起 WebSocket 實時流並發送純淨首幀
-                        const evalPromise = initXunfeiStream(spellKey);
+                        // 步驟 1：【同步等待】直到網路連線建立、首幀配置成功送出
+                        await initXunfeiStream(spellKey);
 
-                        // 2. 啟動麥克風硬體
+                        // 步驟 2：網路就緒後，再【同步等待】拉起麥克風硬體
                         await startRealtimeRecording();
                         
+                        // 建立結果評測的異步 Promise
+                        const evalPromise = new Promise((res, rej) => {
+                            state.finalResolve = res;
+                            state.finalReject = rej;
+                        });
+
+                        // 步驟 3：狀態切換與介面更新 (此時才正式宣告錄音中)
                         state.isRecording = true;
                         dom.btnRecord.classList.add('recording');
                         dom.btnRecord.disabled = false;
@@ -752,14 +797,23 @@
                         setFeedback(t('feedback_listening'), 'info');
                         updateUI();
 
-                        // 3. 後端非同步等待評測承諾返回
+                        // 步驟 4：非同步監聽訊飛返回的語音評測結果
                         evalPromise.then(async (score) => {
                             setFeedback(t('feedback_score', { score: score }), 'info');
                             await handleBattleResult(getSpellEffect(spellKey, enemy.id), spellKey, enemy, score);
                         }).catch(async (err) => {
+                            console.error('❌ 評測失敗詳情:', err);
                             setFeedback(t('feedback_fail', { err: err.message }), 'fail');
-                            await sleep(1500); await handleCounterAttack();
-                        }).finally(() => {
+                            await sleep(1500); 
+                            await handleCounterAttack();
+                        }).finally(async () => {
+                            // 【終極安全保障】無論結果成功或失敗，強制完全重置
+                            state.isRecording = false;
+                            dom.btnRecord.classList.remove('recording');
+                            dom.recordLabel.textContent = t('record');
+                            
+                            await stopRealtimeRecording(); 
+                            
                             if (!state.battleLocked && !state.enemyDefeated && state.lives > 0) {
                                 posBtns.forEach(b => b.disabled = false);
                                 dom.btnRecord.disabled = !state.currentSpellKey;
@@ -768,21 +822,19 @@
                         });
 
                     } catch (err) {
+                        // 如果步驟 1 或 步驟 2 噴出錯誤，會在進入錄音前被這裡捕捉，原地徹底釋放硬體並解鎖 UI
+                        console.error('❌ 初始化網路或麥克風失敗:', err);
                         setFeedback(t('feedback_fail', { err: err.message }), 'fail');
-                        await stopRealtimeRecording();
-                        cleanupWebSocket();
                         state.isRecording = false;
                         dom.btnRecord.classList.remove('recording');
                         dom.recordLabel.textContent = t('record');
+                        await stopRealtimeRecording();
                         updateUI();
                     }
                 } else {
+                    // 使用者點擊停止
                     dom.btnRecord.disabled = true;
-                    state.isRecording = false;
-                    dom.btnRecord.classList.remove('recording');
-                    dom.recordLabel.textContent = t('record');
                     setFeedback(t('feedback_stopping'), 'info');
-                    
                     await stopRealtimeRecording();
                 }
             }
