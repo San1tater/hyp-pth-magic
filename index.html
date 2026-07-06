@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>哈利波特 · 魔法對決</title>
     <style>
+        /* 样式完全保留，无改动 */
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Noto Sans TC','Segoe UI',sans-serif;background:#0a0a12;overflow:hidden;height:100vh;display:flex;align-items:center;justify-content:center}
         .container{width:100vw;height:100vh;max-width:100%;background:linear-gradient(160deg,#1a1025,#0f0a1a);border:2px solid #b8963a;padding:16px 20px;display:flex;flex-direction:column;overflow-y:auto}
@@ -134,6 +135,15 @@ const ENEMIES=[
 {id:'voldemort',name_zh:'伏地魔',name_en:'Voldemort',emoji:'🐍',desc_zh:'黑魔王',desc_en:'Dark Lord',hint_zh:'解除武器',hint_en:'Disarm',hp:60},
 {id:'malfoy',name_zh:'馬爾福',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死徒',desc_en:'Death Eater',hint_zh:'冷靜',hint_en:'Calm',hp:60}
 ];
+
+// 硬编码显示拼音（带声调符号）
+const DISPLAY_PINYIN = {
+    '除你武器': 'chú nǐ wǔ qì',
+    '統統石化': 'tōng tōng shí huà',
+    '昏昏倒地': 'hūn hūn dǎo dì',
+    '呼神護衛': 'hū shén hù wèi'
+};
+
 const SPELLS={
 '除你武器':{pinyin:'chu2|ni3|wu3|qi4',pos:'wand',label_zh:'魔杖',label_en:'Wand',effects:{dementor:'ineffective',voldemort:'effective',malfoy:'weak'},desc_zh:'繳械咒',desc_en:'Disarm'},
 '統統石化':{pinyin:'tong1|tong1|shi2|hua4',pos:'body',label_zh:'身體',label_en:'Body',effects:{dementor:'ineffective',voldemort:'ineffective',malfoy:'overkill'},desc_zh:'束縛咒',desc_en:'Petrify'},
@@ -150,14 +160,12 @@ const SIMPLIFIED_MAP = {
   '呼神護衛':'呼神护卫'
 };
 
-// ===== 根据本次测试数据计算出的乘子 =====
-// 公式: 乘子 = 100 / (平均分 + 0.1)
-// 数据来源: 您提供的日志中每个咒语两次评分的平均值
+// 乘子保持不变（基于之前的数据）
 const SCORE_MULTIPLIERS = {
-    '呼神護衛': 100 / (3.0 + 0.1),   // 32.258
-    '昏昏倒地': 100 / (8.5 + 0.1),   // 11.628
-    '統統石化': 100 / (8.5 + 0.1),   // 11.628
-    '除你武器': 100 / (19.0 + 0.1)   // 5.236
+    '呼神護衛': 100 / (3.0 + 0.1),
+    '昏昏倒地': 100 / (8.5 + 0.1),
+    '統統石化': 100 / (8.5 + 0.1),
+    '除你武器': 100 / (19.0 + 0.1)
 };
 
 const state={
@@ -189,14 +197,24 @@ function getSpellDesc(k){let s=SPELLS[k];return lang==='zh'?s.desc_zh:s.desc_en;
 function getSpellEffect(k,eid){let s=SPELLS[k];return s?(s.effects[eid]||'ineffective'):'ineffective';}
 
 function setFeedback(msg,type='info'){dom.feedback.textContent=msg;dom.feedback.className='feedback '+type;}
-function setSpellDisplay(ch,pinyin,hint){if(!ch){dom.spellDisplay.innerHTML=`<div class="spell-empty">${t('spell_empty')}</div>`;return;}dom.spellDisplay.innerHTML=`<div class="spell-char">${ch}</div><div class="spell-pinyin">${pinyin}</div>`+(hint?`<div class="spell-hint">${hint}</div>`:'');}
+function setSpellDisplay(ch,pinyin,hint){
+    if(!ch){dom.spellDisplay.innerHTML=`<div class="spell-empty">${t('spell_empty')}</div>`;return;}
+    // 使用硬编码的显示拼音
+    const displayPinyin = DISPLAY_PINYIN[ch] || pinyin.replace(/\|/g,' ');
+    dom.spellDisplay.innerHTML=`<div class="spell-char">${ch}</div><div class="spell-pinyin">${displayPinyin}</div>`+(hint?`<div class="spell-hint">${hint}</div>`:'');
+}
 
 function renderEnemy(){
  const area=dom.enemyArea;
  if(!state.currentEnemy){area.innerHTML=`<div class="empty-hint">${t('enemy_default')}</div>`;return;}
  const e=state.currentEnemy;const name=getEnemyName(e);const desc=getEnemyDesc(e);const hint=getEnemyHint(e);
+ // 状态映射：defeated -> 6, default -> 0, 其他保留
  const statusMap={default:0,expelliarmus:1,stupefy:2,petrificus:3,patronus:4,attacking:5,defeated:6};
- const imgSrc=`images/${e.id}_${statusMap[state.enemyStatus]||0}.png`;
+ let statusKey = state.enemyStatus;
+ // 如果被击败（defeated）或玩家死亡（我们设置default但显示0），但我们希望死亡显示0，击败显示6
+ // 死亡时我们设置enemyStatus='default'，所以显示0
+ const imgIdx = statusMap[statusKey] || 0;
+ const imgSrc=`images/${e.id}_${imgIdx}.png`;
  const hpPercent=Math.max(0,Math.min(100,(state.enemyHp/state.maxEnemyHp)*100));
  let hpClass='high';if(hpPercent<25)hpClass='low';else if(hpPercent<55)hpClass='mid';
  area.innerHTML=`
@@ -238,8 +256,10 @@ function updateUI(){
  renderEnemy();
  const hasEnemy=!!state.currentEnemy&&!state.battleLocked&&!state.enemyDefeated;
  const recEval=state.isRecording||state.evaluating;
- posBtns.forEach(b=>b.disabled=!hasEnemy||recEval);
- dom.btnRecord.disabled=!state.currentEnemy||!state.currentSpellKey||state.battleLocked||state.enemyDefeated||state.lives<=0||state.evaluating;
+ // 如果当前处于胜利或死亡等待状态（enemyDefeated或battleLocked且无敌人），禁用位置和录音
+ const waitForStart = (state.enemyDefeated || (state.lives<=0)) && !state.currentEnemy;
+ posBtns.forEach(b=>b.disabled=!(hasEnemy && !waitForStart) || recEval);
+ dom.btnRecord.disabled=!state.currentEnemy||!state.currentSpellKey||state.battleLocked||state.enemyDefeated||state.lives<=0||state.evaluating||waitForStart;
  dom.btnStart.disabled=state.isRecording||state.battleLocked||state.evaluating;
  if(state.lives<=0){posBtns.forEach(b=>b.disabled=true);dom.btnRecord.disabled=true;dom.btnStart.disabled=false;}
  dom.langToggle.textContent=lang==='zh'?'EN / 中':'中 / EN';
@@ -308,7 +328,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 讯飞评测：统一使用 read_word 纯文本 + 乘子映射 =====
+// ===== 讯飞评测：使用 read_word + 拼音标注试卷（严格遵循指南） =====
 function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText){
  return new Promise((resolve,reject)=>{
   let ws=null,resolved=false,ssbConfirmed=false;
@@ -324,12 +344,13 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
 
     ws.onopen=()=>{
      console.log('✅ WebSocket 已連線');
-     
-     // ---- 统一使用 read_word 纯文本 ---- 
+     // ---- 严格遵循指南：使用拼音标注试卷 ----
      const category = 'read_word';
-     const text = SIMPLIFIED_MAP[spellKey] || spellKey;
-     const paper = text;   // 纯文本
-     console.log('📝 發送試卷 (category: '+category+', 純文本):\n', paper);
+     const simplified = SIMPLIFIED_MAP[spellKey] || spellKey; // 简体
+     const pinyin = SPELLS[spellKey].pinyin; // 数字声调
+     // 格式：<customizer: interphonic> 换行 词语 换行 拼音（注意标签有空格）
+     const paper = `<customizer: interphonic>\n${simplified}\n${pinyin}`;
+     console.log('📝 發送試卷 (category: '+category+'):\n', paper);
      
      const ssb={
       common:{app_id:appid},
@@ -419,23 +440,16 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
        }
 
        let rawScore = 0;
-       if(!isNaN(phoneScore) && !isNaN(toneScore)){
-        rawScore = (phoneScore + toneScore) / 2;
-        console.log(`✅ 使用 phone+tone 平均: ${rawScore.toFixed(2)}`);
+       // 只使用 phone_score（声韵母）来避免声调虚高
+       if(!isNaN(phoneScore)){
+        rawScore = phoneScore;
        } else if(!isNaN(totalScore)){
         rawScore = totalScore;
-        console.log(`⚠️ 使用 total_score: ${rawScore}`);
        } else {
-        const altMatch = xmlStr.match(/total_score="([\d.]+)"/);
-        if(altMatch){
-         rawScore = parseFloat(altMatch[1]);
-         console.warn(`⚠️ 從 total_score 回退: ${rawScore}`);
-        } else {
-         rawScore = 0;
-         console.warn('❌ 無可用評分字段');
-        }
+        rawScore = 0;
        }
-       // ---- 应用乘子映射 ----
+       console.log(`✅ 使用 phone_score: ${rawScore}`);
+       // 应用乘子
        let finalScore = Math.round(rawScore);
        const multiplier = SCORE_MULTIPLIERS[spellKey] || 1;
        finalScore = Math.round(finalScore * multiplier);
@@ -456,25 +470,27 @@ function evaluateWithXunfei(pcmBuffer,appid,apiKey,apiSecret,spellKey,spellText)
  });
 }
 
-// ============ 遊戲邏輯 ============
+// ============ 遊戲邏輯（修改胜利/死亡等待逻辑） ============
 function startAdventure(){
- if(state.lives<=0){
-  state.lives=3;
-  state.score=0;
-  state.battleLocked=false;
-  state.enemyDefeated=false;
-  state.currentEnemy=null;
-  state.currentSpellKey=null;
-  state.enemyHp=0;
-  state.maxEnemyHp=60;
-  state.enemyStatus='default';
-  setSpellDisplay(null);
-  posBtns.forEach(b=>b.classList.remove('active'));
-  setFeedback(t('feedback_restart'),'info');
-  updateUI();
-  state.battleLocked=false;
-  state.enemyDefeated=false;
-  dom.btnStart.disabled=false;
+ // 如果已击败或死亡，重置状态
+ if(state.enemyDefeated || state.lives<=0){
+   state.enemyDefeated = false;
+   // 重置生命（如果死亡）
+   if(state.lives<=0) {
+     state.lives = 3;
+     state.score = 0;
+   }
+   state.currentEnemy = null;
+   state.currentSpellKey = null;
+   state.enemyHp = 0;
+   state.maxEnemyHp = 60;
+   state.enemyStatus = 'default';
+   state.battleLocked = false;
+   setSpellDisplay(null);
+   posBtns.forEach(b=>b.classList.remove('active'));
+   setFeedback(t('feedback_restart'),'info');
+   updateUI();
+   dom.btnStart.disabled = false;
  }
  if(state.battleLocked||state.isRecording||state.evaluating)return;
  const enemy=pick(ENEMIES);
@@ -558,8 +574,16 @@ async function handleBattleResult(effect,spellKey,enemy,score){
  if(state.enemyHp<=0||isKill){
   state.score+=10+bonusPts;
   setFeedback(t('feedback_victory',{name:getEnemyName(enemy),score:10+bonusPts,bonus:bonusMsg}),'success');
-  state.enemyDefeated=true;setEnemyStatus('defeated');state.currentEnemy=null;state.currentSpellKey=null;setSpellDisplay(null);posBtns.forEach(b=>b.classList.remove('active'));state.battleLocked=false;updateUI();
-  await sleep(1500);if(state.lives>0){setFeedback(t('feedback_next'),'info');startAdventure();}else{setFeedback(t('feedback_gameover'),'fail');}
+  state.enemyDefeated=true;
+  setEnemyStatus('defeated'); // 显示_6图片
+  state.currentEnemy=null;
+  state.currentSpellKey=null;
+  setSpellDisplay(null);
+  posBtns.forEach(b=>b.classList.remove('active'));
+  state.battleLocked=false;
+  dom.btnStart.disabled=false; // 启用开始按钮
+  updateUI();
+  // 不自动开始下一场，等待用户点击“開始冒險”
   return;
  }
  if(effect==='weak'&&Math.random()<0.5){
@@ -583,7 +607,17 @@ async function handleCounterAttack(){
  await sleep(1500);
  if(state.lives<=0){
   setFeedback(t('feedback_gameover'),'fail');
-  state.battleLocked=true;state.enemyDefeated=true;state.currentEnemy=null;state.currentSpellKey=null;setSpellDisplay(null);posBtns.forEach(b=>b.classList.remove('active'));updateUI();dom.btnStart.disabled=false;setEnemyStatus('defeated');renderEnemy();
+  state.battleLocked=true;
+  state.enemyDefeated=false;
+  state.currentEnemy=null;
+  state.currentSpellKey=null;
+  setSpellDisplay(null);
+  posBtns.forEach(b=>b.classList.remove('active'));
+  // 死亡后显示_0图片（default状态）
+  state.enemyStatus = 'default';
+  dom.btnStart.disabled=false;
+  updateUI();
+  // 不自动重置，等待用户点击“開始冒險”
   return;
  }
  resetBattleTurn(state.currentEnemy);
