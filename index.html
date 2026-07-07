@@ -383,14 +383,15 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
 
                 ws.onopen = () => {
                     console.log('✅ 聽寫 WebSocket 已連線');
-                    // 开始帧（修正）
+                    // 开始帧（修正：auf 不在 business 中）
                     const startFrame = {
-                        common: { app_id: appid },
+                        common: {
+                            app_id: appid
+                        },
                         business: {
                             language: 'zh_cn',
                             domain: 'iat',
                             accent: 'mandarin',
-                            auf: 'audio/L16;rate=16000',
                             aue: 'raw'
                         },
                         data: {
@@ -487,7 +488,7 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
                         }
 
                         if (offset >= total) {
-                            // 结束帧（修正）
+                            // 结束帧
                             console.log('📤 音頻發送完畢，總幀數:', frameCount);
                             const endFrame = {
                                 business: {
