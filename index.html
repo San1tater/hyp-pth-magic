@@ -164,7 +164,7 @@ const SIMPLIFIED_MAP = {
 const state={
 score:0,lives:3,currentEnemy:null,lastEnemy:null,currentSpellKey:null,isRecording:false,
 battleLocked:false,enemyDefeated:false,enemyHp:0,maxEnemyHp:60,enemyStatus:'default',
-recognizing:false, // 识别中标志
+recognizing:false,
 xfAppid:'2600b137',xfApiKey:'8b012124ed213c06974cd469f29e134b',xfSecret:'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
 audioContext:null,processor:null,source:null,stream:null,pcmChunks:[],isCapturing:false,evaluating:false
 };
@@ -200,7 +200,6 @@ function setSpellDisplay(ch,pinyin,hint){
 function renderEnemy(){
  const area=dom.enemyArea;
  if(!state.currentEnemy && !state.enemyDefeated && state.lives>0){area.innerHTML=`<div class="empty-hint">${t('enemy_default')}</div>`;return;}
- // 胜利状态显示 _6
  if(!state.currentEnemy && state.enemyDefeated && state.lastEnemy){
     const e = state.lastEnemy;
     const name=getEnemyName(e);
@@ -219,7 +218,6 @@ function renderEnemy(){
      <div class="hp-text">${t('hp_label')} 0 / ${e.hp}</div>`;
     return;
  }
- // 死亡状态显示 _0
  if(!state.currentEnemy && state.lives<=0 && state.lastEnemy){
     const e = state.lastEnemy;
     const name=getEnemyName(e);
@@ -361,7 +359,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 语音听写（一次性发送全部音频，等待完整结果） =====
+// ===== 语音听写（修正后的帧格式） =====
 function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
     return new Promise((resolve, reject) => {
         const host = 'iat-api.xfyun.cn';
@@ -385,19 +383,21 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
 
                 ws.onopen = () => {
                     console.log('✅ 聽寫 WebSocket 已連線');
-                    // 发送开始帧
+                    // 开始帧（修正）
                     const startFrame = {
                         common: { app_id: appid },
                         business: {
-                            cmd: 'ssb',
                             language: 'zh_cn',
                             domain: 'iat',
                             accent: 'mandarin',
                             auf: 'audio/L16;rate=16000',
-                            aue: 'raw',
-                            vad: 'enable'
+                            aue: 'raw'
                         },
-                        data: { status: 0, data: '' }
+                        data: {
+                            status: 0,
+                            format: 'audio/L16;rate=16000',
+                            encoding: 'raw'
+                        }
                     };
                     ws.send(JSON.stringify(startFrame));
                     console.log('📤 開始幀已發送');
@@ -487,15 +487,20 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
                         }
 
                         if (offset >= total) {
-                            // 发送结束帧
+                            // 结束帧（修正）
                             console.log('📤 音頻發送完畢，總幀數:', frameCount);
                             const endFrame = {
-                                business: { cmd: 'auw', aus: 4, aue: 'raw' },
-                                data: { status: 2, data: '' }
+                                business: {
+                                    cmd: 'auw',
+                                    aus: 4,
+                                    aue: 'raw'
+                                },
+                                data: {
+                                    status: 2
+                                }
                             };
                             ws.send(JSON.stringify(endFrame));
                             console.log('📤 結束幀已發送');
-                            // 等待服务器返回最终结果
                             return;
                         }
 
@@ -504,7 +509,11 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
                         const isFirst = (frameCount === 0);
                         const aus = isFirst ? 1 : 2;
                         const frame = {
-                            business: { cmd: 'auw', aus: aus, aue: 'raw' },
+                            business: {
+                                cmd: 'auw',
+                                aus: aus,
+                                aue: 'raw'
+                            },
                             data: {
                                 status: 1,
                                 data: btoa(String.fromCharCode(...new Uint8Array(chunk)))
@@ -514,7 +523,6 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
                         frameCount++;
                         offset = end;
 
-                        // 继续发送下一帧
                         setTimeout(sendNextChunk, 20);
                     }
 
@@ -630,7 +638,6 @@ async function handleRecord(){
   }catch(err){
    console.error('❌ 評測錯誤:',err);
    setFeedback(t('feedback_recog_fail'),'fail');
-   // 识别失败不触发反击，重置状态让用户重试
    state.evaluating=false;
    state.recognizing=false;
    if(!state.battleLocked&&!state.enemyDefeated&&state.lives>0){
@@ -662,11 +669,10 @@ async function handleBattleResult(effect,spellKey,enemy,score){
  const hpLost=Math.min(damage,state.enemyHp);
  state.enemyHp=Math.max(0,state.enemyHp-hpLost);
  renderEnemy();
- await sleep(100); // 确保DOM更新后再显示伤害浮动
+ await sleep(100);
  if(hpLost>0){
   showDamageFloat(hpLost, isCritical||(effect==='overkill'), false);
  }else{
-  // 即使伤害为0，也显示0（ineffective）
   showDamageFloat(0, false, false, true);
  }
  const statusMap={'除你武器':'expelliarmus','昏昏倒地':'stupefy','統統石化':'petrificus','呼神護衛':'patronus'};
