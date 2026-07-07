@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>哈利波特 · 魔法對決</title>
     <style>
-        /* 样式完全不变 */
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Noto Sans TC','Segoe UI',sans-serif;background:#0a0a12;overflow:hidden;height:100vh;display:flex;align-items:center;justify-content:center}
         .container{width:100vw;height:100vh;max-width:100%;background:linear-gradient(160deg,#1a1025,#0f0a1a);border:2px solid #b8963a;padding:16px 20px;display:flex;flex-direction:column;overflow-y:auto}
@@ -166,7 +165,9 @@ const state={
 score:0,lives:3,currentEnemy:null,lastEnemy:null,currentSpellKey:null,isRecording:false,
 battleLocked:false,enemyDefeated:false,enemyHp:0,maxEnemyHp:60,enemyStatus:'default',
 recognizing:false,
-xfAppid:'2600b137',xfApiKey:'8b012124ed213c06974cd469f29e134b',xfSecret:'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
+xfAppid:'b35875f2', // 使用示例中的 appid（原为 '2600b137'）
+xfApiKey:'8b012124ed213c06974cd469f29e134b',
+xfSecret:'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
 audioContext:null,processor:null,source:null,stream:null,pcmChunks:[],isCapturing:false,evaluating:false
 };
 
@@ -360,16 +361,15 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 语音听写（按照示例文件修正） =====
+// ===== 语音听写（完全复制示例逻辑） =====
 function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
     return new Promise((resolve, reject) => {
         const host = 'iat-api.xfyun.cn';
         const path = '/v2/iat';
         let ws = null;
-        let resolved = false;
         let finished = false;
         let timeoutId = setTimeout(() => {
-            if (!resolved) {
+            if (!finished) {
                 if (ws && ws.readyState === WebSocket.OPEN) ws.close();
                 reject(new Error('連線逾時'));
             }
@@ -383,45 +383,59 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
 
                 ws.onopen = () => {
                     console.log('✅ 聽寫 WebSocket 已連線');
-                    // 开始帧 - 与示例完全一致
                     const startFrame = {
                         common: { app_id: appid },
                         business: { language: 'zh_cn', domain: 'iat', accent: 'mandarin' },
-                        data: {
-                            status: 0,
-                            format: 'audio/L16;rate=16000',
-                            encoding: 'raw',
-                            audio: ''
-                        }
+                        data: { status: 0, format: 'audio/L16;rate=16000', encoding: 'raw', audio: '' }
                     };
                     ws.send(JSON.stringify(startFrame));
                     console.log('📤 開始幀已發送');
                 };
 
-                let audioSent = false;
                 ws.onmessage = (ev) => {
                     try {
                         const msg = JSON.parse(ev.data);
                         console.log('📩 聽寫收到:', msg);
-
                         if (msg.code && msg.code !== 0) {
-                            if (!resolved) {
-                                resolved = true;
+                            if (!finished) {
+                                finished = true;
                                 clearTimeout(timeoutId);
                                 ws.close();
                                 reject(new Error('聽寫錯誤 ' + msg.code + ': ' + (msg.message || '')));
                             }
                             return;
                         }
-
-                        // 开始帧确认
-                        if (!audioSent && msg.data && msg.data.status === 0 && !msg.data.data) {
-                            audioSent = true;
+                        // 收到开始确认，发送音频
+                        if (msg.data && msg.data.status === 0 && !msg.data.data) {
                             console.log('✅ 開始幀確認，開始發送音頻');
-                            sendAudio();
+                            const total = pcmBuffer.byteLength;
+                            if (total === 0) {
+                                if (!finished) {
+                                    finished = true;
+                                    clearTimeout(timeoutId);
+                                    ws.close();
+                                    reject(new Error('空音頻'));
+                                }
+                                return;
+                            }
+                            const audioData = new Uint8Array(pcmBuffer);
+                            const chunkSize = 4000;
+                            let offset = 0;
+                            while (offset < audioData.length) {
+                                const chunk = audioData.slice(offset, offset + chunkSize);
+                                const chunkBase64 = btoa(String.fromCharCode.apply(null, chunk));
+                                ws.send(JSON.stringify({
+                                    data: { status: 1, format: 'audio/L16;rate=16000', encoding: 'raw', audio: chunkBase64 }
+                                }));
+                                offset += chunkSize;
+                            }
+                            // 发送结束帧
+                            ws.send(JSON.stringify({
+                                data: { status: 2, format: 'audio/L16;rate=16000', encoding: 'raw', audio: '' }
+                            }));
+                            console.log('📤 音頻發送完畢');
                             return;
                         }
-
                         // 识别结果
                         if (msg.data && msg.data.result && msg.data.result.ws) {
                             let text = '';
@@ -432,17 +446,14 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
                             }
                             if (msg.data.status === 2) {
                                 finished = true;
-                                if (!resolved) {
-                                    resolved = true;
-                                    clearTimeout(timeoutId);
-                                    ws.close();
-                                    resolve(text);
-                                }
+                                clearTimeout(timeoutId);
+                                ws.close();
+                                resolve(text);
                             }
                         }
                     } catch (e) {
-                        if (!resolved) {
-                            resolved = true;
+                        if (!finished) {
+                            finished = true;
                             clearTimeout(timeoutId);
                             ws.close();
                             reject(e);
@@ -450,86 +461,24 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
                     }
                 };
 
-                function sendAudio() {
-                    const total = pcmBuffer.byteLength;
-                    if (total === 0) {
-                        if (!resolved) {
-                            resolved = true;
-                            clearTimeout(timeoutId);
-                            ws.close();
-                            reject(new Error('空音頻'));
-                        }
-                        return;
-                    }
-
-                    const chunkSize = 4000;
-                    let offset = 0;
-                    let frameCount = 0;
-
-                    function sendNextChunk() {
-                        if (ws.readyState !== WebSocket.OPEN) {
-                            if (!resolved) {
-                                resolved = true;
-                                clearTimeout(timeoutId);
-                                reject(new Error('連線中斷'));
-                            }
-                            return;
-                        }
-
-                        if (offset >= total) {
-                            console.log('📤 音頻發送完畢，總幀數:', frameCount);
-                            ws.send(JSON.stringify({
-                                data: {
-                                    status: 2,
-                                    format: 'audio/L16;rate=16000',
-                                    encoding: 'raw',
-                                    audio: ''
-                                }
-                            }));
-                            console.log('📤 結束幀已發送');
-                            return;
-                        }
-
-                        const end = Math.min(offset + chunkSize, total);
-                        const chunk = pcmBuffer.slice(offset, end);
-                        const chunkBase64 = btoa(String.fromCharCode(...new Uint8Array(chunk)));
-                        ws.send(JSON.stringify({
-                            data: {
-                                status: 1,
-                                format: 'audio/L16;rate=16000',
-                                encoding: 'raw',
-                                audio: chunkBase64
-                            }
-                        }));
-                        frameCount++;
-                        offset = end;
-
-                        setTimeout(sendNextChunk, 40);
-                    }
-
-                    sendNextChunk();
-                }
-
                 ws.onerror = (err) => {
-                    if (!resolved) {
-                        resolved = true;
+                    if (!finished) {
+                        finished = true;
                         clearTimeout(timeoutId);
                         ws.close();
                         reject(new Error('WebSocket 錯誤'));
                     }
                 };
-
                 ws.onclose = (ev) => {
-                    if (!resolved && !finished) {
-                        resolved = true;
+                    if (!finished) {
+                        finished = true;
                         clearTimeout(timeoutId);
                         reject(new Error('連線關閉 (code:' + ev.code + ')'));
                     }
                 };
-
             } catch (e) {
-                if (!resolved) {
-                    resolved = true;
+                if (!finished) {
+                    finished = true;
                     clearTimeout(timeoutId);
                     if (ws) ws.close();
                     reject(e);
@@ -564,7 +513,7 @@ async function evaluateSpell(pcmBuffer, appid, apiKey, apiSecret, spellKey) {
     }
 }
 
-// ============ 遊戲邏輯（不变） ============
+// ============ 遊戲邏輯 ============
 function startAdventure(){
     state.enemyDefeated = false;
     state.battleLocked = false;
