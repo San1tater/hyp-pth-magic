@@ -137,7 +137,6 @@ const ENEMIES=[
 {id:'malfoy',name_zh:'馬爾福',name_en:'Malfoy',emoji:'🧙‍♂️',desc_zh:'食死徒',desc_en:'Death Eater',hint_zh:'冷靜',hint_en:'Calm',hp:60}
 ];
 
-// 硬编码显示拼音
 const DISPLAY_PINYIN = {
     '除你武器': 'chú nǐ wǔ qì',
     '統統石化': 'tōng tōng shí huà',
@@ -152,8 +151,6 @@ const SPELLS={
 '呼神護衛':{pinyin:'hu1|shen2|hu4|wei4',pos:'defense',label_zh:'自衛',label_en:'Defense',effects:{dementor:'effective',voldemort:'ineffective',malfoy:'ineffective'},desc_zh:'守護咒',desc_en:'Patronus'}
 };
 const POS_TO_SPELL={wand:'除你武器',body:'統統石化',forehead:'昏昏倒地',defense:'呼神護衛'};
-
-// 简体映射（用于比对）
 const SIMPLIFIED_MAP = {
   '除你武器':'除你武器',
   '統統石化':'统统石化',
@@ -165,7 +162,7 @@ const state={
 score:0,lives:3,currentEnemy:null,lastEnemy:null,currentSpellKey:null,isRecording:false,
 battleLocked:false,enemyDefeated:false,enemyHp:0,maxEnemyHp:60,enemyStatus:'default',
 recognizing:false,
-xfAppid:'2600b137', 
+xfAppid:'2600b137',
 xfApiKey:'8b012124ed213c06974cd469f29e134b',
 xfSecret:'MWNkZTQ1ZTEzOTM0NTVjZThjOTQxNjZj',
 audioContext:null,processor:null,source:null,stream:null,pcmChunks:[],isCapturing:false,evaluating:false
@@ -297,7 +294,7 @@ function updateUI(){
  dom.langToggle.textContent=lang==='zh'?'EN / 中':'中 / EN';
 }
 
-// ---------- WebSocket 鉴权（通用） ----------
+// ---------- WebSocket 鉴权 ----------
 async function buildWsUrl(apiKey, apiSecret, appid, host, path) {
     const date = new Date().toUTCString();
     const signStr = 'host: '+host+'\n'+'date: '+date+'\n'+'GET '+path+' HTTP/1.1';
@@ -361,7 +358,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 语音听写（完全复制示例逻辑） =====
+// ===== 语音听写（同步发送，完全按示例） =====
 function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
     return new Promise((resolve, reject) => {
         const host = 'iat-api.xfyun.cn';
@@ -405,7 +402,7 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
                             }
                             return;
                         }
-                        // 收到开始确认，发送音频
+                        // 收到开始确认，立即同步发送所有音频
                         if (msg.data && msg.data.status === 0 && !msg.data.data) {
                             console.log('✅ 開始幀確認，開始發送音頻');
                             const total = pcmBuffer.byteLength;
@@ -421,6 +418,7 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
                             const audioData = new Uint8Array(pcmBuffer);
                             const chunkSize = 4000;
                             let offset = 0;
+                            // 同步发送所有数据块
                             while (offset < audioData.length) {
                                 const chunk = audioData.slice(offset, offset + chunkSize);
                                 const chunkBase64 = btoa(String.fromCharCode.apply(null, chunk));
@@ -488,7 +486,7 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
     });
 }
 
-// ===== 评测函数：听写 + 比对 =====
+// ===== 评测函数 =====
 async function evaluateSpell(pcmBuffer, appid, apiKey, apiSecret, spellKey) {
     state.recognizing = true;
     updateUI();
