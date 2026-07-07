@@ -359,7 +359,7 @@ function stopPCMCapture(){
  });
 }
 
-// ===== 语音听写（修正后的帧格式） =====
+// ===== 语音听写（严格按照官方文档修正） =====
 function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
     return new Promise((resolve, reject) => {
         const host = 'iat-api.xfyun.cn';
@@ -383,7 +383,7 @@ function recognizeWithXunfei(pcmBuffer, appid, apiKey, apiSecret) {
 
                 ws.onopen = () => {
                     console.log('✅ 聽寫 WebSocket 已連線');
-                    // 开始帧（修正：auf 不在 business 中）
+                    // 开始帧（严格按照官方文档）
                     const startFrame = {
                         common: {
                             app_id: appid
