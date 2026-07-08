@@ -395,7 +395,7 @@
             opacity: 1;
         }
 
-        /* ===== 咒語顯示區 ===== */
+        /* ===== 咒語顯示區 — 拼音在上，文字在下 ===== */
         .spell-display {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 20px;
@@ -410,25 +410,29 @@
             align-items: center;
             flex-shrink: 0;
         }
+        .spell-display .spell-pinyin {
+            font-size: 1.3rem;
+            color: #f6d365;
+            font-weight: 700;
+            letter-spacing: 4px;
+            margin-bottom: 2px;
+            text-shadow: 0 0 20px rgba(246, 211, 101, 0.3);
+            order: 0; /* 確保在上方 */
+        }
         .spell-display .spell-chars {
-            font-size: 2.4rem;
+            font-size: 2.6rem;
             font-weight: 700;
             color: #f0e6d3;
             letter-spacing: 8px;
             font-family: 'Cinzel', serif;
-        }
-        .spell-display .spell-pinyin {
-            font-size: 1.1rem;
-            color: #8a7e6a;
-            margin-top: 2px;
-            letter-spacing: 3px;
-            font-weight: 400;
+            order: 1;
         }
         .spell-display .spell-hint {
             font-size: 0.95rem;
             color: #6a7a8a;
             margin-top: 4px;
             font-style: italic;
+            order: 2;
         }
         .spell-display .empty-hint {
             color: #4a4e5a;
@@ -459,7 +463,8 @@
             border: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            gap: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
         .action-area .btn-record:hover:not(:disabled) {
@@ -564,7 +569,10 @@
                 font-size: 2.6rem;
             }
             .spell-display .spell-chars {
-                font-size: 3.0rem;
+                font-size: 3.2rem;
+            }
+            .spell-display .spell-pinyin {
+                font-size: 1.5rem;
             }
             .spell-btn {
                 padding: 16px 12px;
@@ -657,11 +665,12 @@
                 font-size: 1.4rem;
             }
             .spell-display .spell-chars {
-                font-size: 1.6rem;
+                font-size: 1.8rem;
                 letter-spacing: 4px;
             }
             .spell-display .spell-pinyin {
-                font-size: 0.9rem;
+                font-size: 1.0rem;
+                letter-spacing: 2px;
             }
             .action-area .btn-record {
                 padding: 10px 20px;
@@ -817,7 +826,6 @@
         <!-- ====== 操作區 ====== -->
         <div class="action-area">
             <button class="btn-record" id="btnRecord" disabled>
-                <span>🎙️</span>
                 <span data-i18n="startRecord">開始唸咒</span>
             </button>
             <div class="feedback" id="feedbackMsg" data-i18n="ready">準備就緒</div>
@@ -841,8 +849,8 @@
                 clickStart: '點擊「開始冒險」遭遇敵人',
                 selectSpell: '👆 請選擇一個部位來施展咒語',
                 ready: '準備就緒',
-                startRecord: '🎙️ 開始唸咒',
-                stopRecord: '⏹️ 停止錄音',
+                startRecord: '開始唸咒',
+                stopRecord: '停止錄音',
                 recording: '🔴 錄音中...',
                 recognizing: '🧠 辨識中...',
                 evaluating: '📊 評分中...',
@@ -899,8 +907,8 @@
                 clickStart: 'Click "Start" to encounter an enemy',
                 selectSpell: '👆 Select a body part to cast a spell',
                 ready: 'Ready',
-                startRecord: '🎙️ Speak',
-                stopRecord: '⏹️ Stop',
+                startRecord: 'Speak',
+                stopRecord: 'Stop',
                 recording: '🔴 Recording...',
                 recognizing: '🧠 Recognizing...',
                 evaluating: '📊 Evaluating...',
@@ -949,7 +957,7 @@
         };
 
         // ================================================================
-        //  2. 遊戲資料 (HP 改為 80)
+        //  2. 遊戲資料 (HP 80)
         // ================================================================
         const ENEMIES = [
             { id: 'dementor', name_zh: '攝魂怪', name_en: 'Dementor', emoji: '👻', hp: 80, hint_zh: '守護之力',
@@ -979,7 +987,6 @@
             '呼神護衛': '呼神护卫'
         };
 
-        // 狀態索引對應 (statusMap)
         const STATUS_INDEX = {
             default: 0,
             expelliarmus: 1,
@@ -1018,7 +1025,7 @@
             gameOver: false,
             lastEnemy: null,
             isFirstAdventure: true,
-            mediaStream: null,        // 預先獲取的麥克風流
+            mediaStream: null,
             scriptNode: null,
             sourceNode: null,
             sampleRate: 16000,
@@ -1074,9 +1081,7 @@
 
         function setLang(lang) {
             currentLang = lang;
-            // 更新標題
             dom.gameTitle.textContent = t('title');
-            // 更新其他 i18n 元素
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.dataset.i18n;
                 const val = t(key);
@@ -1105,10 +1110,11 @@
                 btn.textContent = t('nextBattle');
             }
             const recBtn = dom.btnRecord;
+            const textSpan = recBtn.querySelector('span:last-child');
             if (state.isRecording) {
-                recBtn.querySelector('span:last-child').textContent = t('stopRecord');
+                textSpan.textContent = t('stopRecord');
             } else {
-                recBtn.querySelector('span:last-child').textContent = t('startRecord');
+                textSpan.textContent = t('startRecord');
             }
         }
 
@@ -1206,9 +1212,8 @@
         //  9. 優化的 PCM 錄音（預先獲取流，快速啟動）
         // ================================================================
 
-        // 在遭遇敵人時預先請求麥克風權限，保存流
         async function preloadMicrophone() {
-            if (state.mediaStream) return; // 已有流
+            if (state.mediaStream) return;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
@@ -1223,7 +1228,6 @@
                 console.log('✅ 麥克風已預先授權');
             } catch (err) {
                 console.warn('⚠️ 預先取得麥克風失敗，將在錄音時重試', err);
-                // 不阻塞，錄音時再請求
             }
         }
 
@@ -1235,7 +1239,6 @@
             try {
                 let stream = state.mediaStream;
                 if (!stream) {
-                    // 如果沒有預先獲取，則立即請求
                     stream = await navigator.mediaDevices.getUserMedia({
                         audio: {
                             sampleRate: 16000,
@@ -1248,7 +1251,6 @@
                     state.mediaStream = stream;
                 }
 
-                // 如果已有 audioContext 且處於 suspended，則 resume
                 let audioCtx = state.audioContext;
                 if (audioCtx && audioCtx.state === 'suspended') {
                     await audioCtx.resume();
@@ -1256,12 +1258,10 @@
                     audioCtx = new AudioContext({ sampleRate: 16000 });
                     state.audioContext = audioCtx;
                 } else {
-                    // 如果已關閉，重新創建
                     audioCtx = new AudioContext({ sampleRate: 16000 });
                     state.audioContext = audioCtx;
                 }
 
-                // 創建節點
                 const source = audioCtx.createMediaStreamSource(stream);
                 state.sourceNode = source;
 
@@ -1284,14 +1284,14 @@
                 source.connect(scriptNode);
                 scriptNode.connect(audioCtx.destination);
 
-                // 確保上下文運行
                 if (audioCtx.state === 'suspended') {
                     await audioCtx.resume();
                 }
 
                 state.isRecording = true;
                 dom.btnRecord.classList.add('recording');
-                dom.btnRecord.querySelector('span:last-child').textContent = t('stopRecord');
+                const textSpan = dom.btnRecord.querySelector('span:last-child');
+                textSpan.textContent = t('stopRecord');
                 setFeedback(t('recording'), 'info');
 
             } catch (err) {
@@ -1310,9 +1310,9 @@
 
                 state.isRecording = false;
                 dom.btnRecord.classList.remove('recording');
-                dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
+                const textSpan = dom.btnRecord.querySelector('span:last-child');
+                textSpan.textContent = t('startRecord');
 
-                // 收集 PCM 數據
                 const chunks = state.pcmChunks;
                 let totalLen = 0;
                 for (const c of chunks) totalLen += c.length;
@@ -1323,7 +1323,6 @@
                     offset += c.length;
                 }
 
-                // 斷開節點，但不銷毀上下文，只暫停
                 try {
                     if (state.scriptNode) {
                         state.scriptNode.disconnect();
@@ -1530,7 +1529,7 @@
                     break;
                 case 'overkill':
                     damage = Math.round(score * 5);
-                    state.score = state.score - 10; // 扣 10 分，可低於 0
+                    state.score = state.score - 10;
                     isCritical = true;
                     break;
                 default:
@@ -1549,8 +1548,6 @@
                 state.score += bonus;
                 setFeedback(t('scoreGain', { n: bonus }) + ' 🎉', 'success');
             }
-
-            // ---- 處理狀態切換 ----
 
             if (effect === 'ineffective') {
                 state.enemyStatus = 'attacking';
@@ -1774,8 +1771,8 @@
             const effectText = effect ? getEffectText(effect) : '';
 
             display.innerHTML = `
-                <div class="spell-chars">${spellInfo.chars}</div>
                 <div class="spell-pinyin">${spellInfo.pinyin}</div>
+                <div class="spell-chars">${spellInfo.chars}</div>
                 <div class="spell-hint">${effectText ? '⚡ ' + effectText : ''}</div>
             `;
         }
@@ -1805,7 +1802,7 @@
         }
 
         // ================================================================
-        //  14. 核心流程：冒險、戰鬥、語音
+        //  14. 核心流程
         // ================================================================
 
         function startAdventure() {
@@ -1826,11 +1823,9 @@
         }
 
         async function spawnEnemy() {
-            // 清空傷害記錄
             state.damageDealt = [];
             state.damageTaken = [];
 
-            // 預先請求麥克風權限（不阻塞）
             preloadMicrophone().catch(() => {});
 
             let available = ENEMIES;
@@ -1932,7 +1927,8 @@
             try {
                 await startPCMCapture();
                 dom.btnRecord.disabled = false;
-                dom.btnRecord.querySelector('span:last-child').textContent = t('stopRecord');
+                const textSpan = dom.btnRecord.querySelector('span:last-child');
+                textSpan.textContent = t('stopRecord');
                 setFeedback(t('recording'), 'info');
             } catch (err) {
                 setFeedback('❌ ' + (err.message || '錄音失敗'), 'error');
@@ -2060,10 +2056,8 @@
             updateUI();
             setFeedback(t('ready'), '');
             dom.btnRecord.disabled = true;
-            // 預先請求麥克風權限（背景執行）
             preloadMicrophone().catch(() => {});
             console.log('⚡ 可譽波特 · 魔法對決 已啟動 (全屏優化版)');
-            console.log('📖 請確保在 HTTPS 環境下運行，並允許麥克風權限');
         }
 
         document.addEventListener('DOMContentLoaded', init);
