@@ -1117,13 +1117,9 @@
         function updateButtonsLang() {
             const btn = dom.btnAdventure;
             if (state.gameOver) {
-                if (state.victory) {
-                    btn.textContent = t('restart');
-                    btn.className = 'btn-primary';
-                } else {
-                    btn.textContent = t('restart');
-                    btn.className = 'btn-primary danger';
-                }
+                // 遊戲結束時統一顯示「重新開始」
+                btn.textContent = t('restart');
+                btn.className = 'btn-primary' + (state.victory ? '' : ' danger');
                 return;
             }
 
@@ -1854,24 +1850,30 @@
 
         function startAdventure() {
             if (state.gameOver) {
+                // 重新開始
                 resetGame();
+                // 重置後自動開始新的冒險
                 setTimeout(() => startAdventure(), 100);
                 return;
             }
 
+            // 如果按鈕是「逃跑」，觸發逃跑（視為失敗）
             if (state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver) {
                 fleeBattle();
                 return;
             }
 
+            // 如果當前敵人已擊敗，載入下一場
             if (state.enemyDefeated) {
                 if (state.enemiesDefeated >= 3) {
+                    // 勝利時按鈕會變成重新開始，這裡不會觸發
                     return;
                 }
                 loadNextEnemy();
                 return;
             }
 
+            // 初始或無敵人時，生成順序並載入第一個
             if (state.enemyOrder.length === 0) {
                 const ids = ENEMIES.map(e => e.id);
                 state.enemyOrder = shuffleArray(ids);
@@ -1883,19 +1885,22 @@
             }
         }
 
+        // 逃跑：直接視為失敗，結束遊戲
         function fleeBattle() {
             if (!state.currentEnemy) return;
-            state.enemyHp = state.currentEnemy.hp;
-            state.enemyStatus = 'default';
-            state.enemyDefeated = false;
-            state.damageDealt = [];
-            state.damageTaken = [];
-            state.lastEffect = null;
-            state.battleProcessing = false;
-            renderEnemy();
-            updateUI();
-            setFeedback('🏃 你逃跑了，重新挑戰！', 'info');
+            // 設置遊戲結束，失敗
+            state.gameOver = true;
+            state.victory = false;
+            // 顯示失敗遮罩
+            showGameOver(false);
+            // 更新按鈕狀態
+            updateButtonsLang();
+            // 禁用錄音等
             dom.btnRecord.disabled = true;
+            // 清理戰鬥處理標誌
+            state.battleProcessing = false;
+            // 反饋訊息
+            setFeedback('🏃 你逃跑了，挑戰失敗！', 'error');
         }
 
         function loadEnemyByIndex(index) {
@@ -1962,7 +1967,6 @@
             setFeedback(t('ready'), '');
             updateUI();
             dom.btnRecord.disabled = true;
-            setTimeout(() => startAdventure(), 200);
         }
 
         // ================================================================
@@ -1988,7 +1992,6 @@
             // 獲取咒語名稱（根據語言）
             const spellKey = POS_TO_SPELL[pos];
             const spellInfo = getSpellDisplay(pos);
-            // 英文界面使用翻譯，中文界面使用漢字
             const spellName = currentLang === 'zh' ? spellInfo.chars : t('spell_' + pos);
             const effect = state.currentEnemy ? SPELLS[spellKey]?.effects[state.currentEnemy.id] : null;
             const effectText = effect ? getEffectText(effect) : '';
