@@ -198,6 +198,13 @@
             background: linear-gradient(135deg, #d05a48, #a03a2e);
             box-shadow: 0 8px 30px rgba(184, 74, 58, 0.35);
         }
+        .btn-primary.escape {
+            background: linear-gradient(135deg, #6a7a8a, #4a5a6a);
+            box-shadow: 0 4px 20px rgba(100, 120, 140, 0.2);
+        }
+        .btn-primary.escape:hover:not(:disabled) {
+            background: linear-gradient(135deg, #7a8a9a, #5a6a7a);
+        }
 
         /* ===== 敵人區域 ===== */
         .enemy-area {
@@ -545,6 +552,11 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        .game-over-overlay .big-text.victory {
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
         .game-over-overlay .sub-text {
             font-size: 1.4rem;
             color: #b8a88a;
@@ -844,6 +856,7 @@
                 lives: '生命',
                 startAdventure: '⚡ 開始冒險',
                 nextBattle: '⚔️ 下一場',
+                escape: '🏃 逃跑',
                 restart: '🔄 重新開始',
                 waiting: '等待開始',
                 clickStart: '點擊「開始冒險」遭遇敵人',
@@ -864,6 +877,7 @@
                 gameOver: '💀 戰敗',
                 gameOverSub: '點擊「開始冒險」重新挑戰',
                 victory: '🏆 勝利！',
+                victorySub: '你擊敗了所有敵人！',
                 scoreGain: '獲得 +{n} 分',
                 lifeLost: '❤️‍🔥 失去 1 生命',
                 critical: '💥 爆擊！',
@@ -903,6 +917,7 @@
                 lives: 'Lives',
                 startAdventure: '⚡ Start',
                 nextBattle: '⚔️ Next',
+                escape: '🏃 Flee',
                 restart: '🔄 Restart',
                 waiting: 'Waiting',
                 clickStart: 'Click "Start" to encounter an enemy',
@@ -923,6 +938,7 @@
                 gameOver: '💀 Defeated',
                 gameOverSub: 'Click "Start" to retry',
                 victory: '🏆 Victory!',
+                victorySub: 'You defeated all enemies!',
                 scoreGain: 'Gained +{n} pts',
                 lifeLost: '❤️‍🔥 Lost 1 life',
                 critical: '💥 Critical!',
@@ -1012,22 +1028,24 @@
         const state = {
             score: 0,
             lives: 3,
-            currentEnemy: null,
+            enemyOrder: [],          // 敵人ID順序（隨機排列）
+            currentEnemyIndex: 0,    // 當前索引
+            enemiesDefeated: 0,      // 已擊敗數量
+            currentEnemy: null,      // 當前敵人物件（方便引用）
             enemyHp: 0,
             enemyStatus: 'default',
-            lastEffect: null,       // 記錄最後一次咒語效果
+            lastEffect: null,
             isRecording: false,
             recognizing: false,
             evaluating: false,
             battleLocked: false,
-            enemyDefeated: false,
+            enemyDefeated: false,    // 當前敵人是否已擊敗
+            gameOver: false,
+            victory: false,          // 是否勝利
             audioContext: null,
             pcmChunks: [],
             selectedPos: null,
             currentSpellKey: null,
-            gameOver: false,
-            lastEnemy: null,
-            isFirstAdventure: true,
             mediaStream: null,
             scriptNode: null,
             sourceNode: null,
@@ -1105,20 +1123,42 @@
 
         function updateButtonsLang() {
             const btn = dom.btnAdventure;
+            // 優先判斷遊戲結束狀態
             if (state.gameOver) {
-                btn.textContent = t('restart');
-            } else if (state.enemyDefeated || !state.currentEnemy) {
-                btn.textContent = t('startAdventure');
-            } else {
+                if (state.victory) {
+                    btn.textContent = t('restart');
+                    btn.className = 'btn-primary';
+                } else {
+                    btn.textContent = t('restart');
+                    btn.className = 'btn-primary danger';
+                }
+                return;
+            }
+
+            // 當前敵人是否已擊敗
+            if (state.enemyDefeated) {
+                // 檢查是否所有敵人都已擊敗（enemiesDefeated === 3）
+                if (state.enemiesDefeated >= 3) {
+                    // 勝利
+                    btn.textContent = t('restart');
+                    btn.className = 'btn-primary';
+                    return;
+                }
                 btn.textContent = t('nextBattle');
+                btn.className = 'btn-primary';
+                return;
             }
-            const recBtn = dom.btnRecord;
-            const textSpan = recBtn.querySelector('span:last-child');
-            if (state.isRecording) {
-                textSpan.textContent = t('stopRecord');
-            } else {
-                textSpan.textContent = t('startRecord');
+
+            // 戰鬥中（有敵人且未擊敗）
+            if (state.currentEnemy && state.enemyHp > 0) {
+                btn.textContent = t('escape');
+                btn.className = 'btn-primary escape';
+                return;
             }
+
+            // 默認：開始冒險
+            btn.textContent = t('startAdventure');
+            btn.className = 'btn-primary';
         }
 
         // ================================================================
@@ -1184,6 +1224,15 @@
 
         function removePunctuation(str) {
             return str.replace(/[，。！？、；：""''（）\.,!?;:'"()]/g, '');
+        }
+
+        // 隨機排列陣列
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
         }
 
         // ================================================================
@@ -1527,6 +1576,7 @@
                 if (state.lives <= 0) {
                     state.lives = 0;
                     state.gameOver = true;
+                    state.victory = false;
                 }
                 renderEnemy();
                 updateUI();
@@ -1541,7 +1591,7 @@
             let damage = 0;
             let isCritical = false;
             let killed = false;
-            let playerLostLife = false;
+            let penaltyMsg = '';
 
             switch (effect) {
                 case 'effective':
@@ -1556,8 +1606,7 @@
                 case 'overkill':
                     damage = Math.round(score * 5);
                     state.score = state.score - 10;
-                    // 顯示扣分提示
-                    setFeedback(t('overkillPenalty'), 'error');
+                    penaltyMsg = t('overkillPenalty');
                     isCritical = true;
                     break;
                 default:
@@ -1567,14 +1616,28 @@
             const actualDamage = Math.min(damage, state.enemyHp);
             state.enemyHp -= actualDamage;
 
+            // 判斷擊殺
             if (state.enemyHp <= 0 || damage >= 60) {
                 state.enemyHp = 0;
                 killed = true;
+                // 加分
                 let bonus = 10;
                 if (score >= 90) bonus += 5;
                 else if (score >= 75) bonus += 2;
                 state.score += bonus;
-                setFeedback(t('scoreGain', { n: bonus }) + ' 🎉', 'success');
+                // 增加擊敗計數
+                state.enemiesDefeated++;
+                // 顯示加分訊息（會覆蓋扣分，但我們將扣分與加分合併）
+                let feedbackMsg = t('scoreGain', { n: bonus }) + ' 🎉';
+                if (penaltyMsg) {
+                    feedbackMsg = penaltyMsg + '，' + feedbackMsg;
+                }
+                setFeedback(feedbackMsg, 'success');
+            } else {
+                // 未擊殺，如果有扣分則顯示扣分
+                if (penaltyMsg) {
+                    setFeedback(penaltyMsg, 'error');
+                }
             }
 
             // 決定攻擊狀態（顯示效果）
@@ -1587,7 +1650,6 @@
             } else if (effect === 'overkill') {
                 attackStatus = 'petrificus';
             } else if (effect === 'ineffective') {
-                // 無效攻擊仍顯示對應的咒語效果（根據部位）
                 if (pos === 'wand') attackStatus = 'expelliarmus';
                 else if (pos === 'body') attackStatus = 'petrificus';
                 else if (pos === 'forehead') attackStatus = 'stupefy';
@@ -1619,6 +1681,12 @@
             if (killed) {
                 state.enemyStatus = 'defeated';
                 state.enemyDefeated = true;
+                // 檢查是否所有敵人都擊敗了
+                if (state.enemiesDefeated >= 3) {
+                    state.gameOver = true;
+                    state.victory = true;
+                    showGameOver(true);
+                }
                 renderEnemy();
                 updateUI();
                 state.battleProcessing = false;
@@ -1639,11 +1707,11 @@
                 if (counterAttack) {
                     state.enemyStatus = 'attacking';
                     state.lives -= 1;
-                    playerLostLife = true;
                     state.damageTaken.push({ text: '-1 ❤️‍🔥' });
                     if (state.lives <= 0) {
                         state.lives = 0;
                         state.gameOver = true;
+                        state.victory = false;
                     }
                     renderEnemy();
                     updateUI();
@@ -1679,11 +1747,13 @@
 
             updateButtonsLang();
 
+            // 錄音按鈕
             const hasEnemy = state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver;
             const canRecord = hasEnemy && !state.isRecording && !state.recognizing && !state.evaluating && !state
                 .battleProcessing;
             dom.btnRecord.disabled = !canRecord;
 
+            // 咒語按鈕
             document.querySelectorAll('.spell-btn').forEach(el => {
                 const pos = el.dataset.pos;
                 el.classList.toggle('active', pos === state.selectedPos);
@@ -1692,22 +1762,12 @@
                 el.style.pointerEvents = enabled ? 'auto' : 'none';
             });
 
-            if (state.gameOver) {
-                dom.btnAdventure.textContent = t('restart');
-                dom.btnAdventure.className = 'btn-primary danger';
-            } else if (state.enemyDefeated || !state.currentEnemy) {
-                dom.btnAdventure.textContent = t('startAdventure');
-                dom.btnAdventure.className = 'btn-primary';
-            } else {
-                dom.btnAdventure.textContent = t('nextBattle');
-                dom.btnAdventure.className = 'btn-primary';
-            }
-
+            // 冒險按鈕禁用狀態
             dom.btnAdventure.disabled = state.battleProcessing;
         }
 
         function renderEnemy() {
-            const enemy = state.currentEnemy || state.lastEnemy;
+            const enemy = state.currentEnemy;
 
             const dealtContainer = dom.damageDealtContainer;
             dealtContainer.innerHTML = '';
@@ -1754,14 +1814,13 @@
                 <span class="sub">${hint ? '✨ ' + hint : ''}</span>
             `;
 
-            // 狀態文字：根據 enemyStatus 和 lastEffect 決定
+            // 狀態文字
             let statusText = '';
             if (state.enemyStatus === 'defeated') {
                 statusText = t('enemyDefeated');
             } else if (state.enemyStatus === 'attacking') {
                 statusText = t('enemyAttacking');
             } else if (state.enemyStatus !== 'default') {
-                // 攻擊狀態，根據 lastEffect 顯示具體效果
                 const effect = state.lastEffect;
                 if (effect === 'effective') {
                     statusText = t('effect_effective');
@@ -1772,7 +1831,6 @@
                 } else if (effect === 'ineffective') {
                     statusText = t('effect_ineffective');
                 } else {
-                    // 若無效果，顯示默認
                     statusText = `${t('hp')}: ${state.enemyHp}/${enemy.hp}`;
                 }
             } else {
@@ -1783,12 +1841,7 @@
             dom.enemyHpFill.style.width = Math.max(0, hpPercent) + '%';
             dom.enemyHpFill.className = 'enemy-hp-fill' + (hpPercent < 25 ? ' low' : '');
 
-            if (state.gameOver) {
-                showGameOver(false);
-            } else {
-                dom.gameOverOverlay.classList.remove('show');
-            }
-
+            // 遊戲結束遮罩已在外部控制
             updateUI();
         }
 
@@ -1820,9 +1873,11 @@
             const overlay = dom.gameOverOverlay;
             overlay.classList.add('show');
             if (victory) {
+                dom.gameOverTitle.className = 'big-text victory';
                 dom.gameOverTitle.textContent = t('victory');
-                dom.gameOverSub.textContent = t('scoreGain', { n: state.score });
+                dom.gameOverSub.textContent = t('victorySub') + ` (${t('score')}: ${state.score})`;
             } else {
+                dom.gameOverTitle.className = 'big-text';
                 dom.gameOverTitle.textContent = t('gameOver');
                 dom.gameOverSub.textContent = t('gameOverSub');
             }
@@ -1838,72 +1893,121 @@
         //  14. 核心流程
         // ================================================================
 
+        // 開始冒險（生成敵人順序，載入第一個）
         function startAdventure() {
+            // 如果遊戲結束（勝利或失敗），重置遊戲
             if (state.gameOver) {
                 resetGame();
+                // 重置後再開始
+                setTimeout(() => startAdventure(), 100);
                 return;
             }
 
-            if (state.enemyDefeated || !state.currentEnemy) {
-                spawnEnemy();
-            } else {
-                if (state.enemyHp > 0 && !state.enemyDefeated) {
-                    setFeedback('⚠️ 請先擊敗當前敵人！', 'error');
+            // 如果當前有敵人未擊敗，且按鈕顯示「逃跑」，則執行逃跑
+            if (state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver) {
+                // 逃跑：重置當前敵人
+                fleeBattle();
+                return;
+            }
+
+            // 如果當前敵人已擊敗，且還有下一場，則載入下一個
+            if (state.enemyDefeated) {
+                // 檢查是否已全部擊敗
+                if (state.enemiesDefeated >= 3) {
+                    // 勝利，但按鈕應顯示重新開始，這裡不會觸發
                     return;
                 }
-                spawnEnemy();
+                loadNextEnemy();
+                return;
+            }
+
+            // 初始狀態：生成順序並載入第一個
+            if (state.enemyOrder.length === 0) {
+                // 生成隨機順序
+                const ids = ENEMIES.map(e => e.id);
+                state.enemyOrder = shuffleArray(ids);
+                state.currentEnemyIndex = 0;
+                state.enemiesDefeated = 0;
+                loadEnemyByIndex(0);
+            } else {
+                // 理論上不會到這裡
+                loadEnemyByIndex(0);
             }
         }
 
-        async function spawnEnemy() {
+        // 逃跑：重置當前敵人血量，清除傷害記錄，恢復戰鬥狀態
+        function fleeBattle() {
+            if (!state.currentEnemy) return;
+            // 重置血量
+            state.enemyHp = state.currentEnemy.hp;
+            state.enemyStatus = 'default';
+            state.enemyDefeated = false;
             state.damageDealt = [];
             state.damageTaken = [];
-            state.lastEffect = null;  // 重置效果
+            state.lastEffect = null;
+            state.battleProcessing = false;
+            // 清除可能存在的鎖定
+            renderEnemy();
+            updateUI();
+            setFeedback('🏃 你逃跑了，重新挑戰！', 'info');
+            // 解鎖錄音
+            dom.btnRecord.disabled = true;
+        }
 
-            preloadMicrophone().catch(() => {});
-
-            let available = ENEMIES;
-            if (state.lastEnemy) {
-                available = ENEMIES.filter(e => e.id !== state.lastEnemy.id);
+        // 根據索引載入敵人
+        function loadEnemyByIndex(index) {
+            if (index >= state.enemyOrder.length) {
+                // 所有敵人已擊敗，但理論上會由擊敗邏輯觸發勝利
+                return;
             }
-            if (available.length === 0) available = ENEMIES;
-            const enemy = available[Math.floor(Math.random() * available.length)];
+            const enemyId = state.enemyOrder[index];
+            const enemy = ENEMIES.find(e => e.id === enemyId);
+            if (!enemy) return;
 
             state.currentEnemy = enemy;
-            state.lastEnemy = enemy;
             state.enemyHp = enemy.hp;
             state.enemyStatus = 'default';
             state.enemyDefeated = false;
-            state.battleLocked = false;
-            state.gameOver = false;
+            state.damageDealt = [];
+            state.damageTaken = [];
+            state.lastEffect = null;
             state.selectedPos = null;
             state.currentSpellKey = null;
             state.battleProcessing = false;
 
             dom.gameOverOverlay.classList.remove('show');
-
             document.querySelectorAll('.spell-btn').forEach(el => el.classList.remove('active'));
             updateSpellDisplay();
-
             renderEnemy();
             setFeedback(`⚔️ ${getEnemyName(enemy)} 出現了！`, 'info');
             updateUI();
-
             dom.btnRecord.disabled = true;
+        }
+
+        function loadNextEnemy() {
+            const nextIndex = state.currentEnemyIndex + 1;
+            if (nextIndex >= state.enemyOrder.length) {
+                // 所有敵人已擊敗，但擊敗時已處理勝利
+                return;
+            }
+            state.currentEnemyIndex = nextIndex;
+            loadEnemyByIndex(nextIndex);
         }
 
         function resetGame() {
             state.score = 0;
             state.lives = 3;
             state.gameOver = false;
-            state.enemyDefeated = false;
+            state.victory = false;
+            state.enemyOrder = [];
+            state.currentEnemyIndex = 0;
+            state.enemiesDefeated = 0;
             state.currentEnemy = null;
-            state.lastEnemy = null;
             state.enemyHp = 0;
             state.enemyStatus = 'default';
+            state.enemyDefeated = false;
             state.selectedPos = null;
             state.currentSpellKey = null;
-            state.battleLocked = false;
             state.battleProcessing = false;
             state.damageDealt = [];
             state.damageTaken = [];
@@ -1917,6 +2021,8 @@
             setFeedback(t('ready'), '');
             updateUI();
             dom.btnRecord.disabled = true;
+            // 重置後自動開始冒險（調用 startAdventure）
+            setTimeout(() => startAdventure(), 200);
         }
 
         function selectSpell(pos) {
@@ -2017,7 +2123,7 @@
                     renderEnemy();
                     updateUI();
                     if (state.gameOver) {
-                        showGameOver(false);
+                        showGameOver(state.victory);
                     }
                     if (state.enemyDefeated) {
                         dom.btnAdventure.disabled = false;
@@ -2093,6 +2199,8 @@
             dom.btnRecord.disabled = true;
             preloadMicrophone().catch(() => {});
             console.log('⚡ 可譽波特 · 魔法對決 已啟動 (全屏優化版)');
+            // 自動開始冒險
+            setTimeout(() => startAdventure(), 300);
         }
 
         document.addEventListener('DOMContentLoaded', init);
