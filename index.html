@@ -417,7 +417,7 @@
             letter-spacing: 4px;
             margin-bottom: 2px;
             text-shadow: 0 0 20px rgba(246, 211, 101, 0.3);
-            order: 0; /* 確保在上方 */
+            order: 0;
         }
         .spell-display .spell-chars {
             font-size: 2.6rem;
@@ -835,7 +835,7 @@
 
     <script>
         // ================================================================
-        //  1. 語言包 (含標題)
+        //  1. 語言包
         // ================================================================
         const LANG = {
             zh: {
@@ -1209,7 +1209,7 @@
         }
 
         // ================================================================
-        //  9. 優化的 PCM 錄音（預先獲取流，快速啟動）
+        //  9. 優化的 PCM 錄音
         // ================================================================
 
         async function preloadMicrophone() {
@@ -1504,7 +1504,7 @@
         }
 
         // ================================================================
-        //  12. 戰鬥邏輯（overkill 扣 10 分，允許負分）
+        //  12. 戰鬥邏輯（修正圖片切換）
         // ================================================================
         async function processBattle(effect, spellKey, enemy, score) {
             if (!enemy) return;
@@ -1512,6 +1512,7 @@
             state.battleProcessing = true;
             updateUI();
 
+            // 計算傷害
             let damage = 0;
             let isCritical = false;
             let killed = false;
@@ -1549,51 +1550,51 @@
                 setFeedback(t('scoreGain', { n: bonus }) + ' 🎉', 'success');
             }
 
-            if (effect === 'ineffective') {
-                state.enemyStatus = 'attacking';
-                state.lives -= 1;
-                playerLostLife = true;
-                state.damageTaken.push({ text: '-1 ❤️‍🔥' });
-                if (state.lives <= 0) {
-                    state.lives = 0;
-                    state.gameOver = true;
-                }
-                renderEnemy();
-                updateUI();
-                state.battleProcessing = false;
-                if (state.gameOver) {
-                    showGameOver(false);
-                }
-                return;
+            // 決定攻擊狀態（顯示效果）
+            let attackStatus = 'default';
+            // 根據效果和咒語位置映射
+            const pos = state.selectedPos;
+            if (effect === 'effective') {
+                attackStatus = 'expelliarmus';
+            } else if (effect === 'weak') {
+                attackStatus = 'stupefy';
+            } else if (effect === 'overkill') {
+                attackStatus = 'petrificus';
+            } else if (effect === 'ineffective') {
+                // 無效攻擊仍顯示對應的咒語效果（根據部位）
+                if (pos === 'wand') attackStatus = 'expelliarmus';
+                else if (pos === 'body') attackStatus = 'petrificus';
+                else if (pos === 'forehead') attackStatus = 'stupefy';
+                else if (pos === 'defense') attackStatus = 'patronus';
+                else attackStatus = 'default';
             }
 
-            let attackStatus = 'default';
-            if (effect === 'effective') attackStatus = 'expelliarmus';
-            else if (effect === 'weak') attackStatus = 'stupefy';
-            else if (effect === 'overkill') attackStatus = 'petrificus';
-            else attackStatus = 'default';
-
+            // 記錄對敵傷害
             let damageText = `-${actualDamage}`;
             let damageCls = '';
             if (killed) damageCls = 'critical';
+            else if (actualDamage === 0 && effect === 'ineffective') damageCls = 'ineffective';
             else if (actualDamage === 0) damageCls = 'ineffective';
-            if (!killed && actualDamage === 0) {
-                damageCls = 'ineffective';
-            }
             if (actualDamage > 0 || killed) {
                 state.damageDealt.push({ text: damageText, cls: damageCls });
             } else {
+                // 0傷害但非無效（如弱效导致0）也记录为无效
                 if (effect !== 'ineffective') {
+                    state.damageDealt.push({ text: '0', cls: 'ineffective' });
+                } else {
                     state.damageDealt.push({ text: '0', cls: 'ineffective' });
                 }
             }
 
+            // 1. 先顯示攻擊效果
             state.enemyStatus = attackStatus;
             renderEnemy();
             updateUI();
 
+            // 2. 等待2秒
             await sleep(2000);
 
+            // 3. 判斷後續
             if (killed) {
                 state.enemyStatus = 'defeated';
                 state.enemyDefeated = true;
@@ -1602,9 +1603,12 @@
                 state.battleProcessing = false;
                 return;
             } else {
+                // 未擊殺：判斷是否反擊
                 let counterAttack = false;
-                if (effect === 'weak') {
-                    if (Math.random() >= 0.5) counterAttack = true;
+                if (effect === 'ineffective') {
+                    counterAttack = true; // 無效必定反擊
+                } else if (effect === 'weak') {
+                    counterAttack = (Math.random() >= 0.5);
                 } else if (effect === 'effective' || effect === 'overkill') {
                     counterAttack = false;
                 } else {
