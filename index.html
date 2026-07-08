@@ -30,7 +30,7 @@
         .game-container {
             width: 100vw;
             height: 100vh;
-            height: 100dvh; /* 動態視口高度，支援iPad */
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             background: rgba(11, 14, 20, 0.92);
@@ -178,7 +178,7 @@
             box-shadow: 0 8px 30px rgba(184, 74, 58, 0.35);
         }
 
-        /* ===== 敵人區域 — 佔據主要空間 ===== */
+        /* ===== 敵人區域 — 佔據主要空間，不被壓縮 ===== */
         .enemy-area {
             flex: 1 1 auto;
             min-height: 0;
@@ -193,6 +193,46 @@
             gap: 24px;
             transition: all 0.3s ease;
             overflow: hidden;
+        }
+
+        /* 傷害數字容器 — 位於敵人區域右上角，垂直排列 */
+        .damage-log-container {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            pointer-events: none;
+            z-index: 10;
+            max-height: 80%;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .damage-log-container .damage-item {
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 2.0rem;
+            color: #ff6b5a;
+            text-shadow: 0 0 30px rgba(255, 80, 50, 0.4);
+            opacity: 0.9;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+        .damage-log-container .damage-item.critical {
+            color: #ffd93d;
+            font-size: 2.6rem;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+        }
+        .damage-log-container .damage-item.ineffective {
+            color: #6a7a8a;
+            font-size: 1.6rem;
+            text-shadow: 0 0 20px rgba(100, 120, 140, 0.2);
+        }
+        .damage-log-container .damage-item.heal {
+            color: #6bcb8a;
+            text-shadow: 0 0 30px rgba(80, 200, 120, 0.3);
         }
 
         .enemy-avatar {
@@ -271,76 +311,42 @@
             background: linear-gradient(90deg, #ff6b5a, #ff4a3a);
         }
 
-        /* ===== 傷害浮動 ===== */
-        .damage-float {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            font-family: 'Cinzel', serif;
-            font-weight: 900;
-            font-size: 3.6rem;
-            color: #ff6b5a;
-            text-shadow: 0 0 50px rgba(255, 80, 50, 0.5), 0 4px 20px rgba(0, 0, 0, 0.5);
-            pointer-events: none;
-            animation: floatUp 1.2s ease-out forwards;
-            z-index: 20;
-        }
-        .damage-float.critical {
-            color: #ffd93d;
-            font-size: 4.4rem;
-            text-shadow: 0 0 60px rgba(255, 215, 0, 0.6), 0 4px 30px rgba(0, 0, 0, 0.6);
-        }
-        .damage-float.ineffective {
-            color: #6a7a8a;
-            font-size: 2.6rem;
-            text-shadow: 0 0 20px rgba(100, 120, 140, 0.3);
-        }
-        .damage-float.heal {
-            color: #6bcb8a;
-            text-shadow: 0 0 40px rgba(80, 200, 120, 0.3);
-        }
-
-        @keyframes floatUp {
-            0% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-140px) scale(1.2);
-            }
-        }
-
-        /* ===== 咒語選擇 ===== */
+        /* ===== 咒語選擇 — 固定高度，不壓縮上方 ===== */
         .spell-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 12px;
             flex-shrink: 0;
             margin-bottom: 12px;
+            /* 限制高度，避免過度伸展 */
+            max-height: 110px;
         }
         .spell-btn {
             background: rgba(255, 255, 255, 0.04);
             border: 2px solid rgba(212, 175, 55, 0.08);
             border-radius: 20px;
-            padding: 16px 8px;
+            padding: 12px 8px;
             text-align: center;
             cursor: pointer;
             transition: all 0.25s ease;
             font-family: 'Noto Sans TC', sans-serif;
             color: #b8a88a;
             font-weight: 600;
-            font-size: 1.0rem;
+            font-size: 0.95rem;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         .spell-btn .emoji {
             display: block;
-            font-size: 2.4rem;
-            margin-bottom: 6px;
+            font-size: 2.0rem;
+            margin-bottom: 2px;
         }
         .spell-btn .label {
             display: block;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
         }
         .spell-btn:hover:not(.active) {
             background: rgba(212, 175, 55, 0.06);
@@ -359,7 +365,7 @@
             right: -6px;
             background: #d4a84a;
             color: #0b0e14;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 700;
             padding: 2px 10px;
             border-radius: 20px;
@@ -374,11 +380,11 @@
         .spell-display {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 20px;
-            padding: 14px 24px;
+            padding: 12px 24px;
             margin-bottom: 12px;
             text-align: center;
             border: 1px solid rgba(212, 175, 55, 0.04);
-            min-height: 80px;
+            min-height: 70px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -386,28 +392,28 @@
             flex-shrink: 0;
         }
         .spell-display .spell-chars {
-            font-size: 2.6rem;
+            font-size: 2.4rem;
             font-weight: 700;
             color: #f0e6d3;
             letter-spacing: 8px;
             font-family: 'Cinzel', serif;
         }
         .spell-display .spell-pinyin {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #8a7e6a;
-            margin-top: 4px;
+            margin-top: 2px;
             letter-spacing: 3px;
             font-weight: 400;
         }
         .spell-display .spell-hint {
-            font-size: 1.0rem;
+            font-size: 0.95rem;
             color: #6a7a8a;
-            margin-top: 6px;
+            margin-top: 4px;
             font-style: italic;
         }
         .spell-display .empty-hint {
             color: #4a4e5a;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         /* ===== 操作區 ===== */
@@ -539,18 +545,24 @@
                 font-size: 2.6rem;
             }
             .spell-display .spell-chars {
-                font-size: 3.2rem;
+                font-size: 3.0rem;
             }
             .spell-btn {
-                padding: 20px 12px;
-                font-size: 1.1rem;
+                padding: 16px 12px;
+                font-size: 1.0rem;
             }
             .spell-btn .emoji {
-                font-size: 2.8rem;
+                font-size: 2.4rem;
             }
             .action-area .btn-record {
                 font-size: 1.3rem;
                 padding: 16px 52px;
+            }
+            .damage-log-container .damage-item {
+                font-size: 2.4rem;
+            }
+            .damage-log-container .damage-item.critical {
+                font-size: 3.0rem;
             }
         }
 
@@ -611,14 +623,15 @@
             .spell-selector {
                 grid-template-columns: repeat(4, 1fr);
                 gap: 6px;
+                max-height: 90px;
             }
             .spell-btn {
-                padding: 10px 4px;
+                padding: 8px 4px;
                 font-size: 0.7rem;
                 border-radius: 14px;
             }
             .spell-btn .emoji {
-                font-size: 1.6rem;
+                font-size: 1.4rem;
             }
             .spell-display .spell-chars {
                 font-size: 1.6rem;
@@ -636,13 +649,15 @@
                 min-height: 40px;
                 min-width: 100px;
             }
-            .damage-float {
-                font-size: 2.4rem;
+            .damage-log-container {
                 top: 8px;
                 right: 12px;
             }
-            .damage-float.critical {
-                font-size: 3.0rem;
+            .damage-log-container .damage-item {
+                font-size: 1.4rem;
+            }
+            .damage-log-container .damage-item.critical {
+                font-size: 1.8rem;
             }
             .game-over-overlay .big-text {
                 font-size: 2.2rem;
@@ -655,6 +670,7 @@
         @media (max-width: 420px) {
             .spell-selector {
                 grid-template-columns: repeat(2, 1fr);
+                max-height: 160px;
             }
             .header {
                 flex-wrap: wrap;
@@ -715,7 +731,10 @@
 
         <!-- ====== 敵人區域 ====== -->
         <div class="enemy-area relative" id="enemyArea">
-            <!-- 敵人內容由 JS 渲染 -->
+            <!-- 傷害數字容器 -->
+            <div class="damage-log-container" id="damageLogContainer"></div>
+
+            <!-- 敵人內容 -->
             <div id="enemyContent" style="width:100%;display:flex;align-items:center;gap:24px;flex-wrap:wrap;justify-content:center;">
                 <div class="enemy-avatar" id="enemyAvatar">
                     <span class="emoji-fallback">🪄</span>
@@ -731,7 +750,7 @@
                     </div>
                 </div>
             </div>
-            <!-- 傷害浮動會插入這裡 -->
+
             <!-- 遊戲結束遮罩 -->
             <div class="game-over-overlay" id="gameOverOverlay">
                 <div class="big-text" id="gameOverTitle">💀 戰敗</div>
@@ -931,6 +950,7 @@
             '呼神護衛': '呼神护卫'
         };
 
+        // 狀態索引對應 (statusMap)
         const STATUS_INDEX = {
             default: 0,
             expelliarmus: 1,
@@ -973,6 +993,8 @@
             scriptNode: null,
             sourceNode: null,
             sampleRate: 16000,
+            damageLogs: [], // { text, cls }
+            battleProcessing: false,
         };
 
         // ================================================================
@@ -1000,6 +1022,7 @@
             gameOverTitle: $('#gameOverTitle'),
             gameOverSub: $('#gameOverSub'),
             langToggle: $('#langToggle'),
+            damageLogContainer: $('#damageLogContainer'),
         };
 
         // ================================================================
@@ -1401,15 +1424,21 @@
         }
 
         // ================================================================
-        //  12. 戰鬥邏輯
+        //  12. 戰鬥邏輯（含狀態延遲切換）
         // ================================================================
-        function handleBattleResult(effect, spellKey, enemy, score) {
-            if (!enemy) return { damage: 0, killed: false, playerLostLife: false, effect };
+        async function processBattle(effect, spellKey, enemy, score) {
+            if (!enemy) return;
 
+            // 防止重入
+            if (state.battleProcessing) return;
+            state.battleProcessing = true;
+            updateUI();
+
+            // 計算傷害
             let damage = 0;
-            let playerLostLife = false;
-            let killed = false;
             let isCritical = false;
+            let killed = false;
+            let playerLostLife = false;
 
             switch (effect) {
                 case 'effective':
@@ -1433,6 +1462,7 @@
             const actualDamage = Math.min(damage, state.enemyHp);
             state.enemyHp -= actualDamage;
 
+            // 判斷是否擊殺
             if (state.enemyHp <= 0 || damage >= 60) {
                 state.enemyHp = 0;
                 killed = true;
@@ -1441,53 +1471,101 @@
                 else if (score >= 75) bonus += 2;
                 state.score += bonus;
                 setFeedback(t('scoreGain', { n: bonus }) + ' 🎉', 'success');
+            }
+
+            // ---- 處理狀態切換 ----
+
+            // 1. 無效攻擊：直接反擊，不顯示攻擊效果
+            if (effect === 'ineffective') {
+                // 記錄反擊傷害（但無效攻擊本身無傷害，不記錄攻擊傷害）
+                // 直接反擊
+                state.enemyStatus = 'attacking';
+                state.lives -= 1;
+                playerLostLife = true;
+                state.damageLogs.push({ text: '💥 -1', cls: 'heal' });
+                if (state.lives <= 0) {
+                    state.lives = 0;
+                    state.gameOver = true;
+                }
+                renderEnemy();
+                updateUI();
+                state.battleProcessing = false;
+                // 如果游戏结束，显示遮罩
+                if (state.gameOver) {
+                    showGameOver(false);
+                }
+                return;
+            }
+
+            // 2. 有效/弱效/超效：先顯示攻擊效果
+            let attackStatus = 'default';
+            if (effect === 'effective') attackStatus = 'expelliarmus';
+            else if (effect === 'weak') attackStatus = 'stupefy';
+            else if (effect === 'overkill') attackStatus = 'petrificus';
+            else attackStatus = 'default';
+
+            // 記錄攻擊傷害（如果是超效，傷害可能為0？但overkill會造成大量傷害，但我們已經計算了actualDamage）
+            let damageText = `-${actualDamage}`;
+            let damageCls = '';
+            if (killed) damageCls = 'critical';
+            else if (actualDamage === 0) damageCls = 'ineffective';
+            if (!killed && actualDamage === 0) {
+                // 如果是0伤害且未击杀，通常不会发生，但以防万一
+                damageCls = 'ineffective';
+            }
+            state.damageLogs.push({ text: damageText, cls: damageCls });
+
+            // 設置攻擊狀態並渲染
+            state.enemyStatus = attackStatus;
+            renderEnemy();
+            updateUI();
+
+            // 等待2秒顯示攻擊效果
+            await sleep(2000);
+
+            // 3. 根據擊殺或反擊決定後續狀態
+            if (killed) {
+                // 擊殺 -> 顯示擊敗圖片
                 state.enemyStatus = 'defeated';
                 state.enemyDefeated = true;
+                renderEnemy();
+                updateUI();
+                state.battleProcessing = false;
+                return;
             } else {
+                // 未擊殺：判斷是否反擊
                 let counterAttack = false;
                 if (effect === 'weak') {
-                    if (Math.random() >= 0.5) {
-                        counterAttack = true;
-                    }
-                } else if (effect === 'ineffective') {
-                    counterAttack = true;
+                    if (Math.random() >= 0.5) counterAttack = true;
                 } else if (effect === 'effective' || effect === 'overkill') {
+                    counterAttack = false;
+                } else {
                     counterAttack = false;
                 }
 
                 if (counterAttack) {
+                    state.enemyStatus = 'attacking';
                     state.lives -= 1;
                     playerLostLife = true;
-                    setFeedback(t('lifeLost'), 'error');
-                    state.enemyStatus = 'attacking';
-                    showDamageFloat('💥 -1', 'heal');
+                    state.damageLogs.push({ text: '💥 -1', cls: 'heal' });
                     if (state.lives <= 0) {
                         state.lives = 0;
                         state.gameOver = true;
-                        state.enemyStatus = 'defeated';
+                    }
+                    renderEnemy();
+                    updateUI();
+                    if (state.gameOver) {
                         showGameOver(false);
                     }
                 } else {
-                    if (effect === 'effective') state.enemyStatus = 'expelliarmus';
-                    else if (effect === 'weak') state.enemyStatus = 'stupefy';
-                    else if (effect === 'overkill') state.enemyStatus = 'petrificus';
-                    else state.enemyStatus = 'default';
+                    // 不反擊，恢復預設
+                    state.enemyStatus = 'default';
+                    renderEnemy();
+                    updateUI();
                 }
+                state.battleProcessing = false;
+                return;
             }
-
-            if (killed) {
-                showDamageFloat('💀 -' + actualDamage, 'critical');
-            } else if (damage === 0 && effect === 'ineffective') {
-                showDamageFloat('0 ❌', 'ineffective');
-            } else if (damage > 0) {
-                const cls = isCritical ? 'critical' : '';
-                showDamageFloat('-' + damage, cls);
-            }
-
-            updateUI();
-            renderEnemy();
-
-            return { damage: actualDamage, killed, playerLostLife, effect, isCritical };
         }
 
         // ================================================================
@@ -1501,13 +1579,16 @@
             updateButtonsLang();
 
             const hasEnemy = state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver;
-            dom.btnRecord.disabled = !hasEnemy || state.isRecording || state.recognizing || state.evaluating;
+            const canRecord = hasEnemy && !state.isRecording && !state.recognizing && !state.evaluating && !state
+                .battleProcessing;
+            dom.btnRecord.disabled = !canRecord;
 
             document.querySelectorAll('.spell-btn').forEach(el => {
                 const pos = el.dataset.pos;
                 el.classList.toggle('active', pos === state.selectedPos);
-                el.style.opacity = hasEnemy ? '1' : '0.4';
-                el.style.pointerEvents = hasEnemy ? 'auto' : 'none';
+                const enabled = hasEnemy && !state.battleProcessing;
+                el.style.opacity = enabled ? '1' : '0.4';
+                el.style.pointerEvents = enabled ? 'auto' : 'none';
             });
 
             if (state.gameOver) {
@@ -1520,11 +1601,25 @@
                 dom.btnAdventure.textContent = t('nextBattle');
                 dom.btnAdventure.className = 'btn-primary';
             }
+
+            // 戰鬥處理中禁用冒險按鈕
+            dom.btnAdventure.disabled = state.battleProcessing;
         }
 
         function renderEnemy() {
             const enemy = state.currentEnemy || state.lastEnemy;
             const content = dom.enemyContent;
+
+            // 更新傷害日誌
+            const logContainer = dom.damageLogContainer;
+            logContainer.innerHTML = '';
+            // 顯示最新的傷害在下面（按順序）
+            for (const log of state.damageLogs) {
+                const item = document.createElement('div');
+                item.className = 'damage-item' + (log.cls ? ' ' + log.cls : '');
+                item.textContent = log.text;
+                logContainer.appendChild(item);
+            }
 
             if (!enemy) {
                 dom.enemyAvatar.innerHTML = `<span class="emoji-fallback">🪄</span>`;
@@ -1616,15 +1711,6 @@
             el.className = 'feedback' + (type ? ' ' + type : '');
         }
 
-        function showDamageFloat(text, cls = '') {
-            const container = dom.enemyArea;
-            const el = document.createElement('div');
-            el.className = 'damage-float' + (cls ? ' ' + cls : '');
-            el.textContent = text;
-            container.appendChild(el);
-            setTimeout(() => { el.remove(); }, 1300);
-        }
-
         function showGameOver(victory) {
             const overlay = dom.gameOverOverlay;
             overlay.classList.add('show');
@@ -1665,6 +1751,9 @@
         }
 
         function spawnEnemy() {
+            // 清空傷害日誌
+            state.damageLogs = [];
+
             let available = ENEMIES;
             if (state.lastEnemy) {
                 available = ENEMIES.filter(e => e.id !== state.lastEnemy.id);
@@ -1681,6 +1770,7 @@
             state.gameOver = false;
             state.selectedPos = null;
             state.currentSpellKey = null;
+            state.battleProcessing = false;
 
             dom.gameOverOverlay.classList.remove('show');
 
@@ -1706,6 +1796,8 @@
             state.selectedPos = null;
             state.currentSpellKey = null;
             state.battleLocked = false;
+            state.battleProcessing = false;
+            state.damageLogs = [];
 
             dom.gameOverOverlay.classList.remove('show');
             dom.btnAdventure.className = 'btn-primary';
@@ -1722,8 +1814,8 @@
                 setFeedback('⚠️ ' + (state.gameOver ? t('gameOver') : t('clickStart')), 'error');
                 return;
             }
-            if (state.isRecording || state.recognizing) {
-                setFeedback('⏳ 請先完成錄音', 'error');
+            if (state.isRecording || state.recognizing || state.battleProcessing) {
+                setFeedback('⏳ 請先完成目前動作', 'error');
                 return;
             }
 
@@ -1752,6 +1844,10 @@
                 setFeedback('👆 ' + t('selectSpell'), 'error');
                 return;
             }
+            if (state.battleProcessing) {
+                setFeedback('⏳ 戰鬥進行中，請稍候', 'error');
+                return;
+            }
 
             try {
                 await startPCMCapture();
@@ -1766,7 +1862,7 @@
 
         async function stopAndRecognize() {
             if (!state.isRecording) return;
-            if (state.recognizing || state.evaluating) return;
+            if (state.recognizing || state.evaluating || state.battleProcessing) return;
 
             dom.btnRecord.disabled = true;
             setFeedback(t('recognizing'), 'info');
@@ -1806,39 +1902,24 @@
                 if (enemy && state.enemyHp > 0) {
                     const spell = SPELLS[targetSpell];
                     const effect = spell?.effects[enemy.id] || 'ineffective';
-                    const result = handleBattleResult(effect, targetSpell, enemy, score);
-
-                    if (result.killed) {
-                        setFeedback(`💥 ${t('enemyDefeated')} ${t('scoreGain', { n: 10 + (score >= 75 ? 2 : 0) + (score >= 90 ? 5 : 0) })}`, 'success');
-                        dom.btnRecord.disabled = true;
-                        updateUI();
-                        renderEnemy();
-                        dom.btnAdventure.disabled = false;
-                        return;
-                    }
-
-                    if (result.playerLostLife && state.lives <= 0) {
-                        state.gameOver = true;
-                        renderEnemy();
-                        showGameOver(false);
-                        updateUI();
-                        dom.btnRecord.disabled = true;
-                        return;
-                    }
-
+                    // 進入戰鬥處理（異步，包含延遲）
+                    await processBattle(effect, targetSpell, enemy, score);
+                    // 戰鬥處理完成後，更新UI
                     renderEnemy();
                     updateUI();
-
-                    if (state.enemyHp > 0 && state.lives > 0) {
-                        dom.btnRecord.disabled = false;
-                        dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
-                    } else {
-                        dom.btnRecord.disabled = true;
+                    // 如果遊戲結束，顯示遮罩
+                    if (state.gameOver) {
+                        showGameOver(false);
                     }
+                    // 如果敵人被擊敗，啟用冒險按鈕
+                    if (state.enemyDefeated) {
+                        dom.btnAdventure.disabled = false;
+                    }
+                    // 重新啟用錄音按鈕（如果條件允許）
+                    const hasEnemy = state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver;
+                    dom.btnRecord.disabled = !(hasEnemy && !state.battleProcessing && state.selectedPos);
+                    dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
                 }
-
-                dom.btnRecord.disabled = false;
-                dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
 
             } catch (err) {
                 console.error('辨識錯誤:', err);
@@ -1856,8 +1937,8 @@
                 }
                 dom.btnRecord.classList.remove('recording');
                 dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
-                dom.btnRecord.disabled = !(state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state
-                .gameOver && state.selectedPos);
+                const hasEnemy = state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver;
+                dom.btnRecord.disabled = !(hasEnemy && !state.battleProcessing && state.selectedPos);
                 updateUI();
             }
         }
