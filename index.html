@@ -140,6 +140,27 @@
         }
         .status-item .value.lives-val {
             color: #ff7e6b;
+            position: relative;
+        }
+
+        /* 玩家受傷顯示 — 緊跟在生命值右側 */
+        .damage-taken-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 8px;
+            gap: 2px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            max-height: 60px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .damage-taken-container .taken-item {
+            color: #ff6b5a;
+            text-shadow: 0 0 20px rgba(255, 80, 50, 0.3);
+            white-space: nowrap;
+            font-size: 0.95rem;
         }
 
         .btn-primary {
@@ -178,7 +199,7 @@
             box-shadow: 0 8px 30px rgba(184, 74, 58, 0.35);
         }
 
-        /* ===== 敵人區域 — 佔據主要空間，不被壓縮 ===== */
+        /* ===== 敵人區域 ===== */
         .enemy-area {
             flex: 1 1 auto;
             min-height: 0;
@@ -190,49 +211,17 @@
             position: relative;
             display: flex;
             align-items: center;
-            gap: 24px;
             transition: all 0.3s ease;
             overflow: hidden;
         }
 
-        /* 傷害數字容器 — 位於敵人區域右上角，垂直排列 */
-        .damage-log-container {
-            position: absolute;
-            top: 16px;
-            right: 24px;
+        /* 敵人內容：頭像、資訊、傷害橫向排列 */
+        #enemyContent {
+            width: 100%;
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 6px;
-            pointer-events: none;
-            z-index: 10;
-            max-height: 80%;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-        .damage-log-container .damage-item {
-            font-family: 'Cinzel', serif;
-            font-weight: 900;
-            font-size: 2.0rem;
-            color: #ff6b5a;
-            text-shadow: 0 0 30px rgba(255, 80, 50, 0.4);
-            opacity: 0.9;
-            white-space: nowrap;
-            transition: opacity 0.2s;
-        }
-        .damage-log-container .damage-item.critical {
-            color: #ffd93d;
-            font-size: 2.6rem;
-            text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
-        }
-        .damage-log-container .damage-item.ineffective {
-            color: #6a7a8a;
-            font-size: 1.6rem;
-            text-shadow: 0 0 20px rgba(100, 120, 140, 0.2);
-        }
-        .damage-log-container .damage-item.heal {
-            color: #6bcb8a;
-            text-shadow: 0 0 30px rgba(80, 200, 120, 0.3);
+            align-items: center;
+            gap: 24px;
+            flex-wrap: nowrap;
         }
 
         .enemy-avatar {
@@ -311,14 +300,44 @@
             background: linear-gradient(90deg, #ff6b5a, #ff4a3a);
         }
 
-        /* ===== 咒語選擇 — 固定高度，不壓縮上方 ===== */
+        /* 對敵傷害列表 — 顯示在敵人資訊右側 */
+        .damage-dealt-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            flex-shrink: 0;
+            max-height: 100%;
+            overflow-y: auto;
+            padding-left: 16px;
+            min-width: 80px;
+        }
+        .damage-dealt-container .dealt-item {
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 1.6rem;
+            color: #ff6b5a;
+            text-shadow: 0 0 30px rgba(255, 80, 50, 0.3);
+            white-space: nowrap;
+        }
+        .damage-dealt-container .dealt-item.critical {
+            color: #ffd93d;
+            font-size: 2.0rem;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+        }
+        .damage-dealt-container .dealt-item.ineffective {
+            color: #6a7a8a;
+            font-size: 1.2rem;
+            text-shadow: 0 0 20px rgba(100, 120, 140, 0.2);
+        }
+
+        /* ===== 咒語選擇 ===== */
         .spell-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 12px;
             flex-shrink: 0;
             margin-bottom: 12px;
-            /* 限制高度，避免過度伸展 */
             max-height: 110px;
         }
         .spell-btn {
@@ -558,11 +577,11 @@
                 font-size: 1.3rem;
                 padding: 16px 52px;
             }
-            .damage-log-container .damage-item {
-                font-size: 2.4rem;
+            .damage-dealt-container .dealt-item {
+                font-size: 2.0rem;
             }
-            .damage-log-container .damage-item.critical {
-                font-size: 3.0rem;
+            .damage-dealt-container .dealt-item.critical {
+                font-size: 2.6rem;
             }
         }
 
@@ -604,6 +623,10 @@
                 padding: 14px;
                 gap: 12px;
                 min-height: 160px;
+            }
+            #enemyContent {
+                flex-wrap: wrap;
+                justify-content: center;
             }
             .enemy-avatar {
                 width: 90px;
@@ -649,15 +672,14 @@
                 min-height: 40px;
                 min-width: 100px;
             }
-            .damage-log-container {
-                top: 8px;
-                right: 12px;
+            .damage-dealt-container .dealt-item {
+                font-size: 1.2rem;
             }
-            .damage-log-container .damage-item {
-                font-size: 1.4rem;
+            .damage-dealt-container .dealt-item.critical {
+                font-size: 1.6rem;
             }
-            .damage-log-container .damage-item.critical {
-                font-size: 1.8rem;
+            .damage-taken-container .taken-item {
+                font-size: 0.8rem;
             }
             .game-over-overlay .big-text {
                 font-size: 2.2rem;
@@ -675,6 +697,10 @@
             .header {
                 flex-wrap: wrap;
                 gap: 6px;
+            }
+            .damage-dealt-container {
+                min-width: 60px;
+                padding-left: 8px;
             }
         }
 
@@ -725,17 +751,16 @@
                 <span class="icon">❤️</span>
                 <span data-i18n="lives">生命</span>
                 <span class="value lives-val" id="livesDisplay">3</span>
+                <!-- 玩家受傷顯示區 -->
+                <div class="damage-taken-container" id="damageTakenContainer"></div>
             </div>
             <button class="btn-primary" id="btnAdventure" data-i18n="startAdventure">⚡ 開始冒險</button>
         </div>
 
         <!-- ====== 敵人區域 ====== -->
         <div class="enemy-area relative" id="enemyArea">
-            <!-- 傷害數字容器 -->
-            <div class="damage-log-container" id="damageLogContainer"></div>
-
             <!-- 敵人內容 -->
-            <div id="enemyContent" style="width:100%;display:flex;align-items:center;gap:24px;flex-wrap:wrap;justify-content:center;">
+            <div id="enemyContent">
                 <div class="enemy-avatar" id="enemyAvatar">
                     <span class="emoji-fallback">🪄</span>
                 </div>
@@ -749,6 +774,8 @@
                         <div class="enemy-hp-fill" id="enemyHpFill" style="width:0%;"></div>
                     </div>
                 </div>
+                <!-- 對敵傷害列表 -->
+                <div class="damage-dealt-container" id="damageDealtContainer"></div>
             </div>
 
             <!-- 遊戲結束遮罩 -->
@@ -993,7 +1020,9 @@
             scriptNode: null,
             sourceNode: null,
             sampleRate: 16000,
-            damageLogs: [], // { text, cls }
+            // 傷害分開記錄
+            damageDealt: [], // 對敵人造成的傷害 [{text, cls}]
+            damageTaken: [], // 玩家受到的傷害 [{text}]
             battleProcessing: false,
         };
 
@@ -1022,7 +1051,8 @@
             gameOverTitle: $('#gameOverTitle'),
             gameOverSub: $('#gameOverSub'),
             langToggle: $('#langToggle'),
-            damageLogContainer: $('#damageLogContainer'),
+            damageDealtContainer: $('#damageDealtContainer'),
+            damageTakenContainer: $('#damageTakenContainer'),
         };
 
         // ================================================================
@@ -1406,18 +1436,28 @@
         }
 
         // ================================================================
-        //  11. 評分（逐字比對）
+        //  11. 評分（字符集交集，不考慮順序）
         // ================================================================
         function evaluateSpell(recognizedText, targetSpell) {
             const targetSimplified = toSimplified(targetSpell);
             const cleanTarget = removePunctuation(targetSimplified);
             const cleanRecognized = removePunctuation(recognizedText);
 
-            const len = Math.min(cleanTarget.length, cleanRecognized.length);
-            let matchCount = 0;
-            for (let i = 0; i < len; i++) {
-                if (cleanTarget[i] === cleanRecognized[i]) matchCount++;
+            // 統計目標字符出現次數
+            const targetCount = {};
+            for (const ch of cleanTarget) {
+                targetCount[ch] = (targetCount[ch] || 0) + 1;
             }
+
+            let matchCount = 0;
+            // 遍歷識別字符串，匹配字符
+            for (const ch of cleanRecognized) {
+                if (targetCount[ch] && targetCount[ch] > 0) {
+                    matchCount++;
+                    targetCount[ch]--;
+                }
+            }
+
             const total = cleanTarget.length;
             const score = total > 0 ? Math.round((matchCount / total) * 100) : 0;
             return { score, matchCount, total, recognized: cleanRecognized, target: cleanTarget };
@@ -1429,7 +1469,6 @@
         async function processBattle(effect, spellKey, enemy, score) {
             if (!enemy) return;
 
-            // 防止重入
             if (state.battleProcessing) return;
             state.battleProcessing = true;
             updateUI();
@@ -1482,7 +1521,8 @@
                 state.enemyStatus = 'attacking';
                 state.lives -= 1;
                 playerLostLife = true;
-                state.damageLogs.push({ text: '💥 -1', cls: 'heal' });
+                // 記錄玩家受傷
+                state.damageTaken.push({ text: '-1 ❤️‍🔥' });
                 if (state.lives <= 0) {
                     state.lives = 0;
                     state.gameOver = true;
@@ -1490,7 +1530,6 @@
                 renderEnemy();
                 updateUI();
                 state.battleProcessing = false;
-                // 如果游戏结束，显示遮罩
                 if (state.gameOver) {
                     showGameOver(false);
                 }
@@ -1504,16 +1543,23 @@
             else if (effect === 'overkill') attackStatus = 'petrificus';
             else attackStatus = 'default';
 
-            // 記錄攻擊傷害（如果是超效，傷害可能為0？但overkill會造成大量傷害，但我們已經計算了actualDamage）
+            // 記錄對敵傷害（如果不是無效）
             let damageText = `-${actualDamage}`;
             let damageCls = '';
             if (killed) damageCls = 'critical';
             else if (actualDamage === 0) damageCls = 'ineffective';
             if (!killed && actualDamage === 0) {
-                // 如果是0伤害且未击杀，通常不会发生，但以防万一
                 damageCls = 'ineffective';
             }
-            state.damageLogs.push({ text: damageText, cls: damageCls });
+            // 添加對敵傷害（如果傷害>0 或 擊殺）
+            if (actualDamage > 0 || killed) {
+                state.damageDealt.push({ text: damageText, cls: damageCls });
+            } else {
+                // 0傷害但非無效（如弱效导致0？）也记录为无效
+                if (effect !== 'ineffective') {
+                    state.damageDealt.push({ text: '0', cls: 'ineffective' });
+                }
+            }
 
             // 設置攻擊狀態並渲染
             state.enemyStatus = attackStatus;
@@ -1547,7 +1593,7 @@
                     state.enemyStatus = 'attacking';
                     state.lives -= 1;
                     playerLostLife = true;
-                    state.damageLogs.push({ text: '💥 -1', cls: 'heal' });
+                    state.damageTaken.push({ text: '-1 ❤️‍🔥' });
                     if (state.lives <= 0) {
                         state.lives = 0;
                         state.gameOver = true;
@@ -1576,6 +1622,16 @@
             dom.livesDisplay.textContent = state.lives;
             dom.livesDisplay.style.color = state.lives <= 1 ? '#ff6b5a' : '#f0e6d3';
 
+            // 更新玩家受傷顯示
+            const takenContainer = dom.damageTakenContainer;
+            takenContainer.innerHTML = '';
+            for (const item of state.damageTaken) {
+                const div = document.createElement('div');
+                div.className = 'taken-item';
+                div.textContent = item.text;
+                takenContainer.appendChild(div);
+            }
+
             updateButtonsLang();
 
             const hasEnemy = state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver;
@@ -1602,23 +1658,20 @@
                 dom.btnAdventure.className = 'btn-primary';
             }
 
-            // 戰鬥處理中禁用冒險按鈕
             dom.btnAdventure.disabled = state.battleProcessing;
         }
 
         function renderEnemy() {
             const enemy = state.currentEnemy || state.lastEnemy;
-            const content = dom.enemyContent;
 
-            // 更新傷害日誌
-            const logContainer = dom.damageLogContainer;
-            logContainer.innerHTML = '';
-            // 顯示最新的傷害在下面（按順序）
-            for (const log of state.damageLogs) {
-                const item = document.createElement('div');
-                item.className = 'damage-item' + (log.cls ? ' ' + log.cls : '');
-                item.textContent = log.text;
-                logContainer.appendChild(item);
+            // 更新對敵傷害列表
+            const dealtContainer = dom.damageDealtContainer;
+            dealtContainer.innerHTML = '';
+            for (const item of state.damageDealt) {
+                const div = document.createElement('div');
+                div.className = 'dealt-item' + (item.cls ? ' ' + item.cls : '');
+                div.textContent = item.text;
+                dealtContainer.appendChild(div);
             }
 
             if (!enemy) {
@@ -1751,8 +1804,9 @@
         }
 
         function spawnEnemy() {
-            // 清空傷害日誌
-            state.damageLogs = [];
+            // 清空所有傷害記錄
+            state.damageDealt = [];
+            state.damageTaken = [];
 
             let available = ENEMIES;
             if (state.lastEnemy) {
@@ -1797,7 +1851,8 @@
             state.currentSpellKey = null;
             state.battleLocked = false;
             state.battleProcessing = false;
-            state.damageLogs = [];
+            state.damageDealt = [];
+            state.damageTaken = [];
 
             dom.gameOverOverlay.classList.remove('show');
             dom.btnAdventure.className = 'btn-primary';
@@ -1902,20 +1957,15 @@
                 if (enemy && state.enemyHp > 0) {
                     const spell = SPELLS[targetSpell];
                     const effect = spell?.effects[enemy.id] || 'ineffective';
-                    // 進入戰鬥處理（異步，包含延遲）
                     await processBattle(effect, targetSpell, enemy, score);
-                    // 戰鬥處理完成後，更新UI
                     renderEnemy();
                     updateUI();
-                    // 如果遊戲結束，顯示遮罩
                     if (state.gameOver) {
                         showGameOver(false);
                     }
-                    // 如果敵人被擊敗，啟用冒險按鈕
                     if (state.enemyDefeated) {
                         dom.btnAdventure.disabled = false;
                     }
-                    // 重新啟用錄音按鈕（如果條件允許）
                     const hasEnemy = state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver;
                     dom.btnRecord.disabled = !(hasEnemy && !state.battleProcessing && state.selectedPos);
                     dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
