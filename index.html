@@ -206,7 +206,7 @@
             background: linear-gradient(135deg, #7a8a9a, #5a6a7a);
         }
 
-        /* ===== 敵人區域 ===== */
+        /* ===== 敵人區域 — 佔據主要空間，不被壓縮 ===== */
         .enemy-area {
             flex: 1 1 auto;
             min-height: 0;
@@ -338,7 +338,7 @@
             text-shadow: 0 0 20px rgba(100, 120, 140, 0.2);
         }
 
-        /* ===== 咒語選擇 ===== */
+        /* ===== 咒語選擇 — 固定高度，不壓縮上方 ===== */
         .spell-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -402,7 +402,7 @@
             opacity: 1;
         }
 
-        /* ===== 咒語顯示區 — 拼音在上，文字在下 ===== */
+        /* ===== 咒語顯示區 — 只顯示拼音和文字 ===== */
         .spell-display {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 20px;
@@ -433,13 +433,6 @@
             letter-spacing: 8px;
             font-family: 'Cinzel', serif;
             order: 1;
-        }
-        .spell-display .spell-hint {
-            font-size: 0.95rem;
-            color: #6a7a8a;
-            margin-top: 4px;
-            font-style: italic;
-            order: 2;
         }
         .spell-display .empty-hint {
             color: #4a4e5a;
@@ -830,7 +823,7 @@
             </div>
         </div>
 
-        <!-- ====== 咒語顯示區 ====== -->
+        <!-- ====== 咒語顯示區（僅拼音+文字） ====== -->
         <div class="spell-display" id="spellDisplay">
             <div class="empty-hint" data-i18n="selectSpell">👆 請選擇一個部位來施展咒語</div>
         </div>
@@ -1028,10 +1021,10 @@
         const state = {
             score: 0,
             lives: 3,
-            enemyOrder: [],          // 敵人ID順序（隨機排列）
-            currentEnemyIndex: 0,    // 當前索引
-            enemiesDefeated: 0,      // 已擊敗數量
-            currentEnemy: null,      // 當前敵人物件（方便引用）
+            enemyOrder: [],
+            currentEnemyIndex: 0,
+            enemiesDefeated: 0,
+            currentEnemy: null,
             enemyHp: 0,
             enemyStatus: 'default',
             lastEffect: null,
@@ -1039,9 +1032,9 @@
             recognizing: false,
             evaluating: false,
             battleLocked: false,
-            enemyDefeated: false,    // 當前敵人是否已擊敗
+            enemyDefeated: false,
             gameOver: false,
-            victory: false,          // 是否勝利
+            victory: false,
             audioContext: null,
             pcmChunks: [],
             selectedPos: null,
@@ -1123,7 +1116,6 @@
 
         function updateButtonsLang() {
             const btn = dom.btnAdventure;
-            // 優先判斷遊戲結束狀態
             if (state.gameOver) {
                 if (state.victory) {
                     btn.textContent = t('restart');
@@ -1135,11 +1127,8 @@
                 return;
             }
 
-            // 當前敵人是否已擊敗
             if (state.enemyDefeated) {
-                // 檢查是否所有敵人都已擊敗（enemiesDefeated === 3）
                 if (state.enemiesDefeated >= 3) {
-                    // 勝利
                     btn.textContent = t('restart');
                     btn.className = 'btn-primary';
                     return;
@@ -1149,14 +1138,12 @@
                 return;
             }
 
-            // 戰鬥中（有敵人且未擊敗）
             if (state.currentEnemy && state.enemyHp > 0) {
                 btn.textContent = t('escape');
                 btn.className = 'btn-primary escape';
                 return;
             }
 
-            // 默認：開始冒險
             btn.textContent = t('startAdventure');
             btn.className = 'btn-primary';
         }
@@ -1226,7 +1213,6 @@
             return str.replace(/[，。！？、；：""''（）\.,!?;:'"()]/g, '');
         }
 
-        // 隨機排列陣列
         function shuffleArray(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -1556,7 +1542,7 @@
         }
 
         // ================================================================
-        //  12. 戰鬥邏輯（修正）
+        //  12. 戰鬥邏輯
         // ================================================================
         async function processBattle(effect, spellKey, enemy, score) {
             if (!enemy) return;
@@ -1564,12 +1550,9 @@
             state.battleProcessing = true;
             updateUI();
 
-            // 記錄效果
             state.lastEffect = effect;
 
-            // 如果評分為 0，直接反擊，不顯示攻擊動畫
             if (score === 0) {
-                // 直接反擊
                 state.enemyStatus = 'attacking';
                 state.lives -= 1;
                 state.damageTaken.push({ text: '-1 ❤️‍🔥' });
@@ -1587,7 +1570,6 @@
                 return;
             }
 
-            // 計算傷害
             let damage = 0;
             let isCritical = false;
             let killed = false;
@@ -1616,31 +1598,25 @@
             const actualDamage = Math.min(damage, state.enemyHp);
             state.enemyHp -= actualDamage;
 
-            // 判斷擊殺
             if (state.enemyHp <= 0 || damage >= 60) {
                 state.enemyHp = 0;
                 killed = true;
-                // 加分
                 let bonus = 10;
                 if (score >= 90) bonus += 5;
                 else if (score >= 75) bonus += 2;
                 state.score += bonus;
-                // 增加擊敗計數
                 state.enemiesDefeated++;
-                // 顯示加分訊息（會覆蓋扣分，但我們將扣分與加分合併）
                 let feedbackMsg = t('scoreGain', { n: bonus }) + ' 🎉';
                 if (penaltyMsg) {
                     feedbackMsg = penaltyMsg + '，' + feedbackMsg;
                 }
                 setFeedback(feedbackMsg, 'success');
             } else {
-                // 未擊殺，如果有扣分則顯示扣分
                 if (penaltyMsg) {
                     setFeedback(penaltyMsg, 'error');
                 }
             }
 
-            // 決定攻擊狀態（顯示效果）
             let attackStatus = 'default';
             const pos = state.selectedPos;
             if (effect === 'effective') {
@@ -1657,11 +1633,9 @@
                 else attackStatus = 'default';
             }
 
-            // 記錄對敵傷害
             let damageText = `-${actualDamage}`;
             let damageCls = '';
             if (killed) damageCls = 'critical';
-            else if (actualDamage === 0 && effect === 'ineffective') damageCls = 'ineffective';
             else if (actualDamage === 0) damageCls = 'ineffective';
             if (actualDamage > 0 || killed) {
                 state.damageDealt.push({ text: damageText, cls: damageCls });
@@ -1669,19 +1643,15 @@
                 state.damageDealt.push({ text: '0', cls: 'ineffective' });
             }
 
-            // 1. 先顯示攻擊效果
             state.enemyStatus = attackStatus;
             renderEnemy();
             updateUI();
 
-            // 2. 等待2秒
             await sleep(2000);
 
-            // 3. 判斷後續
             if (killed) {
                 state.enemyStatus = 'defeated';
                 state.enemyDefeated = true;
-                // 檢查是否所有敵人都擊敗了
                 if (state.enemiesDefeated >= 3) {
                     state.gameOver = true;
                     state.victory = true;
@@ -1692,7 +1662,6 @@
                 state.battleProcessing = false;
                 return;
             } else {
-                // 未擊殺：判斷是否反擊
                 let counterAttack = false;
                 if (effect === 'ineffective') {
                     counterAttack = true;
@@ -1747,13 +1716,11 @@
 
             updateButtonsLang();
 
-            // 錄音按鈕
             const hasEnemy = state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver;
             const canRecord = hasEnemy && !state.isRecording && !state.recognizing && !state.evaluating && !state
                 .battleProcessing;
             dom.btnRecord.disabled = !canRecord;
 
-            // 咒語按鈕
             document.querySelectorAll('.spell-btn').forEach(el => {
                 const pos = el.dataset.pos;
                 el.classList.toggle('active', pos === state.selectedPos);
@@ -1762,7 +1729,6 @@
                 el.style.pointerEvents = enabled ? 'auto' : 'none';
             });
 
-            // 冒險按鈕禁用狀態
             dom.btnAdventure.disabled = state.battleProcessing;
         }
 
@@ -1814,7 +1780,6 @@
                 <span class="sub">${hint ? '✨ ' + hint : ''}</span>
             `;
 
-            // 狀態文字
             let statusText = '';
             if (state.enemyStatus === 'defeated') {
                 statusText = t('enemyDefeated');
@@ -1841,7 +1806,6 @@
             dom.enemyHpFill.style.width = Math.max(0, hpPercent) + '%';
             dom.enemyHpFill.className = 'enemy-hp-fill' + (hpPercent < 25 ? ' low' : '');
 
-            // 遊戲結束遮罩已在外部控制
             updateUI();
         }
 
@@ -1852,14 +1816,9 @@
                 return;
             }
             const spellInfo = getSpellDisplay(state.selectedPos);
-            const spellKey = POS_TO_SPELL[state.selectedPos];
-            const effect = state.currentEnemy ? SPELLS[spellKey]?.effects[state.currentEnemy.id] : null;
-            const effectText = effect ? getEffectText(effect) : '';
-
             display.innerHTML = `
                 <div class="spell-pinyin">${spellInfo.pinyin}</div>
                 <div class="spell-chars">${spellInfo.chars}</div>
-                <div class="spell-hint">${effectText ? '⚡ ' + effectText : ''}</div>
             `;
         }
 
@@ -1893,52 +1852,39 @@
         //  14. 核心流程
         // ================================================================
 
-        // 開始冒險（生成敵人順序，載入第一個）
         function startAdventure() {
-            // 如果遊戲結束（勝利或失敗），重置遊戲
             if (state.gameOver) {
                 resetGame();
-                // 重置後再開始
                 setTimeout(() => startAdventure(), 100);
                 return;
             }
 
-            // 如果當前有敵人未擊敗，且按鈕顯示「逃跑」，則執行逃跑
             if (state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver) {
-                // 逃跑：重置當前敵人
                 fleeBattle();
                 return;
             }
 
-            // 如果當前敵人已擊敗，且還有下一場，則載入下一個
             if (state.enemyDefeated) {
-                // 檢查是否已全部擊敗
                 if (state.enemiesDefeated >= 3) {
-                    // 勝利，但按鈕應顯示重新開始，這裡不會觸發
                     return;
                 }
                 loadNextEnemy();
                 return;
             }
 
-            // 初始狀態：生成順序並載入第一個
             if (state.enemyOrder.length === 0) {
-                // 生成隨機順序
                 const ids = ENEMIES.map(e => e.id);
                 state.enemyOrder = shuffleArray(ids);
                 state.currentEnemyIndex = 0;
                 state.enemiesDefeated = 0;
                 loadEnemyByIndex(0);
             } else {
-                // 理論上不會到這裡
                 loadEnemyByIndex(0);
             }
         }
 
-        // 逃跑：重置當前敵人血量，清除傷害記錄，恢復戰鬥狀態
         function fleeBattle() {
             if (!state.currentEnemy) return;
-            // 重置血量
             state.enemyHp = state.currentEnemy.hp;
             state.enemyStatus = 'default';
             state.enemyDefeated = false;
@@ -1946,18 +1892,14 @@
             state.damageTaken = [];
             state.lastEffect = null;
             state.battleProcessing = false;
-            // 清除可能存在的鎖定
             renderEnemy();
             updateUI();
             setFeedback('🏃 你逃跑了，重新挑戰！', 'info');
-            // 解鎖錄音
             dom.btnRecord.disabled = true;
         }
 
-        // 根據索引載入敵人
         function loadEnemyByIndex(index) {
             if (index >= state.enemyOrder.length) {
-                // 所有敵人已擊敗，但理論上會由擊敗邏輯觸發勝利
                 return;
             }
             const enemyId = state.enemyOrder[index];
@@ -1987,7 +1929,6 @@
         function loadNextEnemy() {
             const nextIndex = state.currentEnemyIndex + 1;
             if (nextIndex >= state.enemyOrder.length) {
-                // 所有敵人已擊敗，但擊敗時已處理勝利
                 return;
             }
             state.currentEnemyIndex = nextIndex;
@@ -2021,10 +1962,12 @@
             setFeedback(t('ready'), '');
             updateUI();
             dom.btnRecord.disabled = true;
-            // 重置後自動開始冒險（調用 startAdventure）
             setTimeout(() => startAdventure(), 200);
         }
 
+        // ================================================================
+        //  14-2. 選擇咒語（修正英文咒語名稱）
+        // ================================================================
         function selectSpell(pos) {
             if (state.gameOver || !state.currentEnemy || state.enemyDefeated) {
                 setFeedback('⚠️ ' + (state.gameOver ? t('gameOver') : t('clickStart')), 'error');
@@ -2041,11 +1984,24 @@
             document.querySelectorAll('.spell-btn').forEach(el => {
                 el.classList.toggle('active', el.dataset.pos === pos);
             });
+
+            // 獲取咒語名稱（根據語言）
+            const spellKey = POS_TO_SPELL[pos];
+            const spellInfo = getSpellDisplay(pos);
+            // 英文界面使用翻譯，中文界面使用漢字
+            const spellName = currentLang === 'zh' ? spellInfo.chars : t('spell_' + pos);
+            const effect = state.currentEnemy ? SPELLS[spellKey]?.effects[state.currentEnemy.id] : null;
+            const effectText = effect ? getEffectText(effect) : '';
+            const feedbackMsg = `✨ ${spellName} ${effectText ? '⚡ ' + effectText : ''}`;
+            setFeedback(feedbackMsg, 'info');
+
             updateSpellDisplay();
             dom.btnRecord.disabled = false;
-            setFeedback(`✨ ${t('spellHint')}: ${getSpellDisplay(pos).chars}`, 'info');
         }
 
+        // ================================================================
+        //  15. 錄音相關（其餘函數保持不變）
+        // ================================================================
         async function toggleRecording() {
             if (state.isRecording) {
                 await stopAndRecognize();
@@ -2156,7 +2112,7 @@
         }
 
         // ================================================================
-        //  15. 事件綁定
+        //  16. 事件綁定 & 初始化
         // ================================================================
         function initEvents() {
             dom.langToggle.addEventListener('click', (e) => {
@@ -2187,9 +2143,6 @@
             });
         }
 
-        // ================================================================
-        //  16. 初始化
-        // ================================================================
         function init() {
             setLang('zh');
             resetGame();
@@ -2199,7 +2152,6 @@
             dom.btnRecord.disabled = true;
             preloadMicrophone().catch(() => {});
             console.log('⚡ 可譽波特 · 魔法對決 已啟動 (全屏優化版)');
-            // 自動開始冒險
             setTimeout(() => startAdventure(), 300);
         }
 
