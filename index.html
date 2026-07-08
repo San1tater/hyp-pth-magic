@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>⚡ 哈利波特 · 魔法對決</title>
+    <title>⚡ 可譽波特 · 魔法對決</title>
 
     <style>
         /* ===== 全局重置 & 字體 ===== */
@@ -26,7 +26,7 @@
             color: #f0e6d3;
         }
 
-        /* ===== 主容器 — 全屏填滿 ===== */
+        /* ===== 主容器 ===== */
         .game-container {
             width: 100vw;
             height: 100vh;
@@ -143,7 +143,6 @@
             position: relative;
         }
 
-        /* 玩家受傷顯示 — 緊跟在生命值右側 */
         .damage-taken-container {
             display: flex;
             flex-direction: column;
@@ -215,7 +214,6 @@
             overflow: hidden;
         }
 
-        /* 敵人內容：頭像、資訊、傷害橫向排列 */
         #enemyContent {
             width: 100%;
             display: flex;
@@ -300,7 +298,7 @@
             background: linear-gradient(90deg, #ff6b5a, #ff4a3a);
         }
 
-        /* 對敵傷害列表 — 顯示在敵人資訊右側 */
+        /* 對敵傷害列表 */
         .damage-dealt-container {
             display: flex;
             flex-direction: column;
@@ -459,8 +457,10 @@
             border: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            gap: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            min-width: 160px;
         }
         .action-area .btn-record:hover:not(:disabled) {
             transform: translateY(-2px);
@@ -585,7 +585,7 @@
             }
         }
 
-        /* ===== 響應式（手機豎屏） ===== */
+        /* ===== 響應式 ===== */
         @media (max-width: 767px) {
             .game-container {
                 padding: 12px 14px 16px;
@@ -666,6 +666,7 @@
             .action-area .btn-record {
                 padding: 10px 20px;
                 font-size: 0.9rem;
+                min-width: 120px;
             }
             .action-area .feedback {
                 font-size: 0.85rem;
@@ -733,7 +734,7 @@
 
         <!-- ====== 頂欄 ====== -->
         <header class="header">
-            <div class="title">⚡ 哈利波特 <span>· 魔法對決</span></div>
+            <div class="title">⚡ 可譽波特 <span>· 魔法對決</span></div>
             <div class="lang-toggle" id="langToggle">
                 <button data-lang="zh" class="active">繁體</button>
                 <button data-lang="en">English</button>
@@ -751,7 +752,6 @@
                 <span class="icon">❤️</span>
                 <span data-i18n="lives">生命</span>
                 <span class="value lives-val" id="livesDisplay">3</span>
-                <!-- 玩家受傷顯示區 -->
                 <div class="damage-taken-container" id="damageTakenContainer"></div>
             </div>
             <button class="btn-primary" id="btnAdventure" data-i18n="startAdventure">⚡ 開始冒險</button>
@@ -759,7 +759,6 @@
 
         <!-- ====== 敵人區域 ====== -->
         <div class="enemy-area relative" id="enemyArea">
-            <!-- 敵人內容 -->
             <div id="enemyContent">
                 <div class="enemy-avatar" id="enemyAvatar">
                     <span class="emoji-fallback">🪄</span>
@@ -774,11 +773,9 @@
                         <div class="enemy-hp-fill" id="enemyHpFill" style="width:0%;"></div>
                     </div>
                 </div>
-                <!-- 對敵傷害列表 -->
                 <div class="damage-dealt-container" id="damageDealtContainer"></div>
             </div>
 
-            <!-- 遊戲結束遮罩 -->
             <div class="game-over-overlay" id="gameOverOverlay">
                 <div class="big-text" id="gameOverTitle">💀 戰敗</div>
                 <div class="sub-text" id="gameOverSub">點擊「開始冒險」重新挑戰</div>
@@ -817,7 +814,6 @@
         <!-- ====== 操作區 ====== -->
         <div class="action-area">
             <button class="btn-record" id="btnRecord" disabled>
-                <span>🎙️</span>
                 <span data-i18n="startRecord">開始唸咒</span>
             </button>
             <div class="feedback" id="feedbackMsg" data-i18n="ready">準備就緒</div>
@@ -827,7 +823,7 @@
 
     <script>
         // ================================================================
-        //  1. 語言包
+        //  1. 語言包 (更新標題相關)
         // ================================================================
         const LANG = {
             zh: {
@@ -840,8 +836,8 @@
                 clickStart: '點擊「開始冒險」遭遇敵人',
                 selectSpell: '👆 請選擇一個部位來施展咒語',
                 ready: '準備就緒',
-                startRecord: '🎙️ 開始唸咒',
-                stopRecord: '⏹️ 停止錄音',
+                startRecord: '開始唸咒',
+                stopRecord: '停止錄音',
                 recording: '🔴 錄音中...',
                 recognizing: '🧠 辨識中...',
                 evaluating: '📊 評分中...',
@@ -897,8 +893,8 @@
                 clickStart: 'Click "Start" to encounter an enemy',
                 selectSpell: '👆 Select a body part to cast a spell',
                 ready: 'Ready',
-                startRecord: '🎙️ Speak',
-                stopRecord: '⏹️ Stop',
+                startRecord: 'Speak',
+                stopRecord: 'Stop',
                 recording: '🔴 Recording...',
                 recognizing: '🧠 Recognizing...',
                 evaluating: '📊 Evaluating...',
@@ -947,14 +943,14 @@
         };
 
         // ================================================================
-        //  2. 遊戲資料
+        //  2. 遊戲資料 (敵人血量提升至80, 標題已改)
         // ================================================================
         const ENEMIES = [
-            { id: 'dementor', name_zh: '攝魂怪', name_en: 'Dementor', emoji: '👻', hp: 60, hint_zh: '守護之力',
+            { id: 'dementor', name_zh: '攝魂怪', name_en: 'Dementor', emoji: '👻', hp: 80, hint_zh: '守護之力',
                 hint_en: 'Patronus' },
-            { id: 'voldemort', name_zh: '伏地魔', name_en: 'Voldemort', emoji: '🐍', hp: 60, hint_zh: '解除武器',
+            { id: 'voldemort', name_zh: '伏地魔', name_en: 'Voldemort', emoji: '🐍', hp: 80, hint_zh: '解除武器',
                 hint_en: 'Disarm' },
-            { id: 'malfoy', name_zh: '馬爾福', name_en: 'Malfoy', emoji: '🧙‍♂️', hp: 60, hint_zh: '冷靜', hint_en: 'Calm' }
+            { id: 'malfoy', name_zh: '馬爾福', name_en: 'Malfoy', emoji: '🧙‍♂️', hp: 80, hint_zh: '冷靜', hint_en: 'Calm' }
         ];
 
         const SPELLS = {
@@ -977,7 +973,7 @@
             '呼神護衛': '呼神护卫'
         };
 
-        // 狀態索引對應 (statusMap)
+        // 狀態索引對應
         const STATUS_INDEX = {
             default: 0,
             expelliarmus: 1,
@@ -1020,10 +1016,11 @@
             scriptNode: null,
             sourceNode: null,
             sampleRate: 16000,
-            // 傷害分開記錄
-            damageDealt: [], // 對敵人造成的傷害 [{text, cls}]
-            damageTaken: [], // 玩家受到的傷害 [{text}]
+            damageDealt: [],
+            damageTaken: [],
             battleProcessing: false,
+            // 錄音延遲優化
+            recordingInitPromise: null,
         };
 
         // ================================================================
@@ -1198,10 +1195,11 @@
         }
 
         // ================================================================
-        //  9. PCM 錄音（16kHz / 16bit / 單聲道）
+        //  9. PCM 錄音（優化版，減少延遲）
         // ================================================================
-        async function startPCMCapture() {
-            if (state.audioContext && state.audioContext.state === 'running') {
+        async function initAudioCapture() {
+            // 如果已經有流，直接返回
+            if (state.mediaStream && state.audioContext && state.audioContext.state === 'running') {
                 return;
             }
 
@@ -1239,23 +1237,38 @@
                     pcmChunks.push(int16);
                 };
 
-                source.connect(scriptNode);
-                scriptNode.connect(audioCtx.destination);
-
+                // 先不連接，等待開始錄音時再連接
+                // 但連接需要 audioContext 為 running，所以先 resume
                 await audioCtx.resume();
-                state.isRecording = true;
-                dom.btnRecord.classList.add('recording');
-                dom.btnRecord.querySelector('span:last-child').textContent = t('stopRecord');
-                setFeedback(t('recording'), 'info');
 
+                // 保存節點，但不連接（在 startRecording 時連接）
+                return true;
             } catch (err) {
-                console.error('錄音啟動失敗:', err);
-                setFeedback('❌ ' + (err.message || '無法存取麥克風'), 'error');
+                console.error('音頻初始化失敗:', err);
                 throw err;
             }
         }
 
-        function stopPCMCapture() {
+        function startRecording() {
+            if (!state.audioContext || !state.sourceNode || !state.scriptNode) {
+                throw new Error('音頻未初始化');
+            }
+            if (state.isRecording) return;
+
+            // 清空舊數據
+            state.pcmChunks = [];
+
+            // 連接節點
+            state.sourceNode.connect(state.scriptNode);
+            state.scriptNode.connect(state.audioContext.destination);
+
+            state.isRecording = true;
+            dom.btnRecord.classList.add('recording');
+            dom.btnRecord.querySelector('span:last-child').textContent = t('stopRecord');
+            setFeedback(t('recording'), 'info');
+        }
+
+        function stopRecordingAndGetPCM() {
             return new Promise((resolve) => {
                 if (!state.isRecording || !state.audioContext) {
                     resolve(null);
@@ -1265,6 +1278,13 @@
                 state.isRecording = false;
                 dom.btnRecord.classList.remove('recording');
                 dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
+
+                // 斷開節點
+                try {
+                    if (state.scriptNode) {
+                        state.scriptNode.disconnect();
+                    }
+                } catch (e) { /* ignore */ }
 
                 const chunks = state.pcmChunks;
                 let totalLen = 0;
@@ -1276,31 +1296,37 @@
                     offset += c.length;
                 }
 
-                try {
-                    if (state.scriptNode) {
-                        state.scriptNode.disconnect();
-                        state.scriptNode = null;
-                    }
-                    if (state.sourceNode) {
-                        state.sourceNode.disconnect();
-                        state.sourceNode = null;
-                    }
-                    if (state.audioContext) {
-                        state.audioContext.close().catch(() => {});
-                        state.audioContext = null;
-                    }
-                    if (state.mediaStream) {
-                        state.mediaStream.getTracks().forEach(t => t.stop());
-                        state.mediaStream = null;
-                    }
-                } catch (e) { /* ignore */ }
-
+                // 清理（保留音頻上下文供下次使用）
+                // 但為了避免重複初始化，保留上下文和節點，但中斷連接
                 state.pcmChunks = [];
-                dom.btnRecord.disabled = true;
 
                 const buffer = merged.buffer;
                 resolve(buffer);
             });
+        }
+
+        // 完全清理資源（在重置或切換場景時）
+        function cleanupAudio() {
+            try {
+                if (state.scriptNode) {
+                    state.scriptNode.disconnect();
+                    state.scriptNode = null;
+                }
+                if (state.sourceNode) {
+                    state.sourceNode.disconnect();
+                    state.sourceNode = null;
+                }
+                if (state.audioContext) {
+                    state.audioContext.close().catch(() => {});
+                    state.audioContext = null;
+                }
+                if (state.mediaStream) {
+                    state.mediaStream.getTracks().forEach(t => t.stop());
+                    state.mediaStream = null;
+                }
+            } catch (e) { /* ignore */ }
+            state.isRecording = false;
+            state.pcmChunks = [];
         }
 
         // ================================================================
@@ -1436,21 +1462,19 @@
         }
 
         // ================================================================
-        //  11. 評分（字符集交集，不考慮順序）
+        //  11. 評分（字符集交集）
         // ================================================================
         function evaluateSpell(recognizedText, targetSpell) {
             const targetSimplified = toSimplified(targetSpell);
             const cleanTarget = removePunctuation(targetSimplified);
             const cleanRecognized = removePunctuation(recognizedText);
 
-            // 統計目標字符出現次數
             const targetCount = {};
             for (const ch of cleanTarget) {
                 targetCount[ch] = (targetCount[ch] || 0) + 1;
             }
 
             let matchCount = 0;
-            // 遍歷識別字符串，匹配字符
             for (const ch of cleanRecognized) {
                 if (targetCount[ch] && targetCount[ch] > 0) {
                     matchCount++;
@@ -1464,16 +1488,14 @@
         }
 
         // ================================================================
-        //  12. 戰鬥邏輯（含狀態延遲切換）
+        //  12. 戰鬥邏輯（修改 overkill 扣分為10，允許負分）
         // ================================================================
         async function processBattle(effect, spellKey, enemy, score) {
             if (!enemy) return;
-
             if (state.battleProcessing) return;
             state.battleProcessing = true;
             updateUI();
 
-            // 計算傷害
             let damage = 0;
             let isCritical = false;
             let killed = false;
@@ -1491,7 +1513,7 @@
                     break;
                 case 'overkill':
                     damage = Math.round(score * 5);
-                    state.score = Math.max(0, state.score - 5);
+                    state.score -= 10; // 扣10分，允許負數
                     isCritical = true;
                     break;
                 default:
@@ -1501,8 +1523,7 @@
             const actualDamage = Math.min(damage, state.enemyHp);
             state.enemyHp -= actualDamage;
 
-            // 判斷是否擊殺
-            if (state.enemyHp <= 0 || damage >= 60) {
+            if (state.enemyHp <= 0 || damage >= 80) {
                 state.enemyHp = 0;
                 killed = true;
                 let bonus = 10;
@@ -1512,16 +1533,11 @@
                 setFeedback(t('scoreGain', { n: bonus }) + ' 🎉', 'success');
             }
 
-            // ---- 處理狀態切換 ----
-
-            // 1. 無效攻擊：直接反擊，不顯示攻擊效果
+            // 無效攻擊：直接反擊
             if (effect === 'ineffective') {
-                // 記錄反擊傷害（但無效攻擊本身無傷害，不記錄攻擊傷害）
-                // 直接反擊
                 state.enemyStatus = 'attacking';
                 state.lives -= 1;
                 playerLostLife = true;
-                // 記錄玩家受傷
                 state.damageTaken.push({ text: '-1 ❤️‍🔥' });
                 if (state.lives <= 0) {
                     state.lives = 0;
@@ -1530,20 +1546,17 @@
                 renderEnemy();
                 updateUI();
                 state.battleProcessing = false;
-                if (state.gameOver) {
-                    showGameOver(false);
-                }
+                if (state.gameOver) showGameOver(false);
                 return;
             }
 
-            // 2. 有效/弱效/超效：先顯示攻擊效果
+            // 有效/弱效/超效：顯示攻擊效果
             let attackStatus = 'default';
             if (effect === 'effective') attackStatus = 'expelliarmus';
             else if (effect === 'weak') attackStatus = 'stupefy';
             else if (effect === 'overkill') attackStatus = 'petrificus';
             else attackStatus = 'default';
 
-            // 記錄對敵傷害（如果不是無效）
             let damageText = `-${actualDamage}`;
             let damageCls = '';
             if (killed) damageCls = 'critical';
@@ -1551,27 +1564,21 @@
             if (!killed && actualDamage === 0) {
                 damageCls = 'ineffective';
             }
-            // 添加對敵傷害（如果傷害>0 或 擊殺）
             if (actualDamage > 0 || killed) {
                 state.damageDealt.push({ text: damageText, cls: damageCls });
             } else {
-                // 0傷害但非無效（如弱效导致0？）也记录为无效
                 if (effect !== 'ineffective') {
                     state.damageDealt.push({ text: '0', cls: 'ineffective' });
                 }
             }
 
-            // 設置攻擊狀態並渲染
             state.enemyStatus = attackStatus;
             renderEnemy();
             updateUI();
 
-            // 等待2秒顯示攻擊效果
             await sleep(2000);
 
-            // 3. 根據擊殺或反擊決定後續狀態
             if (killed) {
-                // 擊殺 -> 顯示擊敗圖片
                 state.enemyStatus = 'defeated';
                 state.enemyDefeated = true;
                 renderEnemy();
@@ -1579,7 +1586,6 @@
                 state.battleProcessing = false;
                 return;
             } else {
-                // 未擊殺：判斷是否反擊
                 let counterAttack = false;
                 if (effect === 'weak') {
                     if (Math.random() >= 0.5) counterAttack = true;
@@ -1600,11 +1606,8 @@
                     }
                     renderEnemy();
                     updateUI();
-                    if (state.gameOver) {
-                        showGameOver(false);
-                    }
+                    if (state.gameOver) showGameOver(false);
                 } else {
-                    // 不反擊，恢復預設
                     state.enemyStatus = 'default';
                     renderEnemy();
                     updateUI();
@@ -1618,11 +1621,11 @@
         //  13. UI 更新
         // ================================================================
         function updateUI() {
+            // 顯示分數（允許負數）
             dom.scoreDisplay.textContent = state.score;
             dom.livesDisplay.textContent = state.lives;
             dom.livesDisplay.style.color = state.lives <= 1 ? '#ff6b5a' : '#f0e6d3';
 
-            // 更新玩家受傷顯示
             const takenContainer = dom.damageTakenContainer;
             takenContainer.innerHTML = '';
             for (const item of state.damageTaken) {
@@ -1664,7 +1667,6 @@
         function renderEnemy() {
             const enemy = state.currentEnemy || state.lastEnemy;
 
-            // 更新對敵傷害列表
             const dealtContainer = dom.damageDealtContainer;
             dealtContainer.innerHTML = '';
             for (const item of state.damageDealt) {
@@ -1783,7 +1785,7 @@
         }
 
         // ================================================================
-        //  14. 核心流程：冒險、戰鬥、語音
+        //  14. 核心流程（優化錄音）
         // ================================================================
 
         function startAdventure() {
@@ -1804,7 +1806,6 @@
         }
 
         function spawnEnemy() {
-            // 清空所有傷害記錄
             state.damageDealt = [];
             state.damageTaken = [];
 
@@ -1857,6 +1858,9 @@
             dom.gameOverOverlay.classList.remove('show');
             dom.btnAdventure.className = 'btn-primary';
 
+            // 清理音頻資源
+            cleanupAudio();
+
             renderEnemy();
             updateSpellDisplay();
             setFeedback(t('ready'), '');
@@ -1885,6 +1889,7 @@
             setFeedback(`✨ ${t('spellHint')}: ${getSpellDisplay(pos).chars}`, 'info');
         }
 
+        // 優化後的錄音切換
         async function toggleRecording() {
             if (state.isRecording) {
                 await stopAndRecognize();
@@ -1904,14 +1909,31 @@
                 return;
             }
 
+            // 立即更新按鈕為錄音狀態（變紅，禁用）
+            dom.btnRecord.disabled = true;
+            dom.btnRecord.classList.add('recording');
+            dom.btnRecord.querySelector('span:last-child').textContent = t('stopRecord');
+            setFeedback(t('recording'), 'info');
+
             try {
-                await startPCMCapture();
+                // 初始化音頻（如果尚未初始化）
+                if (!state.audioContext) {
+                    await initAudioCapture();
+                }
+                // 開始錄音（連接節點）
+                startRecording();
                 dom.btnRecord.disabled = false;
+                // 確保按鈕狀態正確
+                dom.btnRecord.classList.add('recording');
                 dom.btnRecord.querySelector('span:last-child').textContent = t('stopRecord');
-                setFeedback(t('recording'), 'info');
             } catch (err) {
-                setFeedback('❌ ' + (err.message || '錄音失敗'), 'error');
-                dom.btnRecord.disabled = true;
+                console.error('錄音啟動失敗:', err);
+                setFeedback('❌ ' + (err.message || '無法存取麥克風'), 'error');
+                dom.btnRecord.classList.remove('recording');
+                dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
+                dom.btnRecord.disabled = false;
+                // 清理
+                cleanupAudio();
             }
         }
 
@@ -1924,12 +1946,14 @@
             state.recognizing = true;
 
             try {
-                const pcmBuffer = await stopPCMCapture();
+                // 停止錄音並獲取 PCM
+                const pcmBuffer = await stopRecordingAndGetPCM();
                 if (!pcmBuffer || pcmBuffer.byteLength === 0) {
                     setFeedback('⚠️ 沒有錄到聲音，請再試一次', 'error');
                     state.recognizing = false;
                     dom.btnRecord.disabled = false;
                     dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
+                    dom.btnRecord.classList.remove('recording');
                     return;
                 }
 
@@ -1941,6 +1965,7 @@
                     setFeedback('⚠️ 未辨識到語音，請再試一次', 'error');
                     dom.btnRecord.disabled = false;
                     dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
+                    dom.btnRecord.classList.remove('recording');
                     return;
                 }
 
@@ -1966,25 +1991,15 @@
                     if (state.enemyDefeated) {
                         dom.btnAdventure.disabled = false;
                     }
-                    const hasEnemy = state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver;
-                    dom.btnRecord.disabled = !(hasEnemy && !state.battleProcessing && state.selectedPos);
-                    dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
                 }
 
             } catch (err) {
                 console.error('辨識錯誤:', err);
                 setFeedback('❌ ' + (err.message || '辨識失敗，請再試一次'), 'error');
                 state.recognizing = false;
-                dom.btnRecord.disabled = false;
-                dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
-                if (state.isRecording) {
-                    try { await stopPCMCapture(); } catch (e) { /* ignore */ }
-                }
             } finally {
                 state.recognizing = false;
-                if (state.isRecording) {
-                    try { await stopPCMCapture(); } catch (e) { /* ignore */ }
-                }
+                // 恢復錄音按鈕狀態
                 dom.btnRecord.classList.remove('recording');
                 dom.btnRecord.querySelector('span:last-child').textContent = t('startRecord');
                 const hasEnemy = state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver;
@@ -2035,7 +2050,7 @@
             updateUI();
             setFeedback(t('ready'), '');
             dom.btnRecord.disabled = true;
-            console.log('⚡ 哈利波特 · 魔法對決 已啟動 (全屏模式)');
+            console.log('⚡ 可譽波特 · 魔法對決 已啟動 (全屏模式)');
             console.log('📖 請確保在 HTTPS 環境下運行，並允許麥克風權限');
         }
 
