@@ -870,6 +870,7 @@
                 weak: '⚠️ 弱效',
                 ineffective: '❌ 無效',
                 overkill: '🔥 超效！',
+                overkillPenalty: '🔥 超效！過度使用武力 -10 分',
                 damage: '傷害',
                 hp: 'HP',
                 enemy: '敵人',
@@ -928,6 +929,7 @@
                 weak: '⚠️ Weak',
                 ineffective: '❌ Ineffective',
                 overkill: '🔥 Overkill!',
+                overkillPenalty: '🔥 Overkill! Excessive force -10 pts',
                 damage: 'Damage',
                 hp: 'HP',
                 enemy: 'Enemy',
@@ -1013,6 +1015,7 @@
             currentEnemy: null,
             enemyHp: 0,
             enemyStatus: 'default',
+            lastEffect: null,       // 記錄最後一次咒語效果
             isRecording: false,
             recognizing: false,
             evaluating: false,
@@ -1504,13 +1507,35 @@
         }
 
         // ================================================================
-        //  12. 戰鬥邏輯（修正圖片切換）
+        //  12. 戰鬥邏輯（修正）
         // ================================================================
         async function processBattle(effect, spellKey, enemy, score) {
             if (!enemy) return;
             if (state.battleProcessing) return;
             state.battleProcessing = true;
             updateUI();
+
+            // 記錄效果
+            state.lastEffect = effect;
+
+            // 如果評分為 0，直接反擊，不顯示攻擊動畫
+            if (score === 0) {
+                // 直接反擊
+                state.enemyStatus = 'attacking';
+                state.lives -= 1;
+                state.damageTaken.push({ text: '-1 ❤️‍🔥' });
+                if (state.lives <= 0) {
+                    state.lives = 0;
+                    state.gameOver = true;
+                }
+                renderEnemy();
+                updateUI();
+                if (state.gameOver) {
+                    showGameOver(false);
+                }
+                state.battleProcessing = false;
+                return;
+            }
 
             // 計算傷害
             let damage = 0;
@@ -1531,6 +1556,8 @@
                 case 'overkill':
                     damage = Math.round(score * 5);
                     state.score = state.score - 10;
+                    // 顯示扣分提示
+                    setFeedback(t('overkillPenalty'), 'error');
                     isCritical = true;
                     break;
                 default:
@@ -1552,7 +1579,6 @@
 
             // 決定攻擊狀態（顯示效果）
             let attackStatus = 'default';
-            // 根據效果和咒語位置映射
             const pos = state.selectedPos;
             if (effect === 'effective') {
                 attackStatus = 'expelliarmus';
@@ -1578,12 +1604,7 @@
             if (actualDamage > 0 || killed) {
                 state.damageDealt.push({ text: damageText, cls: damageCls });
             } else {
-                // 0傷害但非無效（如弱效导致0）也记录为无效
-                if (effect !== 'ineffective') {
-                    state.damageDealt.push({ text: '0', cls: 'ineffective' });
-                } else {
-                    state.damageDealt.push({ text: '0', cls: 'ineffective' });
-                }
+                state.damageDealt.push({ text: '0', cls: 'ineffective' });
             }
 
             // 1. 先顯示攻擊效果
@@ -1606,7 +1627,7 @@
                 // 未擊殺：判斷是否反擊
                 let counterAttack = false;
                 if (effect === 'ineffective') {
-                    counterAttack = true; // 無效必定反擊
+                    counterAttack = true;
                 } else if (effect === 'weak') {
                     counterAttack = (Math.random() >= 0.5);
                 } else if (effect === 'effective' || effect === 'overkill') {
@@ -1733,19 +1754,27 @@
                 <span class="sub">${hint ? '✨ ' + hint : ''}</span>
             `;
 
+            // 狀態文字：根據 enemyStatus 和 lastEffect 決定
             let statusText = '';
             if (state.enemyStatus === 'defeated') {
                 statusText = t('enemyDefeated');
             } else if (state.enemyStatus === 'attacking') {
                 statusText = t('enemyAttacking');
             } else if (state.enemyStatus !== 'default') {
-                const effectMap = {
-                    'expelliarmus': t('effect_effective'),
-                    'stupefy': t('effect_weak'),
-                    'petrificus': t('effect_overkill'),
-                    'patronus': t('effect_effective'),
-                };
-                statusText = effectMap[state.enemyStatus] || '';
+                // 攻擊狀態，根據 lastEffect 顯示具體效果
+                const effect = state.lastEffect;
+                if (effect === 'effective') {
+                    statusText = t('effect_effective');
+                } else if (effect === 'weak') {
+                    statusText = t('effect_weak');
+                } else if (effect === 'overkill') {
+                    statusText = t('effect_overkill');
+                } else if (effect === 'ineffective') {
+                    statusText = t('effect_ineffective');
+                } else {
+                    // 若無效果，顯示默認
+                    statusText = `${t('hp')}: ${state.enemyHp}/${enemy.hp}`;
+                }
             } else {
                 statusText = `${t('hp')}: ${state.enemyHp}/${enemy.hp}`;
             }
@@ -1829,6 +1858,7 @@
         async function spawnEnemy() {
             state.damageDealt = [];
             state.damageTaken = [];
+            state.lastEffect = null;  // 重置效果
 
             preloadMicrophone().catch(() => {});
 
@@ -1877,6 +1907,7 @@
             state.battleProcessing = false;
             state.damageDealt = [];
             state.damageTaken = [];
+            state.lastEffect = null;
 
             dom.gameOverOverlay.classList.remove('show');
             dom.btnAdventure.className = 'btn-primary';
