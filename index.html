@@ -34,7 +34,7 @@
             display: flex;
             flex-direction: column;
             background: rgba(11, 14, 20, 0.92);
-            backdrop-filter: blur(8px);
+            /* 優化：移除全屏 backdrop-filter，避免 GPU 持續合成模糊層 */
             padding: 18px 28px 22px;
             overflow: hidden;
             border: none;
@@ -438,11 +438,22 @@
             opacity: 1;
         }
 
-        /* 最有效咒語 — 邊緣金光引導 */
+        /* 最有效咒語 — 邊緣金光引導
+           優化：以 ::before 偽元素配合 opacity 動畫，避免每幀重繪 box-shadow */
         .spell-btn.best {
             border-color: #f6d365;
             color: #f6d365;
+        }
+        .spell-btn.best::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 24px;
+            border: 2px solid rgba(246, 211, 101, 0.9);
+            box-shadow: 0 0 24px 4px rgba(246, 211, 101, 0.55);
+            opacity: 0.5;
             animation: goldenGlow 1.7s ease-in-out infinite;
+            pointer-events: none;
         }
         .spell-btn.best .emoji {
             filter: drop-shadow(0 0 10px rgba(246, 211, 101, 0.55));
@@ -450,16 +461,10 @@
         @keyframes goldenGlow {
             0%,
             100% {
-                box-shadow:
-                    0 0 10px 2px rgba(246, 211, 101, 0.45),
-                    0 0 26px 6px rgba(212, 175, 55, 0.22),
-                    inset 0 0 14px rgba(246, 211, 101, 0.12);
+                opacity: 0.35;
             }
             50% {
-                box-shadow:
-                    0 0 22px 6px rgba(246, 211, 101, 0.9),
-                    0 0 52px 16px rgba(212, 175, 55, 0.42),
-                    inset 0 0 26px rgba(246, 211, 101, 0.3);
+                opacity: 1;
             }
         }
 
@@ -586,7 +591,9 @@
             position: absolute;
             inset: 0;
             background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(6px);
+            /* 優化：降低模糊強度（僅在結束時顯示） */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             border-radius: 28px;
             z-index: 30;
             justify-content: center;
@@ -747,6 +754,9 @@
             .spell-btn .label {
                 font-size: 1.05rem;
                 letter-spacing: 1px;
+            }
+            .spell-btn.best::before {
+                border-radius: 18px;
             }
             .spell-display .spell-chars {
                 font-size: 2.6rem;
@@ -1135,6 +1145,11 @@
             mediaStream: null,
             scriptNode: null,
             sourceNode: null,
+            /* 新增：AudioWorklet 節點與零增益節點 */
+            workletNode: null,
+            silentGain: null,
+            /* 新增：是否已取得過麥克風權限 */
+            micPermissionGranted: false,
             sampleRate: 16000,
             damageDealt: [],
             damageTaken: [],
@@ -1325,11 +1340,42 @@
         }
 
         // ================================================================
-        //  9. 優化的 PCM 錄音
+        //  9. 低功耗 PCM 錄音（AudioWorklet 優先，回退 ScriptProcessor）
         // ================================================================
 
+        /* AudioWorklet 處理器腳本（以 Blob URL 動態註冊，避免外部檔案依賴） */
+        let pcmProcessorUrl = null;
+        function getPcmProcessorUrl() {
+            if (pcmProcessorUrl) return pcmProcessorUrl;
+            const code = `
+                class PCMProcessor extends AudioWorkletProcessor {
+                    process(inputs) {
+                        const input = inputs[0];
+                        if (!input || !input[0]) return true;
+                        const channelData = input[0];
+                        const len = channelData.length;
+                        const int16 = new Int16Array(len);
+                        for (let i = 0; i < len; i++) {
+                            const s = Math.max(-1, Math.min(1, channelData[i]));
+                            int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                        }
+                        this.port.postMessage(int16.buffer, [int16.buffer]);
+                        return true;
+                    }
+                }
+                registerProcessor('pcm-processor', PCMProcessor);
+            `;
+            const blob = new Blob([code], { type: 'application/javascript' });
+            pcmProcessorUrl = URL.createObjectURL(blob);
+            return pcmProcessorUrl;
+        }
+
+        /*
+         * 預先取得麥克風權限（取得後立即釋放設備，不長期占用麥克風硬件）
+         * 這樣後續錄音時 getUserMedia 會立即返回，且不再彈出權限詢問。
+         */
         async function preloadMicrophone() {
-            if (state.mediaStream) return;
+            if (state.micPermissionGranted) return;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: {
@@ -1340,8 +1386,10 @@
                         autoGainControl: false,
                     }
                 });
-                state.mediaStream = stream;
-                console.log('✅ 麥克風已預先授權');
+                /* 立即停止 tracks，避免麥克風硬體長期通電 */
+                stream.getTracks().forEach(t => t.stop());
+                state.micPermissionGranted = true;
+                console.log('✅ 麥克風權限已取得（設備已釋放，不佔用電源）');
             } catch (err) {
                 console.warn('⚠️ 預先取得麥克風失敗，將在錄音時重試', err);
             }
@@ -1353,52 +1401,70 @@
             }
 
             try {
-                let stream = state.mediaStream;
-                if (!stream) {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        audio: {
-                            sampleRate: 16000,
-                            channelCount: 1,
-                            echoCancellation: false,
-                            noiseSuppression: false,
-                            autoGainControl: false,
-                        }
-                    });
-                    state.mediaStream = stream;
-                }
+                /* 錄音時才真正獲取麥克風，避免長期占用 */
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        sampleRate: 16000,
+                        channelCount: 1,
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                    }
+                });
+                state.mediaStream = stream;
 
-                let audioCtx = state.audioContext;
-                if (audioCtx && audioCtx.state === 'suspended') {
-                    await audioCtx.resume();
-                } else if (!audioCtx) {
-                    audioCtx = new AudioContext({ sampleRate: 16000 });
-                    state.audioContext = audioCtx;
-                } else {
-                    audioCtx = new AudioContext({ sampleRate: 16000 });
-                    state.audioContext = audioCtx;
-                }
+                const audioCtx = new AudioContext({ sampleRate: 16000 });
+                state.audioContext = audioCtx;
 
                 const source = audioCtx.createMediaStreamSource(stream);
                 state.sourceNode = source;
 
-                const scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
-                state.scriptNode = scriptNode;
-
                 const pcmChunks = [];
                 state.pcmChunks = pcmChunks;
 
-                scriptNode.onaudioprocess = (event) => {
-                    const inputData = event.inputBuffer.getChannelData(0);
-                    const int16 = new Int16Array(inputData.length);
-                    for (let i = 0; i < inputData.length; i++) {
-                        const s = Math.max(-1, Math.min(1, inputData[i]));
-                        int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-                    }
-                    pcmChunks.push(int16);
-                };
+                /* 優先使用 AudioWorklet：運行於獨立音頻線程，不佔用主線程 */
+                let workletUsed = false;
+                if (audioCtx.audioWorklet && typeof audioCtx.audioWorklet.addModule === 'function') {
+                    try {
+                        await audioCtx.audioWorklet.addModule(getPcmProcessorUrl());
+                        const workletNode = new AudioWorkletNode(audioCtx, 'pcm-processor');
+                        state.workletNode = workletNode;
+                        workletNode.port.onmessage = (e) => {
+                            pcmChunks.push(new Int16Array(e.data));
+                        };
+                        source.connect(workletNode);
 
-                source.connect(scriptNode);
-                scriptNode.connect(audioCtx.destination);
+                        /* 透過零增益節點連到 destination，驅動 worklet 執行，同時不產生回放 */
+                        const silentGain = audioCtx.createGain();
+                        silentGain.gain.value = 0;
+                        workletNode.connect(silentGain);
+                        silentGain.connect(audioCtx.destination);
+                        state.silentGain = silentGain;
+
+                        workletUsed = true;
+                        console.log('✅ 使用 AudioWorklet 錄音（低功耗模式）');
+                    } catch (err) {
+                        console.warn('⚠️ AudioWorklet 初始化失敗，回退到 ScriptProcessor', err);
+                    }
+                }
+
+                /* 回退方案：舊版瀏覽器使用 ScriptProcessor（會佔用主線程） */
+                if (!workletUsed) {
+                    const scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
+                    state.scriptNode = scriptNode;
+                    scriptNode.onaudioprocess = (event) => {
+                        const inputData = event.inputBuffer.getChannelData(0);
+                        const int16 = new Int16Array(inputData.length);
+                        for (let i = 0; i < inputData.length; i++) {
+                            const s = Math.max(-1, Math.min(1, inputData[i]));
+                            int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                        }
+                        pcmChunks.push(int16);
+                    };
+                    source.connect(scriptNode);
+                    scriptNode.connect(audioCtx.destination);
+                    console.log('⚠️ 使用 ScriptProcessor 錄音（回退方案，耗電較高）');
+                }
 
                 if (audioCtx.state === 'suspended') {
                     await audioCtx.resume();
@@ -1419,7 +1485,7 @@
 
         function stopPCMCapture() {
             return new Promise((resolve) => {
-                if (!state.isRecording || !state.audioContext) {
+                if (!state.isRecording) {
                     resolve(null);
                     return;
                 }
@@ -1429,6 +1495,7 @@
                 const textSpan = dom.btnRecord.querySelector('span:last-child');
                 textSpan.textContent = t('startRecord');
 
+                /* 合併 PCM 數據 */
                 const chunks = state.pcmChunks;
                 let totalLen = 0;
                 for (const c of chunks) totalLen += c.length;
@@ -1439,25 +1506,48 @@
                     offset += c.length;
                 }
 
+                /* 斷開並清理所有音頻節點 */
                 try {
+                    if (state.workletNode) {
+                        state.workletNode.port.onmessage = null;
+                        state.workletNode.disconnect();
+                        state.workletNode = null;
+                    }
                     if (state.scriptNode) {
+                        state.scriptNode.onaudioprocess = null;
                         state.scriptNode.disconnect();
                         state.scriptNode = null;
+                    }
+                    if (state.silentGain) {
+                        state.silentGain.disconnect();
+                        state.silentGain = null;
                     }
                     if (state.sourceNode) {
                         state.sourceNode.disconnect();
                         state.sourceNode = null;
                     }
-                    if (state.audioContext && state.audioContext.state === 'running') {
-                        state.audioContext.suspend().catch(() => {});
-                    }
                 } catch (e) { /* ignore */ }
+
+                /* 徹底關閉 AudioContext，釋放音頻硬件資源（之前只用 suspend，並未真正釋放） */
+                if (state.audioContext) {
+                    const ctx = state.audioContext;
+                    state.audioContext = null;
+                    ctx.close().catch(() => {});
+                }
+
+                /* 停止所有麥克風 tracks，讓麥克風硬件停止供電 */
+                if (state.mediaStream) {
+                    const stream = state.mediaStream;
+                    state.mediaStream = null;
+                    try {
+                        stream.getTracks().forEach(t => t.stop());
+                    } catch (e) { /* ignore */ }
+                }
 
                 state.pcmChunks = [];
                 dom.btnRecord.disabled = true;
 
-                const buffer = merged.buffer;
-                resolve(buffer);
+                resolve(merged.buffer);
             });
         }
 
@@ -1599,33 +1689,29 @@
 
         /**
          * 使用 pinyin-pro 獲取一個漢字的完整拼音資訊（含聲母、韻母、聲調數字）
-         * 返回陣列，每個元素對應一個音節
          */
         function getPinyinParts(text) {
             const clean = removePunctuation(text);
             if (!clean) return [];
-            // 使用 type: 'all' 一次取得聲母、韻母、聲調等所有資訊
             const result = pinyinPro.pinyin(clean, { type: 'all' });
-            // 只保留漢字的音節
             return result.filter(item => item.isZh).map(item => ({
                 origin: item.origin,
                 initial: item.initial || '',
                 final: item.final || '',
-                num: item.num,  // 1-4, 轻声为 0
+                num: item.num,
             }));
         }
 
         /**
          * 比較單個音節的三個維度（聲母、韻母、聲調），每個維度錯誤扣 1/3 分
-         * 返回 0~1 之間的分數
          */
         function compareSyllable(recognizedSyl, targetSyl) {
             let correct = 0;
 
-            // 聲母比對
+            /* 聲母比對 */
             if (recognizedSyl.initial === targetSyl.initial) correct++;
 
-            // 韻母比對（去除聲調符號後比較基礎韻母）
+            /* 韻母比對（去除聲調符號後比較基礎韻母） */
             const stripTone = (s) => s.replace(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/g,
                 m => ({ 'ā': 'a', 'á': 'a', 'ǎ': 'a', 'à': 'a', 'ē': 'e', 'é': 'e', 'ě': 'e', 'è': 'e',
                     'ī': 'i', 'í': 'i', 'ǐ': 'i', 'ì': 'i', 'ō': 'o', 'ó': 'o', 'ǒ': 'o', 'ò': 'o',
@@ -1633,15 +1719,14 @@
                 }[m] || m));
             if (stripTone(recognizedSyl.final) === stripTone(targetSyl.final)) correct++;
 
-            // 聲調比對（數字）
+            /* 聲調比對 */
             if (recognizedSyl.num === targetSyl.num) correct++;
 
             return correct / 3;
         }
 
         /**
-         * 評分主函數：
-         * 如果識別出多個字，對每個字單獨評分（與目標咒語比較），只取最高分的那個字的分數
+         * 評分主函數：如果識別出多個字，對每個字單獨評分，只取最高分的那個字的分數
          */
         function evaluateSpell(recognizedText, targetSpell) {
             const targetSimplified = toSimplified(targetSpell);
@@ -1659,10 +1744,8 @@
                 return { score: 0, matchCount: 0, total: 1, recognized: cleanRecognized, target: cleanTarget };
             }
 
-            // 目標通常是一個字，取第一個音節作為基準
             const targetSyl = targetSyls[0];
 
-            // 對識別出的每個字單獨評分，取最高分
             let bestScore = 0;
             for (const recSyl of recSyls) {
                 const s = compareSyllable(recSyl, targetSyl);
@@ -1869,11 +1952,9 @@
 
             dom.btnAdventure.disabled = state.battleProcessing;
 
-            // 以金光標示最有效的咒語
             updateBestSpellGlow();
         }
 
-        // 標示對當前敵人「最有效」的咒語按鈕（金光引導）
         function updateBestSpellGlow() {
             const enemy = state.currentEnemy;
             const active = !!(enemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver);
@@ -1888,9 +1969,15 @@
             });
         }
 
+        /* 頭像緩存：僅在敵人 ID 或狀態變化時重建 DOM，避免重複創建 <img> */
+        let lastRenderedEnemyId = null;
+        let lastRenderedStatusIdx = null;
+        const avatarFailCache = new Set();
+
         function renderEnemy() {
             const enemy = state.currentEnemy;
 
+            /* 傷害列表 */
             const dealtContainer = dom.damageDealtContainer;
             dealtContainer.innerHTML = '';
             for (const item of state.damageDealt) {
@@ -1901,7 +1988,11 @@
             }
 
             if (!enemy) {
-                dom.enemyAvatar.innerHTML = `<span class="emoji-fallback">🪄</span>`;
+                if (lastRenderedEnemyId !== null) {
+                    dom.enemyAvatar.innerHTML = `<span class="emoji-fallback">🪄</span>`;
+                    lastRenderedEnemyId = null;
+                    lastRenderedStatusIdx = null;
+                }
                 dom.enemyName.innerHTML = `<span data-i18n="waiting">${t('waiting')}</span>`;
                 dom.enemyStatusText.textContent = t('clickStart');
                 dom.enemyHpFill.style.width = '0%';
@@ -1910,30 +2001,46 @@
             }
 
             const name = getEnemyName(enemy);
-            const hpPercent = state.enemyHp > 0 ? (state.enemyHp / enemy.hp) * 100 : 0;
-
             const statusIdx = STATUS_INDEX[state.enemyStatus] ?? 0;
-            const imgPath = `images/${enemy.id}_${statusIdx}.png`;
-            const avatarEl = dom.enemyAvatar;
-            const img = document.createElement('img');
-            img.onload = () => {
-                avatarEl.innerHTML = '';
-                avatarEl.appendChild(img);
-            };
-            img.onerror = () => {
-                avatarEl.innerHTML = `<span class="emoji-fallback">${enemy.emoji}</span>`;
-            };
-            img.src = imgPath;
-            img.alt = name;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
+
+            /* 只在敵人 ID 或狀態變化時更新頭像，避免每次 UI 更新都重建 <img> */
+            if (lastRenderedEnemyId !== enemy.id || lastRenderedStatusIdx !== statusIdx) {
+                lastRenderedEnemyId = enemy.id;
+                lastRenderedStatusIdx = statusIdx;
+
+                const cacheKey = `${enemy.id}_${statusIdx}`;
+                const avatarEl = dom.enemyAvatar;
+
+                if (avatarFailCache.has(cacheKey)) {
+                    avatarEl.innerHTML = `<span class="emoji-fallback">${enemy.emoji}</span>`;
+                } else {
+                    const img = document.createElement('img');
+                    img.onload = () => {
+                        /* 防止加載完成時敵人已切換 */
+                        if (lastRenderedEnemyId === enemy.id && lastRenderedStatusIdx === statusIdx) {
+                            avatarEl.innerHTML = '';
+                            avatarEl.appendChild(img);
+                        }
+                    };
+                    img.onerror = () => {
+                        avatarFailCache.add(cacheKey);
+                        if (lastRenderedEnemyId === enemy.id && lastRenderedStatusIdx === statusIdx) {
+                            avatarEl.innerHTML = `<span class="emoji-fallback">${enemy.emoji}</span>`;
+                        }
+                    };
+                    img.src = `images/${cacheKey}.png`;
+                    img.alt = name;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                }
+            }
 
             dom.enemyName.innerHTML = `<span>${name}</span>`;
 
-            // 只顯示血量，不使用文字標記效果或狀態
             dom.enemyStatusText.textContent = `${t('hp')}: ${Math.max(0, state.enemyHp)}/${enemy.hp}`;
 
+            const hpPercent = state.enemyHp > 0 ? (state.enemyHp / enemy.hp) * 100 : 0;
             dom.enemyHpFill.style.width = Math.max(0, hpPercent) + '%';
             dom.enemyHpFill.className = 'enemy-hp-fill' + (hpPercent < 25 ? ' low' : '');
 
@@ -2111,7 +2218,6 @@
                 el.classList.toggle('active', el.dataset.pos === pos);
             });
 
-            // 咒語名稱一律顯示中文（不隨語言切換翻譯）
             const spellInfo = getSpellDisplay(pos);
             const spellName = spellInfo.chars;
             setFeedback(`✨ ${spellName}`, 'info');
@@ -2265,7 +2371,6 @@
         }
 
         function init() {
-            // 確認 pinyin-pro 已載入
             if (typeof pinyinPro === 'undefined') {
                 console.error('❌ pinyin-pro 未載入，語音評分功能可能受影響');
             } else {
@@ -2278,8 +2383,9 @@
             updateUI();
             setFeedback(t('ready'), '');
             dom.btnRecord.disabled = true;
+            /* 預先取得麥克風權限（取得後立即釋放設備） */
             preloadMicrophone().catch(() => {});
-            console.log('⚡ 可譽波特 · 魔法對決 已啟動 (最高分單字評分版)');
+            console.log('⚡ 可譽波特 · 魔法對決 已啟動 (低功耗優化版)');
             setTimeout(() => startAdventure(), 300);
         }
 
