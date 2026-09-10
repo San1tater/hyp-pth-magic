@@ -206,46 +206,60 @@
             background: linear-gradient(135deg, #7a8a9a, #5a6a7a);
         }
 
-        /* ===== 敵人區域 — 佔據主要空間，不被壓縮 ===== */
-        .enemy-area {
+        /* ===== 主區域 — 左右佈局 ===== */
+        .main-area {
             flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: row;
+            gap: 18px;
+            margin-bottom: 14px;
+        }
+
+        /* ===== 左側：敵人區域 ===== */
+        .enemy-area {
+            flex: 1 1 56%;
+            min-width: 0;
             min-height: 0;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 28px;
-            padding: 18px 24px 16px;
-            margin-bottom: 14px;
+            padding: 18px;
             border: 1px solid rgba(212, 175, 55, 0.05);
             position: relative;
             display: flex;
             align-items: center;
-            transition: all 0.3s ease;
+            justify-content: center;
             overflow: hidden;
         }
 
-        /* 敵人內容：頭像、資訊、傷害橫向排列 */
+        /* 敵人內容：垂直排列，頭像為主 */
         #enemyContent {
             width: 100%;
+            height: 100%;
+            min-height: 0;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 24px;
-            flex-wrap: nowrap;
+            justify-content: center;
+            gap: 14px;
         }
 
         .enemy-avatar {
-            flex-shrink: 0;
-            width: 140px;
-            height: 140px;
+            flex: 0 0 auto;
+            height: 70%;
+            aspect-ratio: 1 / 1;
+            max-width: 88%;
             border-radius: 50%;
             background: rgba(30, 34, 50, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 5.5rem;
-            border: 2px solid rgba(212, 175, 55, 0.15);
+            font-size: 8rem;
+            border: 3px solid rgba(212, 175, 55, 0.18);
             position: relative;
             overflow: hidden;
             transition: all 0.4s ease;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.45);
         }
         .enemy-avatar img {
             width: 100%;
@@ -253,26 +267,30 @@
             object-fit: cover;
         }
         .enemy-avatar .emoji-fallback {
-            font-size: 5.5rem;
+            font-size: 8rem;
             line-height: 1;
         }
 
         .enemy-info {
-            flex: 1;
-            min-width: 0;
+            flex: 0 0 auto;
+            width: 100%;
+            max-width: 88%;
             display: flex;
             flex-direction: column;
+            align-items: center;
             justify-content: center;
         }
         .enemy-name {
             font-family: 'Cinzel', serif;
-            font-size: 2.2rem;
+            font-size: 1.7rem;
             font-weight: 700;
             color: #f0e6d3;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 14px;
             flex-wrap: wrap;
+            text-align: center;
         }
         .enemy-name .sub {
             font-size: 1.0rem;
@@ -281,15 +299,17 @@
             font-family: 'Noto Sans TC', sans-serif;
         }
         .enemy-status-text {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             color: #b8a88a;
-            margin-top: 4px;
-            min-height: 1.6em;
+            margin-top: 2px;
+            min-height: 1.4em;
+            text-align: center;
         }
+        /* 縮小的血量條 */
         .enemy-hp-bar {
-            margin-top: 14px;
+            margin-top: 8px;
             width: 100%;
-            height: 14px;
+            height: 8px;
             background: rgba(255, 255, 255, 0.06);
             border-radius: 20px;
             overflow: hidden;
@@ -307,17 +327,19 @@
             background: linear-gradient(90deg, #ff6b5a, #ff4a3a);
         }
 
-        /* 對敵傷害列表 — 顯示在敵人資訊右側 */
+        /* 對敵傷害列表 — 懸浮於敵人區域右上角 */
         .damage-dealt-container {
+            position: absolute;
+            top: 18px;
+            right: 22px;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 4px;
-            flex-shrink: 0;
-            max-height: 100%;
+            max-height: 62%;
             overflow-y: auto;
-            padding-left: 16px;
-            min-width: 80px;
+            padding-left: 8px;
+            pointer-events: none;
         }
         .damage-dealt-container .dealt-item {
             font-family: 'Cinzel', serif;
@@ -338,41 +360,55 @@
             text-shadow: 0 0 20px rgba(100, 120, 140, 0.2);
         }
 
-        /* ===== 咒語選擇 — 固定高度，不壓縮上方 ===== */
+        /* ===== 右側面板 ===== */
+        .right-panel {
+            flex: 1 1 44%;
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* ===== 咒語選擇 — 2×2 網格，置於右上半部 ===== */
         .spell-selector {
+            flex: 1 1 56%;
+            min-height: 0;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
             gap: 12px;
-            flex-shrink: 0;
-            margin-bottom: 12px;
-            max-height: 110px;
         }
         .spell-btn {
             background: rgba(255, 255, 255, 0.04);
             border: 2px solid rgba(212, 175, 55, 0.08);
-            border-radius: 20px;
-            padding: 12px 8px;
+            border-radius: 22px;
+            padding: 8px;
             text-align: center;
             cursor: pointer;
             transition: all 0.25s ease;
             font-family: 'Noto Sans TC', sans-serif;
             color: #b8a88a;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 1.2rem;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            overflow: visible;
         }
         .spell-btn .emoji {
             display: block;
-            font-size: 2.0rem;
-            margin-bottom: 2px;
+            font-size: 2.6rem;
+            margin-bottom: 4px;
+            line-height: 1;
         }
         .spell-btn .label {
             display: block;
-            font-size: 0.85rem;
+            font-size: 1.35rem;
+            letter-spacing: 3px;
+            font-weight: 700;
         }
         .spell-btn:hover:not(.active) {
             background: rgba(212, 175, 55, 0.06);
@@ -402,36 +438,61 @@
             opacity: 1;
         }
 
-        /* ===== 咒語顯示區 — 只顯示拼音和文字 ===== */
+        /* 最有效咒語 — 邊緣金光引導 */
+        .spell-btn.best {
+            border-color: #f6d365;
+            color: #f6d365;
+            animation: goldenGlow 1.7s ease-in-out infinite;
+        }
+        .spell-btn.best .emoji {
+            filter: drop-shadow(0 0 10px rgba(246, 211, 101, 0.55));
+        }
+        @keyframes goldenGlow {
+            0%,
+            100% {
+                box-shadow:
+                    0 0 10px 2px rgba(246, 211, 101, 0.45),
+                    0 0 26px 6px rgba(212, 175, 55, 0.22),
+                    inset 0 0 14px rgba(246, 211, 101, 0.12);
+            }
+            50% {
+                box-shadow:
+                    0 0 22px 6px rgba(246, 211, 101, 0.9),
+                    0 0 52px 16px rgba(212, 175, 55, 0.42),
+                    inset 0 0 26px rgba(246, 211, 101, 0.3);
+            }
+        }
+
+        /* ===== 咒語顯示區 — 右下半部：拼音 + 文字 ===== */
         .spell-display {
+            flex: 1 1 44%;
+            min-height: 0;
             background: rgba(0, 0, 0, 0.25);
-            border-radius: 20px;
-            padding: 12px 24px;
-            margin-bottom: 12px;
+            border-radius: 24px;
+            padding: 14px 24px;
             text-align: center;
-            border: 1px solid rgba(212, 175, 55, 0.04);
-            min-height: 70px;
+            border: 1px solid rgba(212, 175, 55, 0.06);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            flex-shrink: 0;
         }
         .spell-display .spell-pinyin {
-            font-size: 1.3rem;
+            font-size: 2.0rem;
             color: #f6d365;
             font-weight: 700;
-            letter-spacing: 4px;
-            margin-bottom: 2px;
-            text-shadow: 0 0 20px rgba(246, 211, 101, 0.3);
+            letter-spacing: 8px;
+            margin-bottom: 6px;
+            text-shadow: 0 0 24px rgba(246, 211, 101, 0.35);
             order: 0;
         }
         .spell-display .spell-chars {
-            font-size: 2.6rem;
+            font-size: 4.6rem;
             font-weight: 700;
             color: #f0e6d3;
-            letter-spacing: 8px;
+            letter-spacing: 12px;
             font-family: 'Cinzel', serif;
+            line-height: 1.1;
             order: 1;
         }
         .spell-display .empty-hint {
@@ -561,30 +622,33 @@
             .game-container {
                 padding: 20px 36px 28px;
             }
+            .main-area {
+                gap: 24px;
+            }
             .enemy-area {
-                padding: 22px 32px 20px;
-                gap: 32px;
+                padding: 22px 28px;
             }
             .enemy-avatar {
-                width: 160px;
-                height: 160px;
-                font-size: 6rem;
+                height: 72%;
+                font-size: 9rem;
+            }
+            .enemy-avatar .emoji-fallback {
+                font-size: 9rem;
             }
             .enemy-name {
-                font-size: 2.6rem;
-            }
-            .spell-display .spell-chars {
-                font-size: 3.2rem;
-            }
-            .spell-display .spell-pinyin {
-                font-size: 1.5rem;
-            }
-            .spell-btn {
-                padding: 16px 12px;
-                font-size: 1.0rem;
+                font-size: 2.2rem;
             }
             .spell-btn .emoji {
-                font-size: 2.4rem;
+                font-size: 3.0rem;
+            }
+            .spell-btn .label {
+                font-size: 1.6rem;
+            }
+            .spell-display .spell-chars {
+                font-size: 5.6rem;
+            }
+            .spell-display .spell-pinyin {
+                font-size: 2.3rem;
             }
             .action-area .btn-record {
                 font-size: 1.3rem;
@@ -630,52 +694,70 @@
                 font-size: 0.85rem;
                 padding: 6px 16px;
             }
-            .enemy-area {
+
+            /* 手機改為上下佈局 */
+            .main-area {
                 flex-direction: column;
-                text-align: center;
-                padding: 14px;
-                gap: 12px;
-                min-height: 160px;
+                gap: 10px;
+            }
+            .enemy-area {
+                flex: 1 1 42%;
+                padding: 12px;
             }
             #enemyContent {
-                flex-wrap: wrap;
-                justify-content: center;
+                gap: 8px;
             }
             .enemy-avatar {
-                width: 90px;
-                height: 90px;
-                font-size: 3.2rem;
+                height: 68%;
+                max-width: 62%;
+                font-size: 3.6rem;
             }
             .enemy-avatar .emoji-fallback {
-                font-size: 3.2rem;
+                font-size: 3.6rem;
             }
             .enemy-name {
-                font-size: 1.2rem;
-                justify-content: center;
+                font-size: 1.1rem;
             }
             .enemy-name .sub {
+                font-size: 0.75rem;
+            }
+            .enemy-status-text {
                 font-size: 0.8rem;
             }
+            .enemy-hp-bar {
+                height: 6px;
+            }
+
+            .right-panel {
+                flex: 1 1 58%;
+                gap: 8px;
+            }
             .spell-selector {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 6px;
-                max-height: 90px;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr 1fr;
+                gap: 8px;
             }
             .spell-btn {
-                padding: 8px 4px;
-                font-size: 0.7rem;
-                border-radius: 14px;
+                padding: 6px 4px;
+                border-radius: 16px;
             }
             .spell-btn .emoji {
-                font-size: 1.4rem;
+                font-size: 1.6rem;
+            }
+            .spell-btn .label {
+                font-size: 1.05rem;
+                letter-spacing: 1px;
             }
             .spell-display .spell-chars {
-                font-size: 1.8rem;
-                letter-spacing: 4px;
+                font-size: 2.6rem;
+                letter-spacing: 6px;
             }
             .spell-display .spell-pinyin {
-                font-size: 1.0rem;
-                letter-spacing: 2px;
+                font-size: 1.1rem;
+                letter-spacing: 3px;
+            }
+            .action-area {
+                gap: 8px;
             }
             .action-area .btn-record {
                 padding: 10px 20px;
@@ -704,17 +786,13 @@
         }
 
         @media (max-width: 420px) {
-            .spell-selector {
-                grid-template-columns: repeat(2, 1fr);
-                max-height: 160px;
-            }
             .header {
                 flex-wrap: wrap;
                 gap: 6px;
             }
             .damage-dealt-container {
-                min-width: 60px;
-                padding-left: 8px;
+                top: 10px;
+                right: 12px;
             }
         }
 
@@ -771,61 +849,70 @@
             <button class="btn-primary" id="btnAdventure" data-i18n="startAdventure">⚡ 開始冒險</button>
         </div>
 
-        <!-- ====== 敵人區域 ====== -->
-        <div class="enemy-area relative" id="enemyArea">
-            <!-- 敵人內容 -->
-            <div id="enemyContent">
-                <div class="enemy-avatar" id="enemyAvatar">
-                    <span class="emoji-fallback">🪄</span>
-                </div>
-                <div class="enemy-info">
-                    <div class="enemy-name" id="enemyName">
-                        <span data-i18n="waiting">等待開始</span>
-                        <span class="sub" id="enemySub"></span>
+        <!-- ====== 主區域：左右佈局 ====== -->
+        <div class="main-area">
+
+            <!-- ====== 左側：敵人區域 ====== -->
+            <div class="enemy-area relative" id="enemyArea">
+                <!-- 敵人內容 -->
+                <div id="enemyContent">
+                    <div class="enemy-avatar" id="enemyAvatar">
+                        <span class="emoji-fallback">🪄</span>
                     </div>
-                    <div class="enemy-status-text" id="enemyStatusText" data-i18n="clickStart">點擊「開始冒險」遭遇敵人</div>
-                    <div class="enemy-hp-bar">
-                        <div class="enemy-hp-fill" id="enemyHpFill" style="width:0%;"></div>
+                    <div class="enemy-info">
+                        <div class="enemy-name" id="enemyName">
+                            <span data-i18n="waiting">等待開始</span>
+                        </div>
+                        <div class="enemy-status-text" id="enemyStatusText" data-i18n="clickStart">點擊「開始冒險」遭遇敵人</div>
+                        <div class="enemy-hp-bar">
+                            <div class="enemy-hp-fill" id="enemyHpFill" style="width:0%;"></div>
+                        </div>
                     </div>
                 </div>
                 <!-- 對敵傷害列表 -->
                 <div class="damage-dealt-container" id="damageDealtContainer"></div>
+
+                <!-- 遊戲結束遮罩 -->
+                <div class="game-over-overlay" id="gameOverOverlay">
+                    <div class="big-text" id="gameOverTitle">💀 戰敗</div>
+                    <div class="sub-text" id="gameOverSub">點擊「開始冒險」重新挑戰</div>
+                </div>
             </div>
 
-            <!-- 遊戲結束遮罩 -->
-            <div class="game-over-overlay" id="gameOverOverlay">
-                <div class="big-text" id="gameOverTitle">💀 戰敗</div>
-                <div class="sub-text" id="gameOverSub">點擊「開始冒險」重新挑戰</div>
-            </div>
-        </div>
+            <!-- ====== 右側面板 ====== -->
+            <div class="right-panel">
 
-        <!-- ====== 咒語選擇 ====== -->
-        <div class="spell-selector" id="spellSelector">
-            <div class="spell-btn" data-pos="wand">
-                <span class="emoji">🪄</span>
-                <span class="label" data-i18n="posWand">魔杖</span>
-                <span class="badge">✓</span>
-            </div>
-            <div class="spell-btn" data-pos="body">
-                <span class="emoji">🧘</span>
-                <span class="label" data-i18n="posBody">身體</span>
-                <span class="badge">✓</span>
-            </div>
-            <div class="spell-btn" data-pos="forehead">
-                <span class="emoji">🤯</span>
-                <span class="label" data-i18n="posForehead">額頭</span>
-                <span class="badge">✓</span>
-            </div>
-            <div class="spell-btn" data-pos="defense">
-                <span class="emoji">🛡️</span>
-                <span class="label" data-i18n="posDefense">自衛</span>
-                <span class="badge">✓</span>
-            </div>
-        </div>
+                <!-- 咒語選擇：2×2，位於右上半部 -->
+                <div class="spell-selector" id="spellSelector">
+                    <div class="spell-btn" data-pos="wand">
+                        <span class="emoji">🪄</span>
+                        <span class="label" data-i18n="posWand">飛</span>
+                        <span class="badge">✓</span>
+                    </div>
+                    <div class="spell-btn" data-pos="body">
+                        <span class="emoji">🧘</span>
+                        <span class="label" data-i18n="posBody">停</span>
+                        <span class="badge">✓</span>
+                    </div>
+                    <div class="spell-btn" data-pos="forehead">
+                        <span class="emoji">🤯</span>
+                        <span class="label" data-i18n="posForehead">睡</span>
+                        <span class="badge">✓</span>
+                    </div>
+                    <div class="spell-btn" data-pos="defense">
+                        <span class="emoji">🛡️</span>
+                        <span class="label" data-i18n="posDefense">淨</span>
+                        <span class="badge">✓</span>
+                    </div>
+                </div>
 
-        <!-- ====== 咒語顯示區（僅拼音+文字） ====== -->
-        <div class="spell-display" id="spellDisplay">
-            <div class="empty-hint" data-i18n="selectSpell">👆 請選擇一個部位來施展咒語</div>
+                <!-- 咒語顯示區（僅拼音 + 文字），位於右下半部 -->
+                <div class="spell-display" id="spellDisplay">
+                    <div class="empty-hint" data-i18n="selectSpell">👆 請選擇一個部位來施展咒語</div>
+                </div>
+
+            </div>
+
         </div>
 
         <!-- ====== 操作區 ====== -->
@@ -860,10 +947,10 @@
                 recording: '🔴 錄音中...',
                 recognizing: '🧠 辨識中...',
                 evaluating: '📊 評分中...',
-                posWand: '魔杖',
-                posBody: '身體',
-                posForehead: '額頭',
-                posDefense: '自衛',
+                posWand: '飛',
+                posBody: '停',
+                posForehead: '睡',
+                posDefense: '淨',
                 enemyDefeated: '💥 擊敗！',
                 enemyAttacking: '⚡ 攻擊！',
                 enemyIneffective: '❌ 無效',
@@ -877,7 +964,7 @@
                 weak: '⚠️ 弱效',
                 ineffective: '❌ 無效',
                 overkill: '🔥 超效！',
-                overkillPenalty: '🔥 超效！過度使用武力 -10 分',
+                overkillPenalty: '⚡ -10 分',
                 damage: '傷害',
                 hp: 'HP',
                 enemy: '敵人',
@@ -888,14 +975,14 @@
                 patronus: '守護之力',
                 disarm: '解除武器',
                 calm: '冷靜',
-                spell_wand: '除你武器',
-                spell_body: '統統石化',
-                spell_forehead: '昏昏倒地',
-                spell_defense: '呼神護衛',
-                pinyin_wand: 'chú nǐ wǔ qì',
-                pinyin_body: 'tǒng tǒng shí huà',
-                pinyin_forehead: 'hūn hūn dǎo dì',
-                pinyin_defense: 'hū shén hù wèi',
+                spell_wand: '飛',
+                spell_body: '停',
+                spell_forehead: '睡',
+                spell_defense: '淨',
+                pinyin_wand: 'fēi',
+                pinyin_body: 'tíng',
+                pinyin_forehead: 'shuì',
+                pinyin_defense: 'jìng',
                 effect_effective: '💪 有效',
                 effect_weak: '⚠️ 弱效',
                 effect_ineffective: '❌ 無效',
@@ -921,10 +1008,10 @@
                 recording: '🔴 Recording...',
                 recognizing: '🧠 Recognizing...',
                 evaluating: '📊 Evaluating...',
-                posWand: 'Wand',
-                posBody: 'Body',
-                posForehead: 'Forehead',
-                posDefense: 'Defense',
+                posWand: 'Fly',
+                posBody: 'Stop',
+                posForehead: 'Sleep',
+                posDefense: 'Cleanse',
                 enemyDefeated: '💥 Defeated!',
                 enemyAttacking: '⚡ Attack!',
                 enemyIneffective: '❌ Ineffective',
@@ -938,7 +1025,7 @@
                 weak: '⚠️ Weak',
                 ineffective: '❌ Ineffective',
                 overkill: '🔥 Overkill!',
-                overkillPenalty: '🔥 Overkill! Excessive force -10 pts',
+                overkillPenalty: '⚡ -10 pts',
                 damage: 'Damage',
                 hp: 'HP',
                 enemy: 'Enemy',
@@ -949,14 +1036,14 @@
                 patronus: 'Patronus',
                 disarm: 'Disarm',
                 calm: 'Calm',
-                spell_wand: 'Expelliarmus',
-                spell_body: 'Petrificus',
-                spell_forehead: 'Stupefy',
-                spell_defense: 'Patronus',
-                pinyin_wand: 'chú nǐ wǔ qì',
-                pinyin_body: 'tǒng tǒng shí huà',
-                pinyin_forehead: 'hūn hūn dǎo dì',
-                pinyin_defense: 'hū shén hù wèi',
+                spell_wand: 'Fly',
+                spell_body: 'Stop',
+                spell_forehead: 'Sleep',
+                spell_defense: 'Cleanse',
+                pinyin_wand: 'fēi',
+                pinyin_body: 'tíng',
+                pinyin_forehead: 'shuì',
+                pinyin_defense: 'jìng',
                 effect_effective: '💪 Effective',
                 effect_weak: '⚠️ Weak',
                 effect_ineffective: '❌ Ineffective',
@@ -971,31 +1058,31 @@
         //  2. 遊戲資料 (HP 80)
         // ================================================================
         const ENEMIES = [
-            { id: 'dementor', name_zh: '攝魂怪', name_en: 'Dementor', emoji: '👻', hp: 80, hint_zh: '守護之力',
-                hint_en: 'Patronus' },
-            { id: 'voldemort', name_zh: '伏地魔', name_en: 'Voldemort', emoji: '🐍', hp: 80, hint_zh: '解除武器',
-                hint_en: 'Disarm' },
-            { id: 'malfoy', name_zh: '馬爾福', name_en: 'Malfoy', emoji: '🧙‍♂️', hp: 80, hint_zh: '冷靜', hint_en: 'Calm' }
+            { id: 'dementor', name_zh: '攝魂怪', name_en: 'Dementor', emoji: '👻', hp: 80, hint_zh: '淨',
+                hint_en: 'Cleanse' },
+            { id: 'voldemort', name_zh: '伏地魔', name_en: 'Voldemort', emoji: '🐍', hp: 80, hint_zh: '飛',
+                hint_en: 'Fly' },
+            { id: 'malfoy', name_zh: '馬爾福', name_en: 'Malfoy', emoji: '🧙‍♂️', hp: 80, hint_zh: '睡', hint_en: 'Sleep' }
         ];
 
         const SPELLS = {
-            '除你武器': { pinyin: 'chu2|ni3|wu3|qi4', pos: 'wand', effects: { dementor: 'ineffective', voldemort: 'effective',
+            '飛': { pinyin: 'fei1', pos: 'wand', effects: { dementor: 'ineffective', voldemort: 'effective',
                     malfoy: 'weak' } },
-            '統統石化': { pinyin: 'tong1|tong1|shi2|hua4', pos: 'body', effects: { dementor: 'ineffective',
+            '停': { pinyin: 'ting2', pos: 'body', effects: { dementor: 'ineffective',
                     voldemort: 'ineffective', malfoy: 'overkill' } },
-            '昏昏倒地': { pinyin: 'hun1|hun1|dao3|di4', pos: 'forehead', effects: { dementor: 'weak', voldemort: 'weak',
+            '睡': { pinyin: 'shui4', pos: 'forehead', effects: { dementor: 'weak', voldemort: 'weak',
                     malfoy: 'effective' } },
-            '呼神護衛': { pinyin: 'hu1|shen2|hu4|wei4', pos: 'defense', effects: { dementor: 'effective',
+            '淨': { pinyin: 'jing4', pos: 'defense', effects: { dementor: 'effective',
                     voldemort: 'ineffective', malfoy: 'ineffective' } }
         };
 
-        const POS_TO_SPELL = { wand: '除你武器', body: '統統石化', forehead: '昏昏倒地', defense: '呼神護衛' };
+        const POS_TO_SPELL = { wand: '飛', body: '停', forehead: '睡', defense: '淨' };
 
         const TRAD_TO_SIMP = {
-            '除你武器': '除你武器',
-            '統統石化': '统统石化',
-            '昏昏倒地': '昏昏倒地',
-            '呼神護衛': '呼神护卫'
+            '飛': '飞',
+            '停': '停',
+            '睡': '睡',
+            '淨': '净'
         };
 
         const STATUS_INDEX = {
@@ -1161,7 +1248,7 @@
             const key = POS_TO_SPELL[pos];
             if (!key) return { chars: '', pinyin: '' };
             const spell = SPELLS[key];
-            const chars = currentLang === 'zh' ? key : key;
+            const chars = currentLang === 'zh' ? key : t('spell_' + pos);
             const pinyinRaw = spell.pinyin;
             const pinyin = pinyinRaw.split('|').map(s => {
                 const num = parseInt(s.slice(-1));
@@ -1726,6 +1813,24 @@
             });
 
             dom.btnAdventure.disabled = state.battleProcessing;
+
+            // 以金光標示最有效的咒語
+            updateBestSpellGlow();
+        }
+
+        // 標示對當前敵人「最有效」的咒語按鈕（金光引導）
+        function updateBestSpellGlow() {
+            const enemy = state.currentEnemy;
+            const active = !!(enemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver);
+            document.querySelectorAll('.spell-btn').forEach(el => {
+                let isBest = false;
+                if (active) {
+                    const spellKey = POS_TO_SPELL[el.dataset.pos];
+                    const eff = SPELLS[spellKey]?.effects[enemy.id];
+                    isBest = (eff === 'effective');
+                }
+                el.classList.toggle('best', isBest);
+            });
         }
 
         function renderEnemy() {
@@ -1742,8 +1847,7 @@
 
             if (!enemy) {
                 dom.enemyAvatar.innerHTML = `<span class="emoji-fallback">🪄</span>`;
-                dom.enemyName.innerHTML =
-                    `<span data-i18n="waiting">${t('waiting')}</span><span class="sub" id="enemySub"></span>`;
+                dom.enemyName.innerHTML = `<span data-i18n="waiting">${t('waiting')}</span>`;
                 dom.enemyStatusText.textContent = t('clickStart');
                 dom.enemyHpFill.style.width = '0%';
                 dom.enemyHpFill.className = 'enemy-hp-fill';
@@ -1751,7 +1855,6 @@
             }
 
             const name = getEnemyName(enemy);
-            const hint = getEnemyHint(enemy);
             const hpPercent = state.enemyHp > 0 ? (state.enemyHp / enemy.hp) * 100 : 0;
 
             const statusIdx = STATUS_INDEX[state.enemyStatus] ?? 0;
@@ -1771,33 +1874,10 @@
             img.style.height = '100%';
             img.style.objectFit = 'cover';
 
-            dom.enemyName.innerHTML = `
-                <span>${name}</span>
-                <span class="sub">${hint ? '✨ ' + hint : ''}</span>
-            `;
+            dom.enemyName.innerHTML = `<span>${name}</span>`;
 
-            let statusText = '';
-            if (state.enemyStatus === 'defeated') {
-                statusText = t('enemyDefeated');
-            } else if (state.enemyStatus === 'attacking') {
-                statusText = t('enemyAttacking');
-            } else if (state.enemyStatus !== 'default') {
-                const effect = state.lastEffect;
-                if (effect === 'effective') {
-                    statusText = t('effect_effective');
-                } else if (effect === 'weak') {
-                    statusText = t('effect_weak');
-                } else if (effect === 'overkill') {
-                    statusText = t('effect_overkill');
-                } else if (effect === 'ineffective') {
-                    statusText = t('effect_ineffective');
-                } else {
-                    statusText = `${t('hp')}: ${state.enemyHp}/${enemy.hp}`;
-                }
-            } else {
-                statusText = `${t('hp')}: ${state.enemyHp}/${enemy.hp}`;
-            }
-            dom.enemyStatusText.textContent = statusText;
+            // 只顯示血量，不使用文字標記效果或狀態
+            dom.enemyStatusText.textContent = `${t('hp')}: ${Math.max(0, state.enemyHp)}/${enemy.hp}`;
 
             dom.enemyHpFill.style.width = Math.max(0, hpPercent) + '%';
             dom.enemyHpFill.className = 'enemy-hp-fill' + (hpPercent < 25 ? ' low' : '');
@@ -1970,7 +2050,7 @@
         }
 
         // ================================================================
-        //  14-2. 選擇咒語（修正英文咒語名稱）
+        //  14-2. 選擇咒語
         // ================================================================
         function selectSpell(pos) {
             if (state.gameOver || !state.currentEnemy || state.enemyDefeated) {
@@ -1989,21 +2069,17 @@
                 el.classList.toggle('active', el.dataset.pos === pos);
             });
 
-            // 獲取咒語名稱（根據語言）
-            const spellKey = POS_TO_SPELL[pos];
+            // 只顯示咒語名稱，效果改由金光引導
             const spellInfo = getSpellDisplay(pos);
             const spellName = currentLang === 'zh' ? spellInfo.chars : t('spell_' + pos);
-            const effect = state.currentEnemy ? SPELLS[spellKey]?.effects[state.currentEnemy.id] : null;
-            const effectText = effect ? getEffectText(effect) : '';
-            const feedbackMsg = `✨ ${spellName} ${effectText ? '⚡ ' + effectText : ''}`;
-            setFeedback(feedbackMsg, 'info');
+            setFeedback(`✨ ${spellName}`, 'info');
 
             updateSpellDisplay();
             dom.btnRecord.disabled = false;
         }
 
         // ================================================================
-        //  15. 錄音相關（其餘函數保持不變）
+        //  15. 錄音相關
         // ================================================================
         async function toggleRecording() {
             if (state.isRecording) {
@@ -2154,7 +2230,7 @@
             setFeedback(t('ready'), '');
             dom.btnRecord.disabled = true;
             preloadMicrophone().catch(() => {});
-            console.log('⚡ 可譽波特 · 魔法對決 已啟動 (全屏優化版)');
+            console.log('⚡ 可譽波特 · 魔法對決 已啟動 (左右佈局版)');
             setTimeout(() => startAdventure(), 300);
         }
 
