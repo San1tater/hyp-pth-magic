@@ -885,22 +885,22 @@
                 <!-- 咒語選擇：2×2，位於右上半部 -->
                 <div class="spell-selector" id="spellSelector">
                     <div class="spell-btn" data-pos="wand">
-                        <span class="emoji">🪄</span>
+                        <span class="emoji">🕊️</span>
                         <span class="label" data-i18n="posWand">飛</span>
                         <span class="badge">✓</span>
                     </div>
                     <div class="spell-btn" data-pos="body">
-                        <span class="emoji">🧘</span>
+                        <span class="emoji">✋</span>
                         <span class="label" data-i18n="posBody">停</span>
                         <span class="badge">✓</span>
                     </div>
                     <div class="spell-btn" data-pos="forehead">
-                        <span class="emoji">🤯</span>
+                        <span class="emoji">😴</span>
                         <span class="label" data-i18n="posForehead">睡</span>
                         <span class="badge">✓</span>
                     </div>
                     <div class="spell-btn" data-pos="defense">
-                        <span class="emoji">🛡️</span>
+                        <span class="emoji">✨</span>
                         <span class="label" data-i18n="posDefense">淨</span>
                         <span class="badge">✓</span>
                     </div>
@@ -908,7 +908,7 @@
 
                 <!-- 咒語顯示區（僅拼音 + 文字），位於右下半部 -->
                 <div class="spell-display" id="spellDisplay">
-                    <div class="empty-hint" data-i18n="selectSpell">👆 請選擇一個部位來施展咒語</div>
+                    <div class="empty-hint" data-i18n="selectSpell">請選擇最有用的咒語</div>
                 </div>
 
             </div>
@@ -943,7 +943,7 @@
                 restart: '🔄 重新開始',
                 waiting: '等待開始',
                 clickStart: '點擊「開始冒險」遭遇敵人',
-                selectSpell: '👆 請選擇一個部位來施展咒語',
+                selectSpell: '請選擇最有用的咒語',
                 ready: '準備就緒',
                 startRecord: '開始唸咒',
                 stopRecord: '停止錄音',
@@ -1005,7 +1005,7 @@
                 restart: '🔄 Restart',
                 waiting: 'Waiting',
                 clickStart: 'Click "Start" to encounter an enemy',
-                selectSpell: '👆 Select a body part to cast a spell',
+                selectSpell: 'Choose the most useful spell',
                 ready: 'Ready',
                 startRecord: 'Speak',
                 stopRecord: 'Stop',
@@ -1612,31 +1612,7 @@
                 initial: item.initial || '',
                 final: item.final || '',
                 num: item.num,  // 1-4, 轻声为 0
-                polyphonic: item.polyphonic || [item.pinyin]
             }));
-        }
-
-        /**
-         * 取得一個音節的所有可能讀音（處理多音字）
-         * 返回陣列，每個元素為 { initial, final, num }
-         */
-        function getAllReadings(syllableInfo) {
-            if (!syllableInfo.polyphonic || syllableInfo.polyphonic.length === 0) {
-                return [{ initial: syllableInfo.initial, final: syllableInfo.final, num: syllableInfo.num }];
-            }
-            return syllableInfo.polyphonic.map(py => {
-                // 從 polyphonic 拼音字串中解析出聲母、韻母、聲調
-                const parsed = pinyinPro.pinyin(py, { type: 'all' });
-                if (parsed.length > 0 && parsed[0].isZh) {
-                    return {
-                        initial: parsed[0].initial || '',
-                        final: parsed[0].final || '',
-                        num: parsed[0].num
-                    };
-                }
-                // 降級：使用原始資訊
-                return { initial: syllableInfo.initial, final: syllableInfo.final, num: syllableInfo.num };
-            });
         }
 
         /**
@@ -1644,81 +1620,60 @@
          * 返回 0~1 之間的分數
          */
         function compareSyllable(recognizedSyl, targetSyl) {
-            const readings = getAllReadings(targetSyl);
-            let bestScore = 0;
+            let correct = 0;
 
-            for (const reading of readings) {
-                let correct = 0;
-                // 聲母比對
-                if (recognizedSyl.initial === reading.initial) correct++;
-                // 韻母比對（去除聲調符號後比較基礎韻母）
-                const recFinalBase = recognizedSyl.final.replace(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/g,
-                    m => ({ 'ā': 'a', 'á': 'a', 'ǎ': 'a', 'à': 'a', 'ē': 'e', 'é': 'e', 'ě': 'e', 'è': 'e',
-                        'ī': 'i', 'í': 'i', 'ǐ': 'i', 'ì': 'i', 'ō': 'o', 'ó': 'o', 'ǒ': 'o', 'ò': 'o',
-                        'ū': 'u', 'ú': 'u', 'ǔ': 'u', 'ù': 'u', 'ǖ': 'ü', 'ǘ': 'ü', 'ǚ': 'ü', 'ǜ': 'ü'
-                    }[m] || m));
-                const tgtFinalBase = reading.final.replace(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/g,
-                    m => ({ 'ā': 'a', 'á': 'a', 'ǎ': 'a', 'à': 'a', 'ē': 'e', 'é': 'e', 'ě': 'e', 'è': 'e',
-                        'ī': 'i', 'í': 'i', 'ǐ': 'i', 'ì': 'i', 'ō': 'o', 'ó': 'o', 'ǒ': 'o', 'ò': 'o',
-                        'ū': 'u', 'ú': 'u', 'ǔ': 'u', 'ù': 'u', 'ǖ': 'ü', 'ǘ': 'ü', 'ǚ': 'ü', 'ǜ': 'ü'
-                    }[m] || m));
-                if (recFinalBase === tgtFinalBase) correct++;
-                // 聲調比對（數字）
-                if (recognizedSyl.num === reading.num) correct++;
+            // 聲母比對
+            if (recognizedSyl.initial === targetSyl.initial) correct++;
 
-                const score = correct / 3;
-                if (score > bestScore) bestScore = score;
-            }
+            // 韻母比對（去除聲調符號後比較基礎韻母）
+            const stripTone = (s) => s.replace(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/g,
+                m => ({ 'ā': 'a', 'á': 'a', 'ǎ': 'a', 'à': 'a', 'ē': 'e', 'é': 'e', 'ě': 'e', 'è': 'e',
+                    'ī': 'i', 'í': 'i', 'ǐ': 'i', 'ì': 'i', 'ō': 'o', 'ó': 'o', 'ǒ': 'o', 'ò': 'o',
+                    'ū': 'u', 'ú': 'u', 'ǔ': 'u', 'ù': 'u', 'ǖ': 'ü', 'ǘ': 'ü', 'ǚ': 'ü', 'ǜ': 'ü'
+                }[m] || m));
+            if (stripTone(recognizedSyl.final) === stripTone(targetSyl.final)) correct++;
 
-            return bestScore;
+            // 聲調比對（數字）
+            if (recognizedSyl.num === targetSyl.num) correct++;
+
+            return correct / 3;
         }
 
         /**
-         * 評分主函數：將識別文字與目標咒語都轉為拼音，逐音節比對三個維度
-         * 最終得分 = 平均分 × 100，四捨五入取整
+         * 評分主函數：
+         * 如果識別出多個字，對每個字單獨評分（與目標咒語比較），只取最高分的那個字的分數
          */
         function evaluateSpell(recognizedText, targetSpell) {
-            // 轉換為簡體（語音辨識通常返回簡體中文）
             const targetSimplified = toSimplified(targetSpell);
             const cleanTarget = removePunctuation(targetSimplified);
             const cleanRecognized = removePunctuation(recognizedText);
 
             if (!cleanTarget || !cleanRecognized) {
-                return { score: 0, matchCount: 0, total: cleanTarget.length || 0, recognized: cleanRecognized,
-                    target: cleanTarget };
+                return { score: 0, matchCount: 0, total: 1, recognized: cleanRecognized, target: cleanTarget };
             }
 
-            // 取得拼音音節陣列
             const targetSyls = getPinyinParts(cleanTarget);
             const recSyls = getPinyinParts(cleanRecognized);
 
-            if (targetSyls.length === 0) {
-                return { score: 0, matchCount: 0, total: 0, recognized: cleanRecognized, target: cleanTarget };
+            if (targetSyls.length === 0 || recSyls.length === 0) {
+                return { score: 0, matchCount: 0, total: 1, recognized: cleanRecognized, target: cleanTarget };
             }
 
-            // 逐音節比對，取最優對齊（識別結果可能多字或少字）
-            // 以目標音節數為基準，為每個目標音節找最佳匹配的識別音節
-            let totalScore = 0;
-            let matchCount = 0;
+            // 目標通常是一個字，取第一個音節作為基準
+            const targetSyl = targetSyls[0];
 
-            for (let i = 0; i < targetSyls.length; i++) {
-                let bestForTarget = 0;
-                // 在識別結果中尋找最佳匹配（允許位置偏移）
-                for (let j = 0; j < recSyls.length; j++) {
-                    const s = compareSyllable(recSyls[j], targetSyls[i]);
-                    if (s > bestForTarget) bestForTarget = s;
-                }
-                totalScore += bestForTarget;
-                if (bestForTarget > 0) matchCount++;
+            // 對識別出的每個字單獨評分，取最高分
+            let bestScore = 0;
+            for (const recSyl of recSyls) {
+                const s = compareSyllable(recSyl, targetSyl);
+                if (s > bestScore) bestScore = s;
             }
 
-            const avgScore = totalScore / targetSyls.length;
-            const score = Math.round(avgScore * 100);
-
+            const score = Math.round(bestScore * 100);
             return {
                 score,
-                matchCount,
-                total: targetSyls.length,
+                matchCount: bestScore > 0 ? 1 : 0,
+                total: 1,
                 recognized: cleanRecognized,
                 target: cleanTarget
             };
@@ -2232,7 +2187,7 @@
                 const evalResult = evaluateSpell(recognizedText, targetSpell);
                 const score = evalResult.score;
 
-                setFeedback(`📊 ${t('score_label')}: ${score}%  (${evalResult.matchCount}/${evalResult.total})`, 'info');
+                setFeedback(`📊 ${t('score_label')}: ${score}%`, 'info');
 
                 const displayMsg = `${t('recognitionResult')}: "${recognizedText}"  |  ${t('matchRate')}: ${score}%`;
                 setFeedback(displayMsg, score >= 60 ? 'success' : 'error');
@@ -2324,7 +2279,7 @@
             setFeedback(t('ready'), '');
             dom.btnRecord.disabled = true;
             preloadMicrophone().catch(() => {});
-            console.log('⚡ 可譽波特 · 魔法對決 已啟動 (拼音維度評分版)');
+            console.log('⚡ 可譽波特 · 魔法對決 已啟動 (最高分單字評分版)');
             setTimeout(() => startAdventure(), 300);
         }
 
@@ -2341,6 +2296,7 @@
             setLang,
             evaluateSpell,
             getPinyinParts,
+            compareSyllable,
         };
     </script>
 
