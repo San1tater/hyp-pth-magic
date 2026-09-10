@@ -925,9 +925,12 @@
 
     </div>
 
+    <!-- 引入 pinyin-pro 庫（用於聲母/韻母/聲調維度評分） -->
+    <script src="https://unpkg.com/pinyin-pro"></script>
+
     <script>
         // ================================================================
-        //  1. 語言包
+        //  1. 語言包（咒語名稱一律保持中文，不隨語言切換翻譯）
         // ================================================================
         const LANG = {
             zh: {
@@ -975,6 +978,7 @@
                 patronus: '守護之力',
                 disarm: '解除武器',
                 calm: '冷靜',
+                /* 咒語名稱：中英文介面皆顯示中文 */
                 spell_wand: '飛',
                 spell_body: '停',
                 spell_forehead: '睡',
@@ -1008,10 +1012,11 @@
                 recording: '🔴 Recording...',
                 recognizing: '🧠 Recognizing...',
                 evaluating: '📊 Evaluating...',
-                posWand: 'Fly',
-                posBody: 'Stop',
-                posForehead: 'Sleep',
-                posDefense: 'Cleanse',
+                /* 咒語名稱一律保持中文，不翻譯 */
+                posWand: '飛',
+                posBody: '停',
+                posForehead: '睡',
+                posDefense: '淨',
                 enemyDefeated: '💥 Defeated!',
                 enemyAttacking: '⚡ Attack!',
                 enemyIneffective: '❌ Ineffective',
@@ -1036,10 +1041,11 @@
                 patronus: 'Patronus',
                 disarm: 'Disarm',
                 calm: 'Calm',
-                spell_wand: 'Fly',
-                spell_body: 'Stop',
-                spell_forehead: 'Sleep',
-                spell_defense: 'Cleanse',
+                /* 咒語名稱一律保持中文，不翻譯 */
+                spell_wand: '飛',
+                spell_body: '停',
+                spell_forehead: '睡',
+                spell_defense: '淨',
                 pinyin_wand: 'fēi',
                 pinyin_body: 'tíng',
                 pinyin_forehead: 'shuì',
@@ -1059,10 +1065,10 @@
         // ================================================================
         const ENEMIES = [
             { id: 'dementor', name_zh: '攝魂怪', name_en: 'Dementor', emoji: '👻', hp: 80, hint_zh: '淨',
-                hint_en: 'Cleanse' },
+                hint_en: '淨' },
             { id: 'voldemort', name_zh: '伏地魔', name_en: 'Voldemort', emoji: '🐍', hp: 80, hint_zh: '飛',
-                hint_en: 'Fly' },
-            { id: 'malfoy', name_zh: '馬爾福', name_en: 'Malfoy', emoji: '🧙‍♂️', hp: 80, hint_zh: '睡', hint_en: 'Sleep' }
+                hint_en: '飛' },
+            { id: 'malfoy', name_zh: '馬爾福', name_en: 'Malfoy', emoji: '🧙‍♂️', hp: 80, hint_zh: '睡', hint_en: '睡' }
         ];
 
         const SPELLS = {
@@ -1204,7 +1210,6 @@
         function updateButtonsLang() {
             const btn = dom.btnAdventure;
             if (state.gameOver) {
-                // 遊戲結束時統一顯示「重新開始」
                 btn.textContent = t('restart');
                 btn.className = 'btn-primary' + (state.victory ? '' : ' danger');
                 return;
@@ -1241,14 +1246,14 @@
 
         function getEnemyHint(enemy) {
             if (!enemy) return '';
-            return currentLang === 'zh' ? enemy.hint_zh : enemy.hint_en;
+            return enemy.hint_zh;
         }
 
         function getSpellDisplay(pos) {
             const key = POS_TO_SPELL[pos];
             if (!key) return { chars: '', pinyin: '' };
             const spell = SPELLS[key];
-            const chars = currentLang === 'zh' ? key : t('spell_' + pos);
+            const chars = key;
             const pinyinRaw = spell.pinyin;
             const pinyin = pinyinRaw.split('|').map(s => {
                 const num = parseInt(s.slice(-1));
@@ -1272,16 +1277,6 @@
                 return base;
             });
             return { chars, pinyin: pinyin.join(' ') };
-        }
-
-        function getEffectText(effect) {
-            const map = {
-                'effective': t('effect_effective'),
-                'weak': t('effect_weak'),
-                'ineffective': t('effect_ineffective'),
-                'overkill': t('effect_overkill'),
-            };
-            return map[effect] || effect;
         }
 
         function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -1599,29 +1594,134 @@
         }
 
         // ================================================================
-        //  11. 評分（字符集交集）
+        //  11. 拼音維度評分（聲母 / 韻母 / 聲調）
         // ================================================================
+
+        /**
+         * 使用 pinyin-pro 獲取一個漢字的完整拼音資訊（含聲母、韻母、聲調數字）
+         * 返回陣列，每個元素對應一個音節
+         */
+        function getPinyinParts(text) {
+            const clean = removePunctuation(text);
+            if (!clean) return [];
+            // 使用 type: 'all' 一次取得聲母、韻母、聲調等所有資訊
+            const result = pinyinPro.pinyin(clean, { type: 'all' });
+            // 只保留漢字的音節
+            return result.filter(item => item.isZh).map(item => ({
+                origin: item.origin,
+                initial: item.initial || '',
+                final: item.final || '',
+                num: item.num,  // 1-4, 轻声为 0
+                polyphonic: item.polyphonic || [item.pinyin]
+            }));
+        }
+
+        /**
+         * 取得一個音節的所有可能讀音（處理多音字）
+         * 返回陣列，每個元素為 { initial, final, num }
+         */
+        function getAllReadings(syllableInfo) {
+            if (!syllableInfo.polyphonic || syllableInfo.polyphonic.length === 0) {
+                return [{ initial: syllableInfo.initial, final: syllableInfo.final, num: syllableInfo.num }];
+            }
+            return syllableInfo.polyphonic.map(py => {
+                // 從 polyphonic 拼音字串中解析出聲母、韻母、聲調
+                const parsed = pinyinPro.pinyin(py, { type: 'all' });
+                if (parsed.length > 0 && parsed[0].isZh) {
+                    return {
+                        initial: parsed[0].initial || '',
+                        final: parsed[0].final || '',
+                        num: parsed[0].num
+                    };
+                }
+                // 降級：使用原始資訊
+                return { initial: syllableInfo.initial, final: syllableInfo.final, num: syllableInfo.num };
+            });
+        }
+
+        /**
+         * 比較單個音節的三個維度（聲母、韻母、聲調），每個維度錯誤扣 1/3 分
+         * 返回 0~1 之間的分數
+         */
+        function compareSyllable(recognizedSyl, targetSyl) {
+            const readings = getAllReadings(targetSyl);
+            let bestScore = 0;
+
+            for (const reading of readings) {
+                let correct = 0;
+                // 聲母比對
+                if (recognizedSyl.initial === reading.initial) correct++;
+                // 韻母比對（去除聲調符號後比較基礎韻母）
+                const recFinalBase = recognizedSyl.final.replace(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/g,
+                    m => ({ 'ā': 'a', 'á': 'a', 'ǎ': 'a', 'à': 'a', 'ē': 'e', 'é': 'e', 'ě': 'e', 'è': 'e',
+                        'ī': 'i', 'í': 'i', 'ǐ': 'i', 'ì': 'i', 'ō': 'o', 'ó': 'o', 'ǒ': 'o', 'ò': 'o',
+                        'ū': 'u', 'ú': 'u', 'ǔ': 'u', 'ù': 'u', 'ǖ': 'ü', 'ǘ': 'ü', 'ǚ': 'ü', 'ǜ': 'ü'
+                    }[m] || m));
+                const tgtFinalBase = reading.final.replace(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/g,
+                    m => ({ 'ā': 'a', 'á': 'a', 'ǎ': 'a', 'à': 'a', 'ē': 'e', 'é': 'e', 'ě': 'e', 'è': 'e',
+                        'ī': 'i', 'í': 'i', 'ǐ': 'i', 'ì': 'i', 'ō': 'o', 'ó': 'o', 'ǒ': 'o', 'ò': 'o',
+                        'ū': 'u', 'ú': 'u', 'ǔ': 'u', 'ù': 'u', 'ǖ': 'ü', 'ǘ': 'ü', 'ǚ': 'ü', 'ǜ': 'ü'
+                    }[m] || m));
+                if (recFinalBase === tgtFinalBase) correct++;
+                // 聲調比對（數字）
+                if (recognizedSyl.num === reading.num) correct++;
+
+                const score = correct / 3;
+                if (score > bestScore) bestScore = score;
+            }
+
+            return bestScore;
+        }
+
+        /**
+         * 評分主函數：將識別文字與目標咒語都轉為拼音，逐音節比對三個維度
+         * 最終得分 = 平均分 × 100，四捨五入取整
+         */
         function evaluateSpell(recognizedText, targetSpell) {
+            // 轉換為簡體（語音辨識通常返回簡體中文）
             const targetSimplified = toSimplified(targetSpell);
             const cleanTarget = removePunctuation(targetSimplified);
             const cleanRecognized = removePunctuation(recognizedText);
 
-            const targetCount = {};
-            for (const ch of cleanTarget) {
-                targetCount[ch] = (targetCount[ch] || 0) + 1;
+            if (!cleanTarget || !cleanRecognized) {
+                return { score: 0, matchCount: 0, total: cleanTarget.length || 0, recognized: cleanRecognized,
+                    target: cleanTarget };
             }
 
+            // 取得拼音音節陣列
+            const targetSyls = getPinyinParts(cleanTarget);
+            const recSyls = getPinyinParts(cleanRecognized);
+
+            if (targetSyls.length === 0) {
+                return { score: 0, matchCount: 0, total: 0, recognized: cleanRecognized, target: cleanTarget };
+            }
+
+            // 逐音節比對，取最優對齊（識別結果可能多字或少字）
+            // 以目標音節數為基準，為每個目標音節找最佳匹配的識別音節
+            let totalScore = 0;
             let matchCount = 0;
-            for (const ch of cleanRecognized) {
-                if (targetCount[ch] && targetCount[ch] > 0) {
-                    matchCount++;
-                    targetCount[ch]--;
+
+            for (let i = 0; i < targetSyls.length; i++) {
+                let bestForTarget = 0;
+                // 在識別結果中尋找最佳匹配（允許位置偏移）
+                for (let j = 0; j < recSyls.length; j++) {
+                    const s = compareSyllable(recSyls[j], targetSyls[i]);
+                    if (s > bestForTarget) bestForTarget = s;
                 }
+                totalScore += bestForTarget;
+                if (bestForTarget > 0) matchCount++;
             }
 
-            const total = cleanTarget.length;
-            const score = total > 0 ? Math.round((matchCount / total) * 100) : 0;
-            return { score, matchCount, total, recognized: cleanRecognized, target: cleanTarget };
+            const avgScore = totalScore / targetSyls.length;
+            const score = Math.round(avgScore * 100);
+
+            return {
+                score,
+                matchCount,
+                total: targetSyls.length,
+                recognized: cleanRecognized,
+                target: cleanTarget
+            };
         }
 
         // ================================================================
@@ -1930,30 +2030,24 @@
 
         function startAdventure() {
             if (state.gameOver) {
-                // 重新開始
                 resetGame();
-                // 重置後自動開始新的冒險
                 setTimeout(() => startAdventure(), 100);
                 return;
             }
 
-            // 如果按鈕是「逃跑」，觸發逃跑（視為失敗）
             if (state.currentEnemy && state.enemyHp > 0 && !state.enemyDefeated && !state.gameOver) {
                 fleeBattle();
                 return;
             }
 
-            // 如果當前敵人已擊敗，載入下一場
             if (state.enemyDefeated) {
                 if (state.enemiesDefeated >= 3) {
-                    // 勝利時按鈕會變成重新開始，這裡不會觸發
                     return;
                 }
                 loadNextEnemy();
                 return;
             }
 
-            // 初始或無敵人時，生成順序並載入第一個
             if (state.enemyOrder.length === 0) {
                 const ids = ENEMIES.map(e => e.id);
                 state.enemyOrder = shuffleArray(ids);
@@ -1965,21 +2059,14 @@
             }
         }
 
-        // 逃跑：直接視為失敗，結束遊戲
         function fleeBattle() {
             if (!state.currentEnemy) return;
-            // 設置遊戲結束，失敗
             state.gameOver = true;
             state.victory = false;
-            // 顯示失敗遮罩
             showGameOver(false);
-            // 更新按鈕狀態
             updateButtonsLang();
-            // 禁用錄音等
             dom.btnRecord.disabled = true;
-            // 清理戰鬥處理標誌
             state.battleProcessing = false;
-            // 反饋訊息
             setFeedback('🏃 你逃跑了，挑戰失敗！', 'error');
         }
 
@@ -2069,9 +2156,9 @@
                 el.classList.toggle('active', el.dataset.pos === pos);
             });
 
-            // 只顯示咒語名稱，效果改由金光引導
+            // 咒語名稱一律顯示中文（不隨語言切換翻譯）
             const spellInfo = getSpellDisplay(pos);
-            const spellName = currentLang === 'zh' ? spellInfo.chars : t('spell_' + pos);
+            const spellName = spellInfo.chars;
             setFeedback(`✨ ${spellName}`, 'info');
 
             updateSpellDisplay();
@@ -2223,6 +2310,13 @@
         }
 
         function init() {
+            // 確認 pinyin-pro 已載入
+            if (typeof pinyinPro === 'undefined') {
+                console.error('❌ pinyin-pro 未載入，語音評分功能可能受影響');
+            } else {
+                console.log('✅ pinyin-pro 已載入，拼音維度評分已啟用');
+            }
+
             setLang('zh');
             resetGame();
             initEvents();
@@ -2230,7 +2324,7 @@
             setFeedback(t('ready'), '');
             dom.btnRecord.disabled = true;
             preloadMicrophone().catch(() => {});
-            console.log('⚡ 可譽波特 · 魔法對決 已啟動 (左右佈局版)');
+            console.log('⚡ 可譽波特 · 魔法對決 已啟動 (拼音維度評分版)');
             setTimeout(() => startAdventure(), 300);
         }
 
@@ -2245,6 +2339,8 @@
             renderEnemy,
             updateUI,
             setLang,
+            evaluateSpell,
+            getPinyinParts,
         };
     </script>
 
